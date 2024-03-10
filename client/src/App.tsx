@@ -1,8 +1,8 @@
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 function App() {
-  const { sendMessage, lastMessage, readyState } = useWebSocket("ws://localhost:8787/ws", {
-    shouldReconnect: (event) => true,
+  const { sendMessage, lastMessage, readyState } = useWebSocket("ws://localhost:51334/ws", {
+    shouldReconnect: () => true,
   })
 
   const handleClick = () => sendMessage(Math.random().toString())
