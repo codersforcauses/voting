@@ -18,7 +18,9 @@ const TextInput = (props: TextInputProps) => {
     <div className={cn("flex flex-col gap-0.5 pb-1", props.className)}>
       <label
         htmlFor={field.id}
-        className={cn("leading-0 text-xs", { "text-red-600": hasErrors })}
+        className={cn("leading-0 text-xs text-white", {
+          "text-red-600": hasErrors,
+        })}
       >
         {props.label}
         {field.required && (
