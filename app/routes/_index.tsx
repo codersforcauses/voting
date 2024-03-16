@@ -1,8 +1,12 @@
 import type { MetaFunction } from "@remix-run/cloudflare";
 
-export const meta: MetaFunction = () => {
+export const loader = async () => {
+  return { hello: "world" };
+};
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
-    { title: "New Remix App" },
+    { title: `CFC: ${data?.hello}` },
     {
       name: "description",
       content: "Welcome to Remix! Using Vite and Cloudflare!",

@@ -10,7 +10,7 @@ const voterJoinSchema = z.object({
   code: z.string().length(4),
 });
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request, context }: ActionFunctionArgs) => {
   const formData = await request.formData();
 
   const submission = parseWithZod(formData, { schema: voterJoinSchema });
@@ -22,11 +22,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   console.log(code);
 
+  const id = context.cloudflare.env.VOTING_DO.idFromName("VOTING");
+  const stub = context.cloudflare.env.VOTING_DO.get(id);
+  const res = await stub.fetch("https://voter.com", {
+    method: "post",
+    body: "Hello do!",
+  });
+
   // DO WHATEVER
   // Join room
 
   // bad request
-  if (false) {
+  if (!res.ok) {
     return submission.reply({ formErrors: ["Bad request"] });
   }
 

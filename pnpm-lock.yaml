@@ -104,7 +104,7 @@ devDependencies:
     specifier: ^4.2.1
     version: 4.3.2(typescript@5.4.2)(vite@5.1.6)
   wrangler:
-    specifier: ^3.24.0
+    specifier: ^3.34.2
     version: 3.34.2(@cloudflare/workers-types@4.20240314.0)
 
 packages:
