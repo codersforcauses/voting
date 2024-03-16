@@ -2,10 +2,10 @@ import type { MetaFunction } from "@remix-run/cloudflare";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
+    { title: "CFC AGM DEMOCRACY ENFORCER" },
     {
       name: "description",
-      content: "Welcome to Remix! Using Vite and Cloudflare!",
+      content: "Voting lobby",
     },
   ];
 };

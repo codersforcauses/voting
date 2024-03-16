@@ -4,11 +4,21 @@ import { Button } from "~/components/Button";
 import TextInput from "~/components/inputs/text-input";
 import { z } from "zod";
 import { getZodConstraint, parseWithZod } from "@conform-to/zod";
-import { ActionFunctionArgs, redirect } from "@remix-run/cloudflare";
+import { ActionFunctionArgs, MetaFunction, redirect } from "@remix-run/cloudflare";
 
 const voterJoinSchema = z.object({
   code: z.string().length(4),
 });
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: "Voting Registration" },
+    {
+      name: "description",
+      content: "Voter registration for election",
+    },
+  ];
+};
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
