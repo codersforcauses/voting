@@ -1,9 +1,8 @@
 import { Hono } from "hono"
 import { Env } from "../types"
+import initPosition from "./position"
+
 
 export function initControllers(app: Hono<Env>) {
-  app.get('/', async (c) => {
-    const data = await c.var.stub.getData()
-    return c.text('yay')
-  })
+  initPosition(app)
 }
