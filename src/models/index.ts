@@ -3,7 +3,7 @@ import { Env } from "../types"
 
 import { candidateTableQuery, candidateSeedQuery } from "./candidate"
 import { nominationTableQuery, nominationSeedQuery } from "./nomination"
-import { positionTableQuery, positionSeedQuery, getAllPositionsQuery } from "./position"
+import { positionTableQuery, positionSeedQuery, getAllPositions, createPosition } from "./position"
 import { preferenceTableQuery, preferenceSeedQuery } from "./preference"
 import { raceTableQuery, raceSeedQuery } from "./race"
 import { voteTableQuery, voteSeedQuery } from "./vote"
@@ -27,7 +27,6 @@ function initModels(sql: SqlStorage) {
 
 function seedModels(sql: SqlStorage) {
   sql.exec(
-    candidateSeedQuery +
     positionSeedQuery +
     raceSeedQuery +
     candidateSeedQuery +
@@ -51,14 +50,12 @@ export class VotingObject extends DurableObject {
     seedModels(this.sql)
   }
 
+  // Positions 
   getAllPositions() {
-    const cursor = this.sql.exec(getAllPositionsQuery)
-    
-    const positions = []
-    for (let row of cursor) {
-      positions.push(row)
-    }
+    return getAllPositions.call(this)
+  }
 
-    return positions
-  } 
+  createPosition() {
+    return createPosition.call(this)
+  }
 }

@@ -6,4 +6,9 @@ export default (app: Hono<Env>) => {
         const data = await c.var.stub.getAllPositions()
         return new Response(JSON.stringify(data))
     })
+
+    app.get('/position', async (c) => {
+        const data = await c.var.stub.createPosition()
+        return new Response(JSON.stringify(data))
+    })
 }
