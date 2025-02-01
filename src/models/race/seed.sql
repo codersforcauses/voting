@@ -1,10 +1,13 @@
-INSERT INTO race(positionId) VALUES (1);
-INSERT INTO race(positionId) VALUES (2);
-INSERT INTO race(positionId) VALUES (3);
-INSERT INTO race(positionId) VALUES (4);
-INSERT INTO race(positionId) VALUES (5);
-INSERT INTO race(positionId) VALUES (6);
-INSERT INTO race(positionId) VALUES (7);
-INSERT INTO race(positionId) VALUES (7);
-INSERT INTO race(positionId) VALUES (7);
-INSERT INTO race(positionId) VALUES (8);
+INSERT INTO
+    race (positionId)
+VALUES
+    (1),
+    (2),
+    (3),
+    (4),
+    (5),
+    (6),
+    (7),
+    (7),
+    (7),
+    (8);

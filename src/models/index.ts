@@ -3,7 +3,7 @@ import { Env } from "../types"
 
 import { candidateTableQuery, candidateSeedQuery } from "./candidate"
 import { nominationTableQuery, nominationSeedQuery } from "./nomination"
-import { positionTableQuery, positionSeedQuery, getAllPositions, createPosition } from "./position"
+import { positionTableQuery, positionSeedQuery, getAllPositions, createPosition, getPosition, Position, updatePosition } from "./position"
 import { preferenceTableQuery, preferenceSeedQuery } from "./preference"
 import { raceTableQuery, raceSeedQuery } from "./race"
 import { voteTableQuery, voteSeedQuery } from "./vote"
@@ -42,11 +42,8 @@ export class VotingObject extends DurableObject {
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env) 
     this.sql = this.ctx.storage.sql
-    console.log('init settings');
     initDBSettings(this.sql)
-    console.log('init models');
     initModels(this.sql)
-    console.log('init seeds');
     seedModels(this.sql)
   }
 
@@ -55,7 +52,15 @@ export class VotingObject extends DurableObject {
     return getAllPositions.call(this)
   }
 
-  createPosition() {
-    return createPosition.call(this)
+  getPosition(id: Pick<Position, "positionId">) {
+    return getPosition.call(this, id)
+  }
+
+  createPosition(data: Omit<Position, "positionId">) {
+    return createPosition.call(this, data)
+  }
+
+  updatePosition(id: Pick<Position, "positionId">, data: Omit<Position, "positionId">) {
+    return updatePosition.call(this, id, data)
   }
 }
