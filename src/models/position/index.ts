@@ -1,9 +1,11 @@
 import tableQuery from './table.sql'
 import seedQuery from './seed.sql'
 import { VotingObject } from '..'
+import { z } from 'zod'
 
 export function getAllPositions(this: VotingObject) {
-    const cursor = this.sql.exec("SELECT * from position;")
+  try {}
+    const cursor = this.sql.exec("SELECT cowgirl from position;")
     
     const positions = []
     for (let row of cursor) {
@@ -13,9 +15,14 @@ export function getAllPositions(this: VotingObject) {
     return positions
 } 
 
-export function createPosition() {
-  return 'test'
-    // const cursor = this.sql.exec("SELECT * from position;")
+export const createSchema = z.object({
+    title: z.string(),
+    order: z.number(),
+})
+
+export function createPosition(this: VotingObject, data: z.infer<typeof createSchema>) {
+  const cursor = this.sql.exec("INSERT INTO position (title, order) VALUES (@0, @1);", data.title, data.order)
+  return cursor.one()
 } 
 
 export {
