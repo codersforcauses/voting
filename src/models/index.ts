@@ -3,10 +3,11 @@ import { Env } from "../types"
 
 import { candidateTableQuery, candidateSeedQuery } from "./candidate"
 import { nominationTableQuery, nominationSeedQuery } from "./nomination"
-import { positionTableQuery, positionSeedQuery, getAllPositions, createPosition, getPosition, Position, updatePosition } from "./position"
+import { positionTableQuery, positionSeedQuery, getAllPositions, createPosition, createSchema, updatePosition, getPosition, updateSchema, deletePosition } from "./position"
 import { preferenceTableQuery, preferenceSeedQuery } from "./preference"
 import { raceTableQuery, raceSeedQuery } from "./race"
 import { voteTableQuery, voteSeedQuery } from "./vote"
+import { z } from "zod"
 
 function initDBSettings(sql: SqlStorage) {
   sql.exec(
@@ -52,15 +53,19 @@ export class VotingObject extends DurableObject {
     return getAllPositions.call(this)
   }
 
-  getPosition(id: Pick<Position, "positionId">) {
+  getPosition(id: string) {
     return getPosition.call(this, id)
   }
 
-  createPosition(data: Omit<Position, "positionId">) {
+  createPosition(data: z.infer<typeof createSchema>) {
     return createPosition.call(this, data)
   }
 
-  updatePosition(id: Pick<Position, "positionId">, data: Omit<Position, "positionId">) {
+  updatePosition(id: string, data: z.infer<typeof updateSchema>) {
     return updatePosition.call(this, id, data)
+  }
+
+  deletePosition(id: string) {
+    return deletePosition.call(this, id)
   }
 }
