@@ -1,5 +1,8 @@
 import { DurableObject } from "cloudflare:workers"
+import { drizzle, DrizzleSqliteDODatabase } from "drizzle-orm/durable-sqlite"
 import { Env } from "../types"
+import { migrate } from "drizzle-orm/durable-sqlite/migrator"
+import migrations from '../drizzle/migrations';
 
 import { candidateTableQuery, candidateSeedQuery } from "./candidate"
 import { nominationTableQuery, nominationSeedQuery } from "./nomination"
@@ -38,15 +41,22 @@ function seedModels(sql: SqlStorage) {
 }
 
 export class VotingObject extends DurableObject {
-  sql: SqlStorage
+  storage: DurableObjectStorage
+  db: DrizzleSqliteDODatabase<any>
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env) 
-    this.sql = this.ctx.storage.sql
-    initDBSettings(this.sql)
-    initModels(this.sql)
-    seedModels(this.sql)
+    this.storage = this.ctx.storage
+    this.db = drizzle(this.storage)
+
+    ctx.blockConcurrencyWhile(async () => {
+			await this._migrate();
+		});
   }
+
+  async _migrate() {
+		migrate(this.db, migrations);
+	}
 
   // Positions 
   getAllPositions() {

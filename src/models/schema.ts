@@ -1,0 +1,1 @@
+export { positionsTable } from "./position/schema"; 
