@@ -1,6 +1,7 @@
 name = "voting"
 main = "src/index.ts"
 compatibility_date = "2025-01-04"
+vars = { ENVIRONMENT = "dev" }
 
 [[durable_objects.bindings]]
 name = "VOTING_OBJECT"
@@ -14,3 +15,6 @@ new_sqlite_classes = ["VotingObject"]
 type = "Text"
 globs = ["**/*.sql"]
 fallthrough = true
+
+[env.production]
+vars = { ENVIRONMENT = "production" }

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { Env } from "../types";
 import { zValidator } from '@hono/zod-validator'
-import { createSchema } from "../models/position";
+import { z } from "zod";
 
 export default (app: Hono<Env>) => {
     app.get('/positions', async (c) => {
@@ -10,9 +10,12 @@ export default (app: Hono<Env>) => {
         })
     
     app.post('/position',
-        zValidator('json', createSchema), async (c) => {
+        zValidator('json', z.object({
+            title: z.string(),
+            priority: z.number(),
+        })), async (c) => {
         const validated = c.req.valid('json')
-        const data = await c.var.stub.createPosition(validated)
+        const data = await c.var.stub.insertPosition(validated)
         return new Response(JSON.stringify(data))
     })
 }
