@@ -11,6 +11,9 @@ dependencies:
   '@libsql/client':
     specifier: ^0.14.0
     version: 0.14.0
+  dotenv:
+    specifier: ^16.4.7
+    version: 16.4.7
   drizzle-orm:
     specifier: ^0.39.2
     version: 0.39.2(@cloudflare/workers-types@4.20250129.0)(@libsql/client@0.14.0)
@@ -1426,6 +1429,11 @@ packages:
   /detect-libc@2.0.2:
     resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
     engines: {node: '>=8'}
+    dev: false
+
+  /dotenv@16.4.7:
+    resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
+    engines: {node: '>=12'}
     dev: false
 
   /drizzle-kit@0.30.4:

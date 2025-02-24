@@ -2,43 +2,10 @@ import { DurableObject } from "cloudflare:workers"
 import { drizzle, DrizzleSqliteDODatabase } from "drizzle-orm/durable-sqlite"
 import { Env } from "../types"
 import { migrate } from "drizzle-orm/durable-sqlite/migrator"
-import migrations from '../drizzle/migrations';
+import migrations from '../../drizzle/migrations';
 
-import { candidateTableQuery, candidateSeedQuery } from "./candidate"
-import { nominationTableQuery, nominationSeedQuery } from "./nomination"
-import { positionTableQuery, positionSeedQuery, getAllPositions, createPosition, createSchema, updatePosition, getPosition, updateSchema, deletePosition } from "./position"
-import { preferenceTableQuery, preferenceSeedQuery } from "./preference"
-import { raceTableQuery, raceSeedQuery } from "./race"
-import { voteTableQuery, voteSeedQuery } from "./vote"
+import { getAllPositions, createPosition, createSchema, updatePosition, getPosition, updateSchema, deletePosition } from "./position"
 import { z } from "zod"
-
-function initDBSettings(sql: SqlStorage) {
-  sql.exec(
-    `PRAGMA foreign_keys = TRUE;`
-  )
-}
-
-function initModels(sql: SqlStorage) {
-  sql.exec(
-    candidateTableQuery +
-    positionTableQuery +
-    raceTableQuery +
-    nominationTableQuery +
-    voteTableQuery +
-    preferenceTableQuery
-  )
-}
-
-function seedModels(sql: SqlStorage) {
-  sql.exec(
-    positionSeedQuery +
-    raceSeedQuery +
-    candidateSeedQuery +
-    nominationSeedQuery +
-    voteSeedQuery +
-    preferenceSeedQuery
-  )
-}
 
 export class VotingObject extends DurableObject {
   storage: DurableObjectStorage
