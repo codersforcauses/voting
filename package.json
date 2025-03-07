@@ -5,19 +5,19 @@
     "deploy": "wrangler deploy --minify"
   },
   "dependencies": {
-    "@hono/zod-validator": "^0.4.2",
-    "@libsql/client": "^0.14.0",
-    "dotenv": "^16.4.7",
-    "drizzle-orm": "^0.39.3",
-    "drizzle-seed": "^0.3.1",
-    "drizzle-zod": "^0.7.0",
-    "hono": "^4.6.15",
-    "zod": "^3.24.1"
+    "@hono/zod-validator": "0.4.3",
+    "@libsql/client": "0.14.0",
+    "dotenv": "16.4.7",
+    "drizzle-orm": "0.40.0",
+    "drizzle-seed": "0.3.1",
+    "drizzle-zod": "0.7.0",
+    "hono": "4.7.4",
+    "zod": "3.24.2"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20241218.0",
-    "drizzle-kit": "^0.30.4",
-    "wrangler": "^3.100.0"
+    "@cloudflare/workers-types": "4.20250303.0",
+    "drizzle-kit": "0.30.5",
+    "wrangler": "3.114.0"
   },
   "packageManager": "pnpm@9.15.2"
 }
