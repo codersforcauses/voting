@@ -1,13 +1,19 @@
 import { Hono } from "hono";
-import { initMiddleware } from "./controllers/middleware";
-import  "./controllers";
+import { secureHeaders } from "hono/secure-headers";
+import { cors } from "hono/cors";
 import { VotingObject } from "./models";
-import { initControllers } from "./controllers";
 import { Env } from "./types";
+import authRouter from "./routes/auth";
+import adminRouter from "./routes/admin";
 
-export const app = new Hono<Env>()
-initMiddleware(app)
-initControllers(app)
-export default app
+const app = new Hono<Env>();
 
-export { VotingObject }
+app.use(secureHeaders());
+// app.use("*", cors());
+
+app.route("/auth", authRouter);
+app.route("/admin", adminRouter);
+
+export default app;
+
+export { VotingObject };
