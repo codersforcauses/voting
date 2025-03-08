@@ -2,8 +2,8 @@ import { Hono } from "hono";
 
 const app = new Hono();
 
-app.get("/", async (c) => {
-  const id = "";
+app.post("/", async (c) => {
+  const id = "user_2cyvBY4sBQgDHXJX43AU3jdy9LD";
   const fetchedData = await fetch(
     `https://codersforcauses.org/api/trpc/user.get?batch=1&input={"0":{"json":"${id}"}}`
   );

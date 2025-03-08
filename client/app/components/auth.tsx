@@ -36,6 +36,11 @@ const Auth = () => {
   });
 
   const onSubmit = async ({ email }: FormSchema) => {
+    // TODO:
+    // 1. send email with clerk
+    // 2.connect to hono /auth
+    // Are we using fetch or react query
+
     try {
     } catch (error) {
       console.error(error);
@@ -46,9 +51,9 @@ const Auth = () => {
   return (
     <div className="flex items-center justify-center p-6 md:p-10 h-screen">
       <div className="max-w-sm w-full flex flex-col gap-6">
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col gap-1">
           <h1 className="text-xl font-bold font-mono">CFC AGM 2025</h1>
-          <div className="text-center text-muted-foreground text-sm">
+          <div className="text-muted-foreground text-sm">
             Please log in to continue
           </div>
         </div>
