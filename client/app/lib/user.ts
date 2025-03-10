@@ -1,6 +1,7 @@
 import * as React from "react";
 
 export interface User {
+  isAdmin: boolean;
   canVote: boolean;
   email: string;
   id: string;

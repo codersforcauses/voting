@@ -19,6 +19,9 @@ app.post("/", async (c) => {
   const { data } = await clerkClient.users.getUserList({
     emailAddress: [email],
   });
+  if (data.length === 0) {
+    return c.json({ error: "User not found" }, 404);
+  }
   const fetchedData = await fetch(
     `https://codersforcauses.org/api/trpc/user.get?batch=1&input={"0":{"json":"${data[0].id}"}}`
   );
@@ -32,6 +35,7 @@ app.post("/", async (c) => {
     name: user.name,
     preferred_name: user.preferred_name,
     canVote: !!user.role,
+    isAdmin: ["committee", "admin"].includes(user.role),
   });
 });
 

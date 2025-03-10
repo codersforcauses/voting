@@ -53,8 +53,22 @@ const Auth = ({
   const onSubmit = async (data: FormSchema) => {
     try {
       const userRequest = await mutation.mutateAsync(data);
-      const user = await userRequest.json();
-      window.sessionStorage.setItem("user", JSON.stringify(user));
+      if (!userRequest.ok) {
+        form.setError("email", {
+          type: "manual",
+          message: "User not found",
+        });
+        throw new Error("User not found");
+      }
+      const user: User = await userRequest.json();
+      if (user.canVote) {
+        window.sessionStorage.setItem("user", JSON.stringify(user));
+      } else {
+        form.setError("email", {
+          type: "manual",
+          message: "User is not a CFC member",
+        });
+      }
       setUser(user);
     } catch (error) {
       console.error(error);
