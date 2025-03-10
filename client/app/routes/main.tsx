@@ -1,17 +1,15 @@
 import * as React from "react";
-import { StatusBar } from "@/components/status-bar/status-bar";
+import { Status, StatusBar } from "@/components/status-bar/status-bar";
 import type { Route } from "./+types/main";
-
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { Card, CardContent } from "@/components/ui/card";
 import Auth from "@/components/auth";
 import { useUser, type User } from "@/lib/user";
+import { candidates } from "@/mocks/candidate";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -20,45 +18,57 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-const candidateData = [
-  {
-    name: "Candidate 1",
-    whyJoin: "I want to do good",
-  },
-  {
-    name: "Candidate 2",
-    whyJoin: "I want to do bad",
-  },
-];
-
 export default function Main() {
   const [user, setUser] = React.useState<User>(useUser());
 
-  if (!user) {
+  if (!user?.canVote) {
     return <Auth setUser={setUser} />;
   }
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden">
-      <h1 className="m-2 text-2xl">Nominated Candidates</h1>
-      <Carousel className="mt-4">
-        <CarouselContent>
-          {candidateData.map((data, index) => (
-            <CarouselItem key={index}>
-              <Card className="m-2">
-                <CardContent className="flex flex-col p-6">
-                  <div className="text-xl font-semibold">{data.name}</div>
-                  <div>Why do you want to join?</div>
-                  <div>{data.whyJoin}</div>
-                </CardContent>
-              </Card>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
-      </Carousel>
-      <StatusBar />
+    <main className="relative w-screen h-screen px-10 py-5">
+      <h1 className="text-2xl">Nominated Candidates</h1>
+      <Accordion type="multiple" className="pb-10">
+        {candidates.map((data, index) => (
+          <AccordionItem value={`item-${index}`}>
+            <AccordionTrigger>
+              <div className="text-xl font-semibold">{data.name}</div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="text-zinc-400">Why do you want to join?</div>
+              <div>{data.reasonForJoining}</div>
+              <div className="mt-2 text-zinc-400">
+                How would you benefit the club?
+              </div>
+              <div>{data.benefitToClub}</div>
+              <div className="mt-2 text-zinc-400">
+                Are there any initiatives or events you would like to run if you
+                were elected?
+              </div>
+              <div>{data.initiativesOrEvents}</div>
+              <div className="mt-2 text-zinc-400">
+                Are you currently a part of any other club's committee?
+              </div>
+              <div>{data.currentCommittee}</div>
+              <div className="mt-2 text-zinc-400">
+                Have you previously been part of any other club's committee?
+              </div>
+              <div>{data.previousCommittee}</div>
+              <div className="mt-2 text-zinc-400">Can you attend the AGM?</div>
+              <div>{data.canAttendAGM}</div>
+              <div className="mt-2 text-zinc-400">
+                If no, what should be said on your behalf at the AGM?
+              </div>
+              <div>{data.messageForAGM}</div>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+      <StatusBar
+        status={Status.Open}
+        position="President"
+        candidates={candidates}
+      />
     </main>
   );
 }
