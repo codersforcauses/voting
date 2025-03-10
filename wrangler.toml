@@ -1,7 +1,6 @@
 name = "voting"
 main = "src/index.ts"
 compatibility_date = "2025-01-04"
-vars = { ENVIRONMENT = "dev" }
 
 [[durable_objects.bindings]]
 name = "VOTING_OBJECT"
@@ -16,5 +15,9 @@ type = "Text"
 globs = ["**/*.sql"]
 fallthrough = true
 
-[env.production]
-vars = { ENVIRONMENT = "production" }
+[vars]
+ENVIRONMENT = "dev"
+CLERK_SECRET_KEY = ""
+
+[env.production.vars]
+ENVIRONMENT = "production"

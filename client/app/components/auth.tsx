@@ -11,6 +11,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useMutation } from "@tanstack/react-query";
+import type { User } from "@/lib/user";
 
 const formSchema = z.object({
   email: z
@@ -29,31 +31,42 @@ const defaultValues = {
   email: "",
 };
 
-const Auth = () => {
+const Auth = ({
+  setUser,
+}: {
+  setUser: React.Dispatch<React.SetStateAction<User>>;
+}) => {
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues,
   });
 
-  const onSubmit = async ({ email }: FormSchema) => {
-    // TODO:
-    // 1. send email with clerk
-    // 2.connect to hono /auth
-    // Are we using fetch or react query
+  const mutation = useMutation({
+    mutationFn: (data: FormSchema) => {
+      return fetch(`http://localhost:8787/auth`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+  });
 
+  const onSubmit = async (data: FormSchema) => {
     try {
+      const userRequest = await mutation.mutateAsync(data);
+      const user = await userRequest.json();
+      window.sessionStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
     } catch (error) {
       console.error(error);
-    } finally {
     }
   };
 
   return (
-    <div className="flex items-center justify-center p-6 md:p-10 h-screen">
-      <div className="max-w-sm w-full flex flex-col gap-6">
+    <div className="flex items-center justify-center h-screen p-6 md:p-10">
+      <div className="flex flex-col w-full max-w-sm gap-6">
         <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-bold font-mono">CFC AGM 2025</h1>
-          <div className="text-muted-foreground text-sm">
+          <h1 className="font-mono text-xl font-bold">CFC AGM 2025</h1>
+          <div className="text-sm text-muted-foreground">
             Please log in to continue
           </div>
         </div>
@@ -79,7 +92,11 @@ const Auth = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full">
+            <Button
+              type="submit"
+              disabled={form.formState.isSubmitting}
+              className="w-full"
+            >
               Continue
             </Button>
           </form>

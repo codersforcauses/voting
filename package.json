@@ -5,6 +5,7 @@
     "deploy": "wrangler deploy --minify"
   },
   "dependencies": {
+    "@clerk/backend": "1.25.1",
     "@hono/zod-validator": "0.4.3",
     "@libsql/client": "0.14.0",
     "dotenv": "16.4.7",
