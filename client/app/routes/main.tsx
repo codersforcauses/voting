@@ -1,3 +1,4 @@
+import * as React from "react";
 import { StatusBar } from "@/components/status-bar/status-bar";
 import type { Route } from "./+types/main";
 
@@ -10,6 +11,7 @@ import {
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
 import Auth from "@/components/auth";
+import { useUser, type User } from "@/lib/user";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -30,15 +32,15 @@ const candidateData = [
 ];
 
 export default function Main() {
-  let isAuthenticated = false;
+  const [user, setUser] = React.useState<User>(useUser());
 
-  if (!isAuthenticated) {
-    return <Auth />;
+  if (!user) {
+    return <Auth setUser={setUser} />;
   }
 
   return (
     <main className="relative w-screen h-screen overflow-hidden">
-      <h1 className="text-2xl m-2">Nominated Candidates</h1>
+      <h1 className="m-2 text-2xl">Nominated Candidates</h1>
       <Carousel className="mt-4">
         <CarouselContent>
           {candidateData.map((data, index) => (
