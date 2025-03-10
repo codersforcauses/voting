@@ -30,7 +30,7 @@ export default function Main() {
       <h1 className="text-2xl">Nominated Candidates</h1>
       <Accordion type="multiple" className="pb-10">
         {candidates.map((data, index) => (
-          <AccordionItem value={`item-${index}`}>
+          <AccordionItem key={data.name} value={`item-${index}`}>
             <AccordionTrigger>
               <div className="text-xl font-semibold">{data.name}</div>
             </AccordionTrigger>

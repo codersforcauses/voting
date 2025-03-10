@@ -1,115 +1,117 @@
-import lockIcon from "#/lock.svg"
-import votingIcon from "#/voting.svg"
-import expandUp from "#/expand_circle_up.svg"
-import expandDown from "#/expand_circle_down.svg"
-import { DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose, Drawer } from "../ui/drawer"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "../ui/form"
-import { Checkbox } from "../ui/checkbox"
-import { Button } from "../ui/button"
+import * as React from "react";
+import { Reorder, useDragControls, useMotionValue } from "motion/react";
+import {
+  DrawerTrigger,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+  Drawer,
+} from "../ui/drawer";
+import { Button } from "../ui/button";
 
 export enum Status {
-    Open = "Open",
-    Closed = "Closed",
-    NotYetOpen = "Not Yet Open"
+  Open = "Open",
+  Closed = "Closed",
+  NotYetOpen = "Not Yet Open",
 }
 
-const FormSchema = z.object({
-    candidates: z.array(z.string()).refine((value) => value.some((item) => item), {
-        message: "You have to select at least one item.",
-    }),
-})
+const ReorderItem = ({
+  candidate,
+  index,
+}: {
+  candidate: any;
+  index: number;
+}) => {
+  const y = useMotionValue(0);
+  const controls = useDragControls();
 
-export function StatusBar({ status, position, candidates }: { status: Status, position: string, candidates: any[] }) {
-    const form = useForm<z.infer<typeof FormSchema>>({
-        resolver: zodResolver(FormSchema),
-        defaultValues: {
-            candidates: [],
-        },
-    })
+  return (
+    <Reorder.Item
+      value={candidate}
+      dragListener={false}
+      dragControls={controls}
+      className="flex items-center px-2 py-1"
+      style={{ y }}
+    >
+      <div
+        className="grid px-4 py-1 place-items-center cursor-grab touch-none"
+        onPointerDown={(e) => controls.start(e)}
+      >
+        <span className="material-symbols-sharp">drag_indicator</span>
+      </div>
+      <div className="flex items-center justify-between w-full">
+        <span>{candidate.name}</span>
+        <span className="mr-4 text-muted-foreground">{index + 1}</span>
+      </div>
+    </Reorder.Item>
+  );
+};
 
-    function onSubmit(data: z.infer<typeof FormSchema>) {
-        console.log(data)
-    }
+export function StatusBar({
+  status,
+  position,
+  candidates,
+}: {
+  status: Status;
+  position: string;
+  candidates: any[];
+}) {
+  const [order, setOrder] = React.useState(candidates);
+  const [drawerIsOpen, setDrawerIsOpen] = React.useState(false);
 
-    if (status === Status.Open) {
-        return (
-            <Drawer>
-                <DrawerTrigger>
-                    <div className="fixed left-0 bottom-0 w-full flex justify-between p-2 bg-zinc-950 border-t-1 border-t-zinc-800 cursor-pointer">
-                        <img src={votingIcon} />
-                        {position}: {status}
-                        <img src={expandUp} alt="Expand Icon" />
-                    </div>
-                </DrawerTrigger>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                        <DrawerContent>
-                            <DrawerHeader>
-                                <DrawerTitle>President</DrawerTitle>
-                                <DrawerDescription>Order the candidates</DrawerDescription>
-                            </DrawerHeader>
-                            <FormField
-                                control={form.control}
-                                name="candidates"
-                                render={() => (
-                                    <FormItem>
-                                        {candidates.map((candidate: any) => (
-                                            <FormField
-                                                key={candidate.studentNumber}
-                                                control={form.control}
-                                                name="candidates"
-                                                render={({ field }) => {
-                                                    return (
-                                                        <FormItem
-                                                            key={candidate.studentNumber}
-                                                            className="flex flex-row items-start  px-4 space-x-3 space-y-0"
-                                                        >
-                                                            <FormControl>
-                                                                <Checkbox
-                                                                    checked={field.value?.includes(candidate.studentNumber)}
-                                                                    onCheckedChange={(checked) => {
-                                                                        return checked
-                                                                            ? field.onChange([...field.value, candidate.studentNumber])
-                                                                            : field.onChange(
-                                                                                field.value?.filter(
-                                                                                    (value) => value !== candidate.studentNumber
-                                                                                )
-                                                                            )
-                                                                    }}
-                                                                />
-                                                            </FormControl>
-                                                            <FormLabel className="text-sm font-normal">
-                                                                {candidate.name}
-                                                            </FormLabel>
-                                                        </FormItem>
-                                                    )
-                                                }}
-                                            />
-                                        ))}
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <DrawerFooter>
-                                <DrawerClose asChild>
-                                    <Button type="submit">Done</Button>
-                                </DrawerClose>
-                            </DrawerFooter>
-                        </DrawerContent>
-                    </form>
-                </Form>
-            </Drawer>
-        )
-    } else {
-        return (
-            <div className="fixed left-0 bottom-0 w-full flex justify-between p-2 bg-zinc-950 border-t-1 border-t-zinc-800">
-                <img src={lockIcon} />
-                {position}: {status}
-                <span></span> {/* Hack to maintain the spacing */}
-            </div>
-        )
-    }
+  const onSubmit = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    console.log(order);
+    setDrawerIsOpen(false);
+  };
+
+  if (status === Status.Open) {
+    return (
+      <Drawer handleOnly open={drawerIsOpen} onOpenChange={setDrawerIsOpen}>
+        <DrawerTrigger asChild>
+          <div className="fixed bottom-0 left-0 flex justify-between w-full p-2 cursor-pointer bg-zinc-950 border-t-1 border-t-zinc-800">
+            <span className="material-symbols-sharp">how_to_vote</span>
+            {position}: {status}
+            <span className="material-symbols-sharp">unfold_more</span>
+          </div>
+        </DrawerTrigger>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="font-mono">{position}</DrawerTitle>
+            <DrawerDescription>
+              Reorder the candidates from highest preference to lowest.
+            </DrawerDescription>
+          </DrawerHeader>
+          <Reorder.Group
+            layoutScroll
+            axis="y"
+            onReorder={setOrder}
+            values={order}
+            className="grid gap-1 overflow-y-auto"
+          >
+            {order.map((candidate, i) => (
+              <ReorderItem
+                key={candidate.name}
+                candidate={candidate}
+                index={i}
+              />
+            ))}
+          </Reorder.Group>
+          <DrawerFooter>
+            <Button onClick={onSubmit}>Done</Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    );
+  } else {
+    return (
+      <div className="fixed bottom-0 left-0 flex justify-between w-full p-2 bg-zinc-950 border-t-1 border-t-zinc-800">
+        <span className="material-symbols-sharp">lock</span>
+        {position}: {status}
+        <span></span> {/* Hack to maintain the spacing */}
+      </div>
+    );
+  }
 }
