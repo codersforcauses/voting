@@ -32,3 +32,9 @@ lerna-debug.log*
 
 # misc
 .DS_Store
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

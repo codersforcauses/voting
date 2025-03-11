@@ -3,9 +3,12 @@ import { drizzle, DrizzleSqliteDODatabase } from "drizzle-orm/durable-sqlite"
 import { migrate } from "drizzle-orm/durable-sqlite/migrator"
 import migrations from '../../drizzle/migrations';
 import { getAllPositions, insertPosition, updatePosition, getPosition, deletePosition } from "./position"
-import { seed } from "drizzle-seed";
-import { positionsTable } from "./schema";
 import { seedPositions } from "./position/schema";
+
+export interface Env {
+  ENVIRONMENT: 'dev' | 'production';
+  VOTING_OBJECT: DurableObjectNamespace<VotingObject>
+}
 
 export class VotingObject extends DurableObject {
   storage: DurableObjectStorage
@@ -20,7 +23,7 @@ export class VotingObject extends DurableObject {
       await this._migrate();
       
       if (env.ENVIRONMENT === 'dev') {
-        await seedPositions(this.db)
+        // await seedPositions(this.db)
       }
 		});
   }

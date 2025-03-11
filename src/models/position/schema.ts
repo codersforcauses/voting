@@ -1,5 +1,6 @@
 import { DrizzleSqliteDODatabase } from "drizzle-orm/durable-sqlite";
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { reset } from "drizzle-seed";
 
 export const positionsTable = sqliteTable("positions_table", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
@@ -7,7 +8,8 @@ export const positionsTable = sqliteTable("positions_table", {
   priority: int({ mode: "number" }).notNull().unique(),
 });
 
-export const seedPositions = (db: DrizzleSqliteDODatabase) => {
+export const seedPositions = async (db: DrizzleSqliteDODatabase) => {
+  await reset(db, positionsTable);
   return db.insert(positionsTable).values([
     { title: "President", priority: 1 },
     { title: "Vice President", priority: 2 },

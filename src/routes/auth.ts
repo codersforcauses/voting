@@ -1,34 +1,39 @@
-import { Hono } from "hono";
+import { factory } from "@/app";
 import { createClerkClient } from "@clerk/backend";
 import { env } from "hono/adapter";
 
-const app = new Hono();
-
-type ClerkEnv = {
-  CLERK_SECRET_KEY: string;
-  CLERK_PUBLISHABLE_KEY: string;
-};
+const app = factory.createApp()
 
 app.post("/", async (c) => {
-  const clerkEnv = env<ClerkEnv>(c);
+  const { CLERK_SECRET_KEY } = env<{ CLERK_SECRET_KEY: string}>(c);
   const clerkClient = createClerkClient({
-    secretKey: clerkEnv.CLERK_SECRET_KEY,
+    secretKey: CLERK_SECRET_KEY,
   });
   const { email } = await c.req.json();
 
   const { data } = await clerkClient.users.getUserList({
     emailAddress: [email],
   });
+
   if (data.length === 0) {
     return c.json({ error: "User not found" }, 404);
   }
-  const fetchedData = await fetch(
+
+  const response = await fetch(
     `https://codersforcauses.org/api/trpc/user.get?batch=1&input={"0":{"json":"${data[0].id}"}}`
   );
-  const userData = await fetchedData.json();
 
-  const user = userData[0].result.data.json;
+  type UserData = {
+    result: { data: { json: {
+      id: number;
+      email: string;
+      name: string;
+      preferred_name: string;
+      role: string;
+    }}};
+  }[];
 
+  const { result: { data: { json: user }}} = (await response.json<UserData>())[0];
   return c.json({
     id: user.id,
     email: user.email,
@@ -39,4 +44,4 @@ app.post("/", async (c) => {
   });
 });
 
-export default app;
+export default app

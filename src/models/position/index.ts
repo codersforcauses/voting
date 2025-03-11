@@ -5,14 +5,14 @@ import { eq } from 'drizzle-orm'
 export function getAllPositions(
   this: VotingObject
 ) {
-  this.db.select().from(positionsTable)
+  return this.db.select().from(positionsTable)
 } 
 
 export function getPosition(
   this: VotingObject, 
   id: number
 ) {
-  this.db.select().from(positionsTable).where(eq(positionsTable.id, id))
+  return this.db.select().from(positionsTable).where(eq(positionsTable.id, id))
 }
 
 export function insertPosition(
