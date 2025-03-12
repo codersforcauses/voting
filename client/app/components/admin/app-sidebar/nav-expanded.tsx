@@ -10,21 +10,21 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { useLocation } from "react-router";
 
 export function NavExpanded({
   items,
 }: {
   items: {
     title: string;
-    url: string;
     icon?: string;
-    isActive?: boolean;
     items?: {
       title: string;
       url: string;
     }[];
   }[];
 }) {
+  const { hash } = useLocation();
   return (
     <>
       {items.map((item) => (
@@ -52,7 +52,11 @@ export function NavExpanded({
               <SidebarMenuSub>
                 {item.items?.map((subItem) => (
                   <SidebarMenuSubItem key={subItem.title}>
-                    <SidebarMenuSubButton asChild>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={hash === subItem.url}
+                      className="[active]:bg-sidebar-accent"
+                    >
                       <a href={subItem.url}>
                         <span>{subItem.title}</span>
                       </a>

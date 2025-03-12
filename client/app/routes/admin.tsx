@@ -1,6 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import type { Route } from "./+types/admin";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/admin/app-sidebar";
 
 export function meta({}: Route.MetaArgs) {
   return [
