@@ -19,6 +19,7 @@ fallthrough = true
 ENVIRONMENT = "dev"
 # !Make sure not to commit
 CLERK_SECRET_KEY = "PROD_KEY"
+AUTH_SECRET_KEY = "PROD_KEY"
 
 [env.production.vars]
 ENVIRONMENT = "production"

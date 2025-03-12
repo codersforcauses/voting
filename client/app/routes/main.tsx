@@ -2,8 +2,8 @@ import * as React from "react";
 import { Status, StatusBar } from "@/components/status-bar/status-bar";
 import type { Route } from "./+types/main";
 import Auth from "@/components/auth";
-import { useUser, type User } from "@/lib/user";
 import { candidates } from "@/mocks/candidate";
+import { useUser, type User } from "@/lib/user";
 import {
   Accordion,
   AccordionContent,
@@ -21,7 +21,7 @@ export function meta({}: Route.MetaArgs) {
 export default function Main() {
   const [user, setUser] = React.useState<User>(useUser());
 
-  if (!user?.canVote) {
+  if (!user) {
     return <Auth setUser={setUser} />;
   }
 

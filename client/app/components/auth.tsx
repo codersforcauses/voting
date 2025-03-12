@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -13,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
 import type { User } from "@/lib/user";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "./ui/input-otp";
 
 const formSchema = z.object({
   email: z
@@ -23,12 +25,16 @@ const formSchema = z.object({
     .min(2, {
       message: "Email is required",
     }),
+  code: z.string().length(6, {
+      message: "Enter the 6 digit code",
+    })
 });
 
 type FormSchema = z.infer<typeof formSchema>;
 
 const defaultValues = {
   email: "",
+  code: "",
 };
 
 const Auth = ({
@@ -52,24 +58,23 @@ const Auth = ({
 
   const onSubmit = async (data: FormSchema) => {
     try {
-      const userRequest = await mutation.mutateAsync(data);
-      if (!userRequest.ok) {
+      const response = await mutation.mutateAsync(data);
+      if (response.status === 404) {
         form.setError("email", {
           type: "manual",
           message: "User not found",
         });
         throw new Error("User not found");
-      }
-      const user: User = await userRequest.json();
-      if (user.canVote) {
-        window.sessionStorage.setItem("user", JSON.stringify(user));
-      } else {
+      } else if (response.status === 401) {
         form.setError("email", {
           type: "manual",
           message: "User is not a CFC member",
         });
+      } else {
+        const user = await response.json();
+        window.sessionStorage.setItem("user", JSON.stringify(user));
+        setUser(user);
       }
-      setUser(user);
     } catch (error) {
       console.error(error);
     }
@@ -102,6 +107,31 @@ const Auth = ({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Entry Code</FormLabel>
+                  <FormControl>
+                    <InputOTP maxLength={6} {...field}>
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </FormControl>
+                  <FormDescription>
+                    Please notify a committee member to receive your code
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
