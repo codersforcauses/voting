@@ -16,6 +16,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import Nominations from "@/components/admin/nominations";
+import OverView from "@/components/admin/overview";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -30,7 +31,7 @@ export default function Admin() {
   let CurrentView = () => <> </>;
   if (!hash) {
     currentPage = "Overview";
-    CurrentView = () => <> </>;
+    CurrentView = OverView;
   } else {
     currentPage = hash.split("#")[1];
     CurrentView = Users;
