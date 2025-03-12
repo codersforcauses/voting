@@ -26,8 +26,8 @@ const formSchema = z.object({
       message: "Email is required",
     }),
   code: z.string().length(6, {
-      message: "Enter the 6 digit code",
-    })
+    message: "Enter the 6 digit code",
+  }),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
@@ -116,16 +116,16 @@ const Auth = ({
               name="code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Entry Code</FormLabel>
+                  <FormLabel className="font-mono">Verification Code</FormLabel>
                   <FormControl>
                     <InputOTP maxLength={6} {...field}>
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
+                      <InputOTPGroup className="flex-1">
+                        <InputOTPSlot index={0} className="w-full" />
+                        <InputOTPSlot index={1} className="w-full" />
+                        <InputOTPSlot index={2} className="w-full" />
+                        <InputOTPSlot index={3} className="w-full" />
+                        <InputOTPSlot index={4} className="w-full" />
+                        <InputOTPSlot index={5} className="w-full" />
                       </InputOTPGroup>
                     </InputOTP>
                   </FormControl>
