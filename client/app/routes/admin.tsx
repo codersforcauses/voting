@@ -11,11 +11,11 @@ import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import Nominations from "@/components/admin/nominations";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -36,7 +36,9 @@ export default function Admin() {
     CurrentView = Users;
     if (currentPage.includes("nomination") || currentPage.includes("result")) {
       currentPage = currentPage.split("=").join(" - ");
-      CurrentView = () => <> </>;
+      CurrentView = currentPage.includes("nomination")
+        ? Nominations
+        : () => <> </>;
     }
   }
   return (
@@ -50,9 +52,7 @@ export default function Admin() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink asChild href="#">
-                    <h1>Admin Dashboard</h1>
-                  </BreadcrumbLink>
+                  Admin Dashboard
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
