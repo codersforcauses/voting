@@ -32,35 +32,35 @@ const data = {
       items: [
         {
           title: "President",
-          url: "#nominations=president",
+          url: "#nomination=president",
         },
         {
           title: "Vice President",
-          url: "#nominations=vp",
+          url: "#nomination=vp",
         },
         {
           title: "Secretary",
-          url: "#nominations=secretary",
+          url: "#nomination=secretary",
         },
         {
           title: "Treasurer",
-          url: "#nominations=treasurer",
+          url: "#nomination=treasurer",
         },
         {
           title: "Technical Lead",
-          url: "#nominations=tech-lead",
+          url: "#nomination=tech-lead",
         },
         {
           title: "Marketing Officer",
-          url: "#nominations=marketing",
+          url: "#nomination=marketing",
         },
         {
           title: "Fresher Representative",
-          url: "#nominations=fresher-rep",
+          url: "#nomination=fresher-rep",
         },
         {
           title: "OCM",
-          url: "#nominations=ocm",
+          url: "#nomination=ocm",
         },
       ],
     },

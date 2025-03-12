@@ -30,75 +30,82 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const data: Payment[] = [
-  {
-    id: "m5gr84i9",
-    amount: 316,
-    status: "success",
-    email: "ken99@example.com",
-  },
-  {
-    id: "3u1reuv4",
-    amount: 242,
-    status: "success",
-    email: "Abe45@example.com",
-  },
-  {
-    id: "derv1ws0",
-    amount: 837,
-    status: "processing",
-    email: "Monserrat44@example.com",
-  },
-  {
-    id: "5kma53ae",
-    amount: 874,
-    status: "success",
-    email: "Silas22@example.com",
-  },
-  {
-    id: "bhqecj4p",
-    amount: 721,
-    status: "failed",
-    email: "carmella@example.com",
-  },
-];
-
-export type Payment = {
+export type User = {
   id: string;
-  amount: number;
-  status: "pending" | "processing" | "success" | "failed";
+  preferred_name: string;
+  name: string;
+  code: number;
   email: string;
 };
 
-export const columns: ColumnDef<Payment>[] = [
+const data: User[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
+    id: "m5gr84i9",
+    preferred_name: "Ken",
+    name: "Ken Z",
+    email: "ken99@example.com",
+    code: 1234,
   },
   {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("status")}</div>
-    ),
+    id: "3u1reuv4",
+    preferred_name: "Abe",
+    name: "Abe Z",
+    email: "Abe45@example.com",
+    code: 2345,
+  },
+  {
+    id: "derv1ws0",
+    preferred_name: "Monserrat",
+    name: "Monserrat Z",
+    email: "Monserrat44@example.com",
+    code: 3456,
+  },
+  {
+    id: "5kma53ae",
+    preferred_name: "Silas",
+    name: "Silas Z",
+    email: "Silas22@example.com",
+    code: 4567,
+  },
+  {
+    id: "bhqecj4p",
+    preferred_name: "Carmella",
+    name: "Carmella Z",
+    email: "carmella@example.com",
+    code: 5678,
+  },
+];
+
+export const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: "preferred_name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Preferred Name
+          <span className="material-symbols-sharp">swap_vert</span>
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div>{row.getValue("preferred_name")}</div>,
+  },
+  {
+    accessorKey: "name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Name
+          <span className="material-symbols-sharp">swap_vert</span>
+        </Button>
+      );
+    },
+    cell: ({ row }) => <div>{row.getValue("name")}</div>,
   },
   {
     accessorKey: "email",
@@ -116,19 +123,13 @@ export const columns: ColumnDef<Payment>[] = [
     cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
   },
   {
-    accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
-
-      // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
-
-      return <div className="font-medium text-right">{formatted}</div>;
-    },
+    accessorKey: "code",
+    enableSorting: false,
+    enableHiding: false,
+    header: () => <div className="text-right">Code</div>,
+    cell: ({ row }) => (
+      <div className="font-medium text-right">{row.getValue("code")}</div>
+    ),
   },
 ];
 
@@ -162,18 +163,18 @@ const UserTable = () => {
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex flex-col items-center gap-2 pb-4 md:flex-row">
         <Input
-          placeholder="Filter emails..."
+          placeholder="Filter by email, name or preferred name"
           value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("email")?.setFilterValue(event.target.value)
           }
-          className="max-w-sm"
+          className="order-2 max-w-sm md:order-1"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
+            <Button variant="outline" className="order-1 ml-auto md:order-2">
               Columns{" "}
               <span className="material-symbols-sharp">
                 keyboard_arrow_down
@@ -201,6 +202,7 @@ const UserTable = () => {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
       <div className="border">
         <Table>
           <TableHeader>

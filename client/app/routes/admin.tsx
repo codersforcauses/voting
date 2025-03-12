@@ -1,6 +1,21 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import type { Route } from "./+types/admin";
 import { AppSidebar } from "@/components/admin/app-sidebar";
+import Users from "@/components/admin/users";
+import { useLocation } from "react-router";
+import { Separator } from "@/components/ui/separator";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -10,16 +25,49 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Admin() {
+  const { hash } = useLocation();
+  let currentPage: string;
+  let CurrentView = () => <> </>;
+  if (!hash) {
+    currentPage = "Overview";
+    CurrentView = () => <> </>;
+  } else {
+    currentPage = hash.split("#")[1];
+    CurrentView = Users;
+    if (currentPage.includes("nomination") || currentPage.includes("result")) {
+      currentPage = currentPage.split("=").join(" - ");
+      CurrentView = () => <> </>;
+    }
+  }
   return (
     <SidebarProvider>
       <AppSidebar />
-      <div className="flex flex-col w-full">
-        <header className="flex items-center w-full gap-2 p-2 h-14">
-          <SidebarTrigger />
-          <h1>Admin Dashboard</h1>
+      <SidebarInset>
+        <header className="flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1 cursor-pointer" />
+            <Separator orientation="vertical" className="h-4! mr-2" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink asChild href="#">
+                    <h1>Admin Dashboard</h1>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="capitalize">
+                    {currentPage}
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
         </header>
-        <main className="w-full h-full p-2">hello</main>
-      </div>
+        <main className="w-full h-full p-2">
+          <CurrentView />
+        </main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }
