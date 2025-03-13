@@ -1,58 +1,61 @@
-import { DurableObject } from "cloudflare:workers"
-import { drizzle, DrizzleSqliteDODatabase } from "drizzle-orm/durable-sqlite"
-import { migrate } from "drizzle-orm/durable-sqlite/migrator"
-import migrations from '../../drizzle/migrations';
-import { getAllPositions, insertPosition, updatePosition, getPosition, deletePosition } from "./position"
-import { seedPositions } from "./position/schema";
+import { DurableObject } from "cloudflare:workers";
+import { drizzle, DrizzleSqliteDODatabase } from "drizzle-orm/durable-sqlite";
+import { migrate } from "drizzle-orm/durable-sqlite/migrator";
+import migrations from "../../drizzle/migrations";
+import {
+  getAllPositions,
+  insertPosition,
+  updatePosition,
+  getPosition,
+  deletePosition,
+} from "./position";
+// import { seedPositions } from "./position/schema";
 
 export interface Env {
-  ENVIRONMENT: 'dev' | 'production';
-  VOTING_OBJECT: DurableObjectNamespace<VotingObject>
+  ENVIRONMENT: "dev" | "production";
+  VOTING_OBJECT: DurableObjectNamespace<VotingObject>;
 }
 
 export class VotingObject extends DurableObject {
-  storage: DurableObjectStorage
-  db: DrizzleSqliteDODatabase<any>
+  storage: DurableObjectStorage;
+  db: DrizzleSqliteDODatabase<any>;
 
   constructor(ctx: DurableObjectState, env: Env) {
-    super(ctx, env) 
-    this.storage = this.ctx.storage
-    this.db = drizzle(this.storage)
-    
+    super(ctx, env);
+    this.storage = this.ctx.storage;
+    this.db = drizzle(this.storage);
+
     ctx.blockConcurrencyWhile(async () => {
       await this._migrate();
-      
-      if (env.ENVIRONMENT === 'dev') {
-        // await seedPositions(this.db)
-      }
-		});
+
+      // if (env.ENVIRONMENT === "dev") {
+      //   await seedPositions(this.db)
+      // }
+    });
   }
 
   async _migrate() {
-		migrate(this.db, migrations);
-	}
+    migrate(this.db, migrations);
+  }
 
-  // Positions 
+  // Positions
   getAllPositions() {
-    return getAllPositions.call(this)
+    return getAllPositions.call(this);
   }
 
   getPosition(id: number) {
-    return getPosition.call(this, id)
+    return getPosition.call(this, id);
   }
 
   insertPosition(data: Parameters<typeof insertPosition>[0]) {
-    return insertPosition.call(this, data)
+    return insertPosition.call(this, data);
   }
 
-  updatePosition(
-    id: number,
-    data: Parameters<typeof updatePosition>[1]
-  ) {
-    return updatePosition.call(this, id, data)
+  updatePosition(id: number, data: Parameters<typeof updatePosition>[1]) {
+    return updatePosition.call(this, id, data);
   }
 
   deletePosition(id: number) {
-    return deletePosition.call(this, id)
+    return deletePosition.call(this, id);
   }
 }
