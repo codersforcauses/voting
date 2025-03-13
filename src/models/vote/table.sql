@@ -1,8 +1,0 @@
-CREATE TABLE
-  IF NOT EXISTS vote (
-    voteId INTEGER PRIMARY KEY,
-    token TEXT,
-    raceId INTEGER,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (raceId) REFERENCES race (raceId)
-  );

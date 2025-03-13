@@ -1,6 +1,7 @@
 {
   "name": "voting",
   "scripts": {
+    "db:generate": "drizzle-kit generate",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify"
   },
