@@ -9,10 +9,11 @@ import {
 } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import NominationAdd from "./nomination/add";
+import SeatGenerator from "./seat";
 
 const OverView = () => {
   return (
-    <div>
+    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
       <Card>
         <CardHeader>
           <CardTitle>Nominations</CardTitle>
@@ -27,6 +28,7 @@ const OverView = () => {
           </Dialog>
         </CardContent>
       </Card>
+      <SeatGenerator />
     </div>
   );
 };
