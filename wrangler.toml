@@ -1,6 +1,7 @@
 name = "voting"
 main = "src/index.ts"
 compatibility_date = "2025-01-04"
+compatibility_flags = ["nodejs_compat"]
 
 [[durable_objects.bindings]]
 name = "VOTING_OBJECT"
