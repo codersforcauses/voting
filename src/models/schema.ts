@@ -60,7 +60,7 @@ export const racesTable = sqliteTable("race", {
   position_id: int("positions")
     .references(() => positionsTable.id)
     .notNull(),
-  status: text().notNull().default("open"),
+  status: text({ enum: ["closed", "open", "completed"] }).default("closed"),
 });
 
 export const votesTable = sqliteTable("votes", {
