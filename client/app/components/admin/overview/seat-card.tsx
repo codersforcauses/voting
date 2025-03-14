@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SlidingNumber } from "@/components/ui/sliding-number";
 import { useQuery } from "@tanstack/react-query";
 
 const SeatGenerator = () => {
@@ -27,8 +28,8 @@ const SeatGenerator = () => {
         <CardTitle className="tracking-light">Seat</CardTitle>
         <CardDescription>6 digit code for a voter to register</CardDescription>
       </CardHeader>
-      <CardContent className="font-mono text-5xl font-bold tracking-tight text-center">
-        {data || "No code"}
+      <CardContent className="font-mono text-5xl font-bold tracking-tight inline-flex items-center justify-evenly gap-1 leading-none">
+        {data ? <SlidingNumber value={data} /> : "nocode"}
       </CardContent>
       <CardFooter>
         <Button variant="secondary" className="w-full" onClick={generate}>
