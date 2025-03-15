@@ -1,5 +1,6 @@
 import { createFactory } from "hono/factory";
 import { VotingObject } from "./models";
+import { UserData } from "./types";
 
 interface Env {
     Bindings: {
@@ -7,6 +8,7 @@ interface Env {
     Variables: {
         STUB: DurableObjectStub<VotingObject>
         CLERK_SECRET_KEY: string
+        USER: UserData
         VOTING_OBJECT: DurableObjectNamespace<VotingObject>
     }
 }

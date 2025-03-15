@@ -7,6 +7,7 @@ import { VotingObject } from "./models";
 import positionRoutes from "./routes/position";
 import authRoutes from "./routes/auth";
 import adminRoutes from "./routes/admin";
+import seatRoutes from "./routes/seat";
 import { addStub } from "./middleware/db";
 import { logger } from "hono/logger";
 
@@ -18,6 +19,7 @@ app.use(logger());
 app.route("/position", positionRoutes);
 app.route("/auth", authRoutes);
 app.route("/admin", adminRoutes);
+app.route("/seat", seatRoutes);
 
 export default app;
 

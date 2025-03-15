@@ -9,7 +9,49 @@ import {
   getPosition,
   deletePosition,
 } from "./position";
-// import { seedPositions } from "./position/schema";
+import {
+  getAllCandidates,
+  insertCandidate,
+  updateCandidate,
+  getCandidate,
+  deleteCandidate,
+} from "./candidate";
+import {
+  getAllNominations,
+  getNominationsForPosition,
+  insertNomination,
+  deleteNomination,
+} from "./nomination";
+import {
+  getRace,
+  getAllRaces,
+  insertRace,
+  updateRace,
+  deleteRace,
+} from "./race";
+import { getSeat, insertSeat, deleteSeat, getSeatByCode, getAllSeats } from "./seat";
+import {
+  getAllUsers,
+  insertUser,
+  updateUser,
+  getUser,
+  deleteUser,
+} from "./user";
+import {
+  getAllVotePreferences,
+  insertVotePreference,
+  updateVotePreference,
+  getVotePreference,
+  deleteVotePreference,
+} from "./vote-preference";
+import {
+  getAllVotes,
+  insertVote,
+  updateVote,
+  getVote,
+  deleteVote,
+} from "./vote";
+import { seedPositions } from "./seed";
 
 export interface Env {
   ENVIRONMENT: "dev" | "production";
@@ -23,14 +65,14 @@ export class VotingObject extends DurableObject {
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
     this.storage = this.ctx.storage;
-    this.db = drizzle(this.storage);
+    this.db = drizzle(this.storage, { logger: true });
 
     ctx.blockConcurrencyWhile(async () => {
       await this._migrate();
 
-      // if (env.ENVIRONMENT === "dev") {
-      //   await seedPositions(this.db)
-      // }
+      if (env.ENVIRONMENT === "dev") {
+        // await seedPositions(this.db)
+      }
     });
   }
 
@@ -39,23 +81,168 @@ export class VotingObject extends DurableObject {
   }
 
   // Positions
-  getAllPositions() {
-    return getAllPositions.call(this);
+  getAllPositions(...args: Parameters<typeof getAllPositions>) {
+    return getAllPositions.call(this, ...args);
   }
 
-  getPosition(id: number) {
-    return getPosition.call(this, id);
+  getPosition(...args: Parameters<typeof getPosition>) {
+    return getPosition.call(this, ...args);
   }
 
-  insertPosition(data: Parameters<typeof insertPosition>[0]) {
-    return insertPosition.call(this, data);
+  insertPosition(...args: Parameters<typeof insertPosition>) {
+    return insertPosition.call(this, ...args);
   }
 
-  updatePosition(id: number, data: Parameters<typeof updatePosition>[1]) {
-    return updatePosition.call(this, id, data);
+  updatePosition(...args: Parameters<typeof updatePosition>) {
+    return updatePosition.call(this, ...args);
   }
 
-  deletePosition(id: number) {
-    return deletePosition.call(this, id);
+  deletePosition(...args: Parameters<typeof deletePosition>) {
+    return deletePosition.call(this, ...args);
+  }
+
+  // Candidates
+  getAllCandidates(...args: Parameters<typeof getAllCandidates>) {
+    return getAllCandidates.call(this, ...args);
+  }
+
+  getCandidate(...args: Parameters<typeof getCandidate>) {
+    return getCandidate.call(this, ...args);
+  }
+
+  insertCandidate(...args: Parameters<typeof insertCandidate>) {
+    return insertCandidate.call(this, ...args);
+  }
+
+  updateCandidate(...args: Parameters<typeof updateCandidate>) {
+    return updateCandidate.call(this, ...args);
+  }
+
+  deleteCandidate(...args: Parameters<typeof deleteCandidate>) {
+    return deleteCandidate.call(this, ...args);
+  }
+
+  // Nominations
+  getAllNominations(...args: Parameters<typeof getAllNominations>) {
+    return getAllNominations.call(this, ...args);
+  }
+
+  getNominationsForPosition(
+    ...args: Parameters<typeof getNominationsForPosition>
+  ) {
+    return getNominationsForPosition.call(this, ...args);
+  }
+
+  insertNomination(...args: Parameters<typeof insertNomination>) {
+    return insertNomination.call(this, ...args);
+  }
+
+  deleteNomination(...args: Parameters<typeof deleteNomination>) {
+    return deleteNomination.call(this, ...args);
+  }
+
+  // Races
+  getAllRaces(...args: Parameters<typeof getAllRaces>) {
+    return getAllRaces.call(this, ...args);
+  }
+
+  getRace(...args: Parameters<typeof getRace>) {
+    return getRace.call(this, ...args);
+  }
+
+  insertRace(...args: Parameters<typeof insertRace>) {
+    return insertRace.call(this, ...args);
+  }
+
+  updateRace(...args: Parameters<typeof updateRace>) {
+    return updateRace.call(this, ...args);
+  }
+
+  deleteRace(...args: Parameters<typeof deleteRace>) {
+    return deleteRace.call(this, ...args);
+  }
+
+  // Seats
+  getSeat(...args: Parameters<typeof getSeat>) {
+    return getSeat.call(this, ...args);
+  }
+
+  getAllSeats(...args: Parameters<typeof getAllSeats>) {
+    return getAllSeats.call(this, ...args);
+  }
+
+  getSeatByCode(...args: Parameters<typeof getSeatByCode>) {
+    return getSeatByCode.call(this, ...args);
+  }
+
+  insertSeat(...args: Parameters<typeof insertSeat>) {
+    return insertSeat.call(this, ...args);
+  }
+
+  deleteSeat(...args: Parameters<typeof deleteSeat>) {
+    return deleteSeat.call(this, ...args);
+  }
+
+  // Users
+  getAllUsers(...args: Parameters<typeof getAllUsers>) {
+    return getAllUsers.call(this, ...args);
+  }
+
+  getUser(...args: Parameters<typeof getUser>) {
+    return getUser.call(this, ...args);
+  }
+
+  insertUser(...args: Parameters<typeof insertUser>) {
+    return insertUser.call(this, ...args);
+  }
+
+  updateUser(...args: Parameters<typeof updateUser>) {
+    return updateUser.call(this, ...args);
+  }
+
+  deleteUser(...args: Parameters<typeof deleteUser>) {
+    return deleteUser.call(this, ...args);
+  }
+
+  // Vote Preferences
+  getAllVotePreferences(...args: Parameters<typeof getAllVotePreferences>) {
+    return getAllVotePreferences.call(this, ...args);
+  }
+
+  getVotePreference(...args: Parameters<typeof getVotePreference>) {
+    return getVotePreference.call(this, ...args);
+  }
+
+  insertVotePreference(...args: Parameters<typeof insertVotePreference>) {
+    return insertVotePreference.call(this, ...args);
+  }
+
+  updateVotePreference(...args: Parameters<typeof updateVotePreference>) {
+    return updateVotePreference.call(this, ...args);
+  }
+
+  deleteVotePreference(...args: Parameters<typeof deleteVotePreference>) {
+    return deleteVotePreference.call(this, ...args);
+  }
+
+  // Votes
+  getAllVotes(...args: Parameters<typeof getAllVotes>) {
+    return getAllVotes.call(this, ...args);
+  }
+
+  getVote(...args: Parameters<typeof getVote>) {
+    return getVote.call(this, ...args);
+  }
+
+  insertVote(...args: Parameters<typeof insertVote>) {
+    return insertVote.call(this, ...args);
+  }
+
+  updateVote(...args: Parameters<typeof updateVote>) {
+    return updateVote.call(this, ...args);
+  }
+
+  deleteVote(...args: Parameters<typeof deleteVote>) {
+    return deleteVote.call(this, ...args);
   }
 }

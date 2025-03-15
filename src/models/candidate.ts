@@ -17,7 +17,7 @@ export function insertCandidate(
   this: VotingObject,
   data: Omit<typeof candidatesTable.$inferInsert, "id">
 ) {
-  this.db.insert(candidatesTable).values(data);
+  return this.db.insert(candidatesTable).values(data).returning();
 }
 
 export function updateCandidate(
@@ -25,9 +25,9 @@ export function updateCandidate(
   id: number,
   data: Partial<Omit<typeof candidatesTable.$inferInsert, "id">>
 ) {
-  this.db.update(candidatesTable).set(data).where(eq(candidatesTable.id, id));
+  return this.db.update(candidatesTable).set(data).where(eq(candidatesTable.id, id)).returning();
 }
 
 export function deleteCandidate(this: VotingObject, id: number) {
-  this.db.delete(candidatesTable).where(eq(candidatesTable.id, id));
+  return this.db.delete(candidatesTable).where(eq(candidatesTable.id, id)).returning();
 }

@@ -2,11 +2,11 @@ import { foreignKey, int, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const seatTable = sqliteTable("seats", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
-  value: text().notNull().unique(),
+  code: text().notNull().unique(),
 });
 
 export const usersTable = sqliteTable("users", {
-  id: text().primaryKey(),
+  id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   email: text().notNull().unique(),
   preferred_name: text().notNull(),
   name: text().notNull(),
