@@ -18,7 +18,6 @@ export function insertSeat(
   this: VotingObject,
   data: Omit<typeof seatTable.$inferInsert, "id">
 ) {
-  console.log(data)
   return this.db.insert(seatTable).values(data).returning();
 }
 
