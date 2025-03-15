@@ -1,5 +1,5 @@
 {
-  "name": "voting",
+  "name": "openvote",
   "scripts": {
     "db:generate": "drizzle-kit generate",
     "dev": "wrangler dev",

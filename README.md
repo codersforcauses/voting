@@ -1,4 +1,6 @@
-# CFC Democracy Enforcer
+# OpenVote
+This full stack web app aims to provide a seamless election process for the CFC AGM.
+
 This project uses Cloudflare Durable Objects and Workers to host an API built with Honojs for routing and middleware, Drizzle as an SQlite ORM and Zod for validation.
 On the frontend it's running React Router and React Query as well as Shadcn as the component library.
 
