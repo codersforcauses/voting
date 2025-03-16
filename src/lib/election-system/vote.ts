@@ -25,6 +25,8 @@ export default class Vote {
   }
 
   next() {
+    // TODO: This one might scream at us when there's no items in the list
+    // (or one item left)
     this._candidates.pop();
     return this.first;
   }

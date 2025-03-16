@@ -2,6 +2,14 @@ import { Vote } from ".";
 
 type Candidate = string;
 type Seat = string;
+type Count = {
+  candidate: Candidate;
+  count: number;
+};
+type TransferValue = {
+  candidate: Candidate;
+  tv: number;
+};
 
 export default class Race {
   candidateVotes: Map<Candidate, Vote[]> = new Map();
@@ -10,6 +18,7 @@ export default class Race {
 
   constructor(votes: Map<string, string[]>, openings: number = 1) {
     this.openings = openings;
+
     for (const [key, value] of votes) {
       let vote = new Vote(key, value);
       this.seatVotes.set(key, vote);
@@ -24,12 +33,12 @@ export default class Race {
 
       this.candidateVotes.set(vote.first!, tmp);
     }
-
     console.log(this.candidateVotes);
   }
 
+  // Counts the number of current-preference votes for each candidate
   countVotes() {
-    let result: any[] = [];
+    let result: Count[] = [];
 
     for (let [c, votes] of this.candidateVotes) {
       let count = 0;
@@ -37,7 +46,10 @@ export default class Race {
       for (let v of votes) {
         count += v.value;
       }
-      result.push([c, count]);
+      result.push({
+        candidate: c,
+        count: count,
+      });
     }
     return result;
   }
@@ -63,12 +75,15 @@ export default class Race {
       let count = this.countVotes();
 
       // Find candidates elected
-      // Need to change vote count to actually count the value
+      // TODO: Transfer value should only be on last allocated parcel
       for (const c of count) {
-        if (c[1] >= quota) {
-          const transferValue = (c[1] - quota) / c[1];
-          buffer.push([c[0], transferValue]);
-          elected.push(c[0]);
+        if (c.count >= quota) {
+          const transferValue = (c.count - quota) / c.count;
+          buffer.push({
+            candidate: c.candidate,
+            tv: transferValue,
+          });
+          elected.push(c.candidate);
         }
       }
 
@@ -81,8 +96,8 @@ export default class Race {
       if (buffer.length > 0) {
         // A candidate was elected so transfer their votes to the next candidate
         for (let c of buffer) {
-          let candidate = c[0];
-          let transferValue = c[1];
+          let candidate = c.candidate;
+          let transferValue = c.tv;
           if (transferValue > 0) {
             for (let v of this.candidateVotes.get(candidate)!) {
               v.value *= transferValue;
@@ -92,25 +107,29 @@ export default class Race {
               }
             }
           }
-          this.candidateVotes.delete(c[0]);
+          this.candidateVotes.delete(c.candidate);
         }
       } else {
         // TODO: Prematurely culling candidates. Need to re count after a distribution
         // and work out how to deal with tie breakers.
         // Transfer votes from lowest candidate
         // Find candidate with min votes
-        const minCandidate = count.reduce((i, k) => (i[1] < k[1] ? i : k));
+        const minCandidate = count.reduce((i, k) =>
+          i.count < k.count ? i : k
+        );
 
         console.log(minCandidate);
         // For each vote - pop candidate and append to second preference at current value
-        for (let v of this.candidateVotes.get(minCandidate[0])!.values()) {
+        for (let v of this.candidateVotes
+          .get(minCandidate.candidate)!
+          .values()) {
           let next = v.next();
           if (next) {
             this.candidateVotes.get(next)?.push(v);
           }
         }
 
-        this.candidateVotes.delete(minCandidate[0]);
+        this.candidateVotes.delete(minCandidate.candidate);
         console.log(this.candidateVotes);
       }
     }
