@@ -13,7 +13,6 @@ import {
 } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -29,54 +28,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { User } from ".";
 
-export type User = {
-  id: string;
-  preferred_name: string;
-  name: string;
-  code: number;
-  email: string;
-};
+interface UserTableProps {
+  data: User[];
+  refetch: () => void;
+  isRefetching: boolean;
+}
 
-const data: User[] = [
-  {
-    id: "m5gr84i9",
-    preferred_name: "Ken",
-    name: "Ken Z",
-    email: "ken99@example.com",
-    code: 1234,
-  },
-  {
-    id: "3u1reuv4",
-    preferred_name: "Abe",
-    name: "Abe Z",
-    email: "Abe45@example.com",
-    code: 2345,
-  },
-  {
-    id: "derv1ws0",
-    preferred_name: "Monserrat",
-    name: "Monserrat Z",
-    email: "Monserrat44@example.com",
-    code: 3456,
-  },
-  {
-    id: "5kma53ae",
-    preferred_name: "Silas",
-    name: "Silas Z",
-    email: "Silas22@example.com",
-    code: 4567,
-  },
-  {
-    id: "bhqecj4p",
-    preferred_name: "Carmella",
-    name: "Carmella Z",
-    email: "carmella@example.com",
-    code: 5678,
-  },
-];
-
-export const columns: ColumnDef<User>[] = [
+const columns: ColumnDef<User>[] = [
   {
     accessorKey: "preferred_name",
     header: ({ column }) => {
@@ -85,8 +45,8 @@ export const columns: ColumnDef<User>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Preferred Name
-          <span className="material-symbols-sharp">swap_vert</span>
+          Preferred name
+          <span className="material-symbols-sharp text-base!">swap_vert</span>
         </Button>
       );
     },
@@ -101,7 +61,7 @@ export const columns: ColumnDef<User>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Name
-          <span className="material-symbols-sharp">swap_vert</span>
+          <span className="material-symbols-sharp text-base!">swap_vert</span>
         </Button>
       );
     },
@@ -116,11 +76,27 @@ export const columns: ColumnDef<User>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Email
-          <span className="material-symbols-sharp">swap_vert</span>
+          <span className="material-symbols-sharp text-base!">swap_vert</span>
         </Button>
       );
     },
     cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+  },
+  {
+    accessorKey: "student_num",
+    enableSorting: false,
+    header: () => <div className="text-center">Student number</div>,
+    cell: ({ row }) => (
+      <div className="text-center">{row.getValue("student_num")}</div>
+    ),
+  },
+  {
+    accessorKey: "role",
+    enableSorting: false,
+    header: () => <div className="text-center">Role</div>,
+    cell: ({ row }) => (
+      <div className="lowercase text-center">{row.getValue("role")}</div>
+    ),
   },
   {
     accessorKey: "code",
@@ -133,7 +109,7 @@ export const columns: ColumnDef<User>[] = [
   },
 ];
 
-const UserTable = () => {
+const UserTable = ({ data, refetch, isRefetching }: UserTableProps) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -172,35 +148,43 @@ const UserTable = () => {
           }
           className="order-2 max-w-sm md:order-1"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="order-1 ml-auto md:order-2">
-              Columns{" "}
-              <span className="material-symbols-sharp">
-                keyboard_arrow_down
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="order-1 space-x-2 ml-auto md:order-2">
+          <Button variant="outline" disabled={isRefetching} onClick={refetch}>
+            {isRefetching && (
+              <span className="material-symbols-sharp animate-spin">sync</span>
+            )}
+            Refetch
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                Columns{" "}
+                <span className="material-symbols-sharp">
+                  keyboard_arrow_down
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <div className="border">
@@ -255,8 +239,7 @@ const UserTable = () => {
       </div>
       <div className="flex items-center justify-end py-4 space-x-2">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getFilteredRowModel().rows.length} row(s).
         </div>
         <div className="space-x-2">
           <Button
