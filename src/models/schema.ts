@@ -77,6 +77,7 @@ export const votesTable = sqliteTable("votes", {
   updated_at: int({ mode: "timestamp_ms" }).$onUpdate(() => new Date()),
 });
 
+// Needs unique constraint on vote_id->preference 
 export const votePreferencesTable = sqliteTable("vote_preferences", {
   vote_id: int("votes")
     .references(() => votesTable.id)
@@ -85,4 +86,7 @@ export const votePreferencesTable = sqliteTable("vote_preferences", {
     .references(() => candidatesTable.id)
     .notNull(),
   preference: int({ mode: "number" }).notNull(),
-});
+}, (t) => [
+  unique().on(t.vote_id, t.preference),
+  check('preference_check', sql`${t.preference} > 0`) // Votes start from 1 for first-preference
+]);
