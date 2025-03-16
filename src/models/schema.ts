@@ -1,4 +1,12 @@
-import { foreignKey, int, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+import {
+  check,
+  foreignKey,
+  int,
+  sqliteTable,
+  text,
+  unique,
+} from "drizzle-orm/sqlite-core";
 
 export const seatTable = sqliteTable("seats", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
@@ -77,16 +85,20 @@ export const votesTable = sqliteTable("votes", {
   updated_at: int({ mode: "timestamp_ms" }).$onUpdate(() => new Date()),
 });
 
-// Needs unique constraint on vote_id->preference 
-export const votePreferencesTable = sqliteTable("vote_preferences", {
-  vote_id: int("votes")
-    .references(() => votesTable.id)
-    .notNull(),
-  candidate_id: int("candidates")
-    .references(() => candidatesTable.id)
-    .notNull(),
-  preference: int({ mode: "number" }).notNull(),
-}, (t) => [
-  unique().on(t.vote_id, t.preference),
-  check('preference_check', sql`${t.preference} > 0`) // Votes start from 1 for first-preference
-]);
+// Needs unique constraint on vote_id->preference
+export const votePreferencesTable = sqliteTable(
+  "vote_preferences",
+  {
+    vote_id: int("votes")
+      .references(() => votesTable.id)
+      .notNull(),
+    candidate_id: int("candidates")
+      .references(() => candidatesTable.id)
+      .notNull(),
+    preference: int({ mode: "number" }).notNull(),
+  },
+  (t) => [
+    unique().on(t.vote_id, t.preference),
+    check("preference_check", sql`${t.preference} > 0`), // Votes start from 1 for first-preference
+  ]
+);
