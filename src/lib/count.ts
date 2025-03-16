@@ -93,7 +93,7 @@ class Race {
 
   hareClarke() {
     let elected = [];
-    const quota = Math.ceil(this.seat_votes.size / (this.openings + 1) + 1);
+    const quota = Math.floor(this.seat_votes.size / (this.openings + 1) + 1);
 
     while (elected.length < this.openings) {
       let buffer = [];
