@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import NominationForm, { type FormSchema } from "./form";
+import { BASE_URL } from "@/lib/utils";
 
 interface EditForm {
   id: number;
@@ -8,19 +9,15 @@ interface EditForm {
 const NominationEdit = ({ id }: EditForm) => {
   const { data: defaultValues } = useQuery({
     queryKey: ["nomination", id],
-    queryFn: () => {
-      return fetch(`http://localhost:8787/admin/nominations/${id}`).then(
-        (res) => res.json()
-      );
-    },
+    queryFn: () =>
+      fetch(`${BASE_URL}/admin/nominations/${id}`).then((res) => res.json()),
   });
   const mutation = useMutation({
-    mutationFn: (data: FormSchema) => {
-      return fetch(`http://localhost:8787/admin/nomination`, {
+    mutationFn: (data: FormSchema) =>
+      fetch(`${BASE_URL}/admin/nomination`, {
         method: "POST",
         body: JSON.stringify(data),
-      });
-    },
+      }),
   });
 
   return (

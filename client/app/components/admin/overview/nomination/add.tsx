@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import NominationForm, { type FormSchema } from "./form";
+import { BASE_URL } from "@/lib/utils";
 
 const defaultValues: FormSchema = {
   name: "",
@@ -19,7 +20,7 @@ const defaultValues: FormSchema = {
 const NominationAdd = () => {
   const mutation = useMutation({
     mutationFn: (data: FormSchema) => {
-      return fetch(`http://localhost:8787/admin/nomination`, {
+      return fetch(`${BASE_URL}/admin/nomination`, {
         method: "POST",
         body: JSON.stringify(data),
       });
