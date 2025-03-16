@@ -8,49 +8,57 @@ import {
   updatePosition,
   getPosition,
   deletePosition,
-} from "./position";
+} from "./db/position";
 import {
   getAllCandidates,
+  getAllCandidatesByRace,
   insertCandidate,
   updateCandidate,
   getCandidate,
   deleteCandidate,
-} from "./candidate";
+} from "./db/candidate";
 import {
   getAllNominations,
   getNominationsForPosition,
   insertNomination,
   deleteNomination,
-} from "./nomination";
+} from "./db/nomination";
 import {
   getRace,
   getAllRaces,
   insertRace,
   updateRace,
   deleteRace,
-} from "./race";
-import { getSeat, insertSeat, deleteSeat, getSeatByCode, getAllSeats } from "./seat";
+} from "./db/race";
+import {
+  getSeat,
+  insertSeat,
+  deleteSeat,
+  getSeatByCode,
+  checkSeatIfUsed,
+} from "./db/seat";
 import {
   getAllUsers,
   insertUser,
   updateUser,
   getUser,
+  getUserByEmail,
   deleteUser,
-} from "./user";
+} from "./db/user";
 import {
   getAllVotePreferences,
   insertVotePreference,
   updateVotePreference,
   getVotePreference,
   deleteVotePreference,
-} from "./vote-preference";
+} from "./db/vote-preference";
 import {
   getAllVotes,
   insertVote,
   updateVote,
   getVote,
   deleteVote,
-} from "./vote";
+} from "./db/vote";
 import { seedPositions } from "./seed";
 
 export interface Env {
@@ -104,6 +112,10 @@ export class VotingObject extends DurableObject {
   // Candidates
   getAllCandidates(...args: Parameters<typeof getAllCandidates>) {
     return getAllCandidates.call(this, ...args);
+  }
+
+  getAllCandidatesByRace(...args: Parameters<typeof getAllCandidatesByRace>) {
+    return getAllCandidatesByRace.call(this, ...args);
   }
 
   getCandidate(...args: Parameters<typeof getCandidate>) {
@@ -167,8 +179,8 @@ export class VotingObject extends DurableObject {
     return getSeat.call(this, ...args);
   }
 
-  getAllSeats(...args: Parameters<typeof getAllSeats>) {
-    return getAllSeats.call(this, ...args);
+  checkSeatIfUsed(...args: Parameters<typeof checkSeatIfUsed>) {
+    return checkSeatIfUsed.call(this, ...args);
   }
 
   getSeatByCode(...args: Parameters<typeof getSeatByCode>) {
@@ -190,6 +202,10 @@ export class VotingObject extends DurableObject {
 
   getUser(...args: Parameters<typeof getUser>) {
     return getUser.call(this, ...args);
+  }
+
+  getUserByEmail(...args: Parameters<typeof getUser>) {
+    return getUserByEmail.call(this, ...args);
   }
 
   insertUser(...args: Parameters<typeof insertUser>) {

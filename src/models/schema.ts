@@ -1,21 +1,34 @@
-import { foreignKey, int, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { relations } from "drizzle-orm";
+import {
+  foreignKey,
+  index,
+  int,
+  sqliteTable,
+  text,
+} from "drizzle-orm/sqlite-core";
 
 export const seatTable = sqliteTable("seats", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   code: text().notNull().unique(),
 });
 
-export const usersTable = sqliteTable("users", {
-  id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
-  email: text().notNull().unique(),
-  preferred_name: text().notNull(),
-  name: text().notNull(),
-  student_num: text().notNull().unique(),
-  role: text({ enum: ["user", "admin"] }).default("user"),
-  seat_id: int("seats")
-    .references(() => seatTable.id)
-    .notNull(),
-});
+export const usersTable = sqliteTable(
+  "users",
+  {
+    id: text().primaryKey(),
+    email: text().notNull().unique(),
+    preferred_name: text().notNull(),
+    name: text().notNull(),
+    student_num: text().notNull().unique(),
+    role: text({ enum: ["user", "admin"] }).default("user"),
+    seat_id: int("seats").references(() => seatTable.id),
+  },
+  (usersTable) => [index("seat_idx").on(usersTable.seat_id)]
+);
+
+export const seatRelations = relations(seatTable, ({ one }) => ({
+  seat_id: one(usersTable),
+}));
 
 export const candidatesTable = sqliteTable("candidates", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
@@ -82,7 +95,7 @@ export const votePreferencesTable = sqliteTable("vote_preferences", {
     .references(() => votesTable.id)
     .notNull(),
   candidate_id: int("candidates")
-    .references(() => candidatesTable.id)
+    .references(() => candidatesTable.id, { onDelete: "cascade" })
     .notNull(),
   preference: int({ mode: "number" }).notNull(),
 });
