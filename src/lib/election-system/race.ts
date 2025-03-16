@@ -13,6 +13,7 @@ type TransferValue = {
 
 export default class Race {
   candidateVotes: Map<Candidate, Vote[]> = new Map();
+  candidateParcel: Map<Candidate, number> = new Map();
   seatVotes: Map<Seat, Vote> = new Map();
   openings: number;
 
@@ -120,6 +121,7 @@ export default class Race {
 
         console.log(minCandidate);
         // For each vote - pop candidate and append to second preference at current value
+        // TODO: skip excluded candidates
         for (let v of this.candidateVotes
           .get(minCandidate.candidate)!
           .values()) {
