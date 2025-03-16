@@ -25,7 +25,7 @@ app.get("/code/:code", async (c) => {
 });
 
 app.post("/", async (c) => {
-  const code = randomInt(0, 999999).toString().padStart(6, "0");
+  const code = randomInt(0, 1000000).toString().padStart(6, "0");
   await c.var.STUB.insertSeat({ code });
   return c.json(code);
 });
