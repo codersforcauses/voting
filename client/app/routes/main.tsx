@@ -3,7 +3,7 @@ import { Status, StatusBar } from "@/components/status-bar/status-bar";
 import type { Route } from "./+types/main";
 import Auth from "@/components/auth";
 import { candidates } from "@/mocks/candidate";
-import { useUser, type User } from "@/lib/user";
+import { useToken } from "@/lib/user";
 import {
   Accordion,
   AccordionContent,
@@ -19,10 +19,10 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Main() {
-  const [user, setUser] = React.useState<User>(useUser());
+  const [token, setToken] = React.useState(useToken());
 
-  if (!user) {
-    return <Auth setUser={setUser} />;
+  if (!token) {
+    return <Auth setToken={setToken} />;
   }
 
   return (

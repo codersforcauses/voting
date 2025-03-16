@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,14 +9,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SlidingNumber } from "@/components/ui/sliding-number";
-import { useQuery } from "@tanstack/react-query";
+import { BASE_URL } from "@/lib/utils";
+import { useToken } from "@/lib/user";
 
 const SeatGenerator = () => {
-  const { data, refetch } = useQuery({
+  const token = useToken();
+  const { data, refetch, isRefetching } = useQuery({
     enabled: false,
     queryKey: ["seat"],
     queryFn: () =>
-      fetch("http://localhost:8787/admin/seed").then((res) => res.json()),
+      fetch(`${BASE_URL}/admin/seat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }).then((res) => res.json()),
   });
 
   const generate = () => {
@@ -32,7 +41,12 @@ const SeatGenerator = () => {
         {data ? <SlidingNumber value={data} /> : "nocode"}
       </CardContent>
       <CardFooter>
-        <Button variant="secondary" className="w-full" onClick={generate}>
+        <Button
+          disabled={isRefetching}
+          variant="secondary"
+          className="w-full"
+          onClick={generate}
+        >
           Generate New Seat
         </Button>
       </CardFooter>

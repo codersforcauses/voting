@@ -1,22 +1,30 @@
 import { factory } from "@/app";
 import { env } from "hono/adapter";
+import { HTTPException } from "hono/http-exception";
 import { verify } from "hono/jwt";
 
 export const authenticate = factory.createMiddleware(async (c, next) => {
-    const { AUTH_SECRET_KEY } = env<{ AUTH_SECRET_KEY: string }>(c);
-    const token = c.req.header("Authorization")?.split("Bearer ")[1];
-    if (!token) {
-        return c.json({ error: "No token provided" }, 401);
-    }
-    try {
-        const verfied = await verify(token, AUTH_SECRET_KEY);
-        console.log(verfied)
-    } catch (err) {
-        return c.json({ error: "Invalid token" }, 401);
-    }
-    await next();
-})
+  const { AUTH_SECRET_KEY } = env<{ AUTH_SECRET_KEY: string }>(c);
+  const token = c.req.header("Authorization")?.split("Bearer ")[1];
 
-// export const requireRole = (role: string) => factory.createMiddleware(async (c, next) => {
-//     if (c.env)
-// })
+  if (!token) {
+    throw new HTTPException(401, { message: "No token provided" });
+  }
+  try {
+    const verified = await verify(token, AUTH_SECRET_KEY);
+    c.set("ID", verified.sub);
+    c.set("ROLE", verified.role);
+  } catch (err) {
+    throw new HTTPException(401, { message: "Invalid token" });
+  }
+  await next();
+});
+
+export const requireAdmin = factory.createMiddleware(async (c, next) => {
+  const role = c.get("ROLE");
+
+  if (role !== "admin") {
+    throw new HTTPException(403, { message: "Unauthorized" });
+  }
+  await next();
+});

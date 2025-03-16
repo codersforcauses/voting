@@ -1,13 +1,16 @@
 import { eq } from "drizzle-orm";
 import { VotingObject } from "../..";
-import { usersTable } from "../schema";
+import { seatTable, usersTable } from "../schema";
 
 export function countUsers(this: VotingObject) {
   return this.db.$count(usersTable);
 }
 
 export function getAllUsers(this: VotingObject) {
-  return this.db.select().from(usersTable);
+  return this.db
+    .select()
+    .from(usersTable)
+    .leftJoin(seatTable, eq(usersTable.seat_id, seatTable.id));
 }
 
 export function getUser(this: VotingObject, id: string) {

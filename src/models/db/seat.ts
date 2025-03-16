@@ -10,16 +10,6 @@ export function getSeatByCode(this: VotingObject, code: string) {
   return this.db.select().from(seatTable).where(eq(seatTable.code, code));
 }
 
-// TODO
-export async function checkSeatIfUsed(this: VotingObject, id: number) {
-  const [user] = await this.db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.seat_id, id));
-  console.log(user);
-  return !!user;
-}
-
 export function insertSeat(
   this: VotingObject,
   data: Omit<typeof seatTable.$inferInsert, "id">

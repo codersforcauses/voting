@@ -12,7 +12,7 @@ import "@material-symbols/font-300/sharp.css";
 import type { Route } from "./+types/root";
 import "./app.css";
 import { ThemeProvider } from "./components/theme-provider";
-import { UserContext } from "./lib/user";
+import { TokenContext, useToken } from "./lib/user";
 
 export const links: Route.LinksFunction = () => [];
 
@@ -43,13 +43,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const user = window.sessionStorage.getItem("user");
+  const token = useToken();
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <QueryClientProvider client={queryClient}>
-        <UserContext.Provider value={user ? JSON.parse(user) : null}>
+        <TokenContext.Provider value={token}>
           <Outlet />
-        </UserContext.Provider>
+        </TokenContext.Provider>
       </QueryClientProvider>
     </ThemeProvider>
   );

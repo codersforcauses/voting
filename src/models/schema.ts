@@ -1,4 +1,3 @@
-import { relations } from "drizzle-orm";
 import {
   foreignKey,
   index,
@@ -19,16 +18,14 @@ export const usersTable = sqliteTable(
     email: text().notNull().unique(),
     preferred_name: text().notNull(),
     name: text().notNull(),
-    student_num: text().notNull().unique(),
+    student_num: text().unique(),
     role: text({ enum: ["user", "admin"] }).default("user"),
-    seat_id: int("seats").references(() => seatTable.id),
+    seat_id: int("seats")
+      .references(() => seatTable.id)
+      .unique(),
   },
   (usersTable) => [index("seat_idx").on(usersTable.seat_id)]
 );
-
-export const seatRelations = relations(seatTable, ({ one }) => ({
-  seat_id: one(usersTable),
-}));
 
 export const candidatesTable = sqliteTable("candidates", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),

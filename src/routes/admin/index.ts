@@ -1,17 +1,12 @@
-import { Hono } from "hono";
-import { randomInt } from "node:crypto";
 import nominationRouter from "./nominations";
+import seatRoutes from "./seat";
+import { factory } from "@/app";
 
-const app = new Hono();
+const app = factory.createApp();
 
 app.route("/nominations", nominationRouter);
+app.route("/seat", seatRoutes);
 
 app.get("/", (c) => c.json("admin"));
-
-app.get("/seed", (c) => {
-  const seat = randomInt(0, 999999).toString().padStart(6, "0");
-  // TODO: save seat to database
-  return c.json(seat);
-});
 
 export default app;

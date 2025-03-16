@@ -30,13 +30,7 @@ import {
   updateRace,
   deleteRace,
 } from "./db/race";
-import {
-  getSeat,
-  insertSeat,
-  deleteSeat,
-  getSeatByCode,
-  checkSeatIfUsed,
-} from "./db/seat";
+import { getSeat, insertSeat, deleteSeat, getSeatByCode } from "./db/seat";
 import {
   getAllUsers,
   insertUser,
@@ -177,10 +171,6 @@ export class VotingObject extends DurableObject {
   // Seats
   getSeat(...args: Parameters<typeof getSeat>) {
     return getSeat.call(this, ...args);
-  }
-
-  checkSeatIfUsed(...args: Parameters<typeof checkSeatIfUsed>) {
-    return checkSeatIfUsed.call(this, ...args);
   }
 
   getSeatByCode(...args: Parameters<typeof getSeatByCode>) {
