@@ -11,7 +11,7 @@ import {
 } from "./db/position";
 import {
   getAllCandidates,
-  getAllCandidatesByRace,
+  getAllCandidatesByPosition,
   insertCandidate,
   updateCandidate,
   getCandidate,
@@ -54,10 +54,9 @@ import {
   deleteVote,
 } from "./db/vote";
 import { seedPositions, seedSeat, seedRaces, seedCandidate } from "./seed";
-import { candidatesTable, nominationsTable, positionsTable, seatsTable } from "./schema";
+import { positionsTable, seatsTable } from "./schema";
 import { eq } from "drizzle-orm";
-import { seed } from "drizzle-seed";
-import { BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
+import * as schema from './schema'
 
 export interface DOEnv {
   ENVIRONMENT: "dev" | "production";
@@ -67,12 +66,12 @@ export interface DOEnv {
 
 export class VotingObject extends DurableObject {
   storage: DurableObjectStorage;
-  db: DrizzleSqliteDODatabase<any>;
+  db: DrizzleSqliteDODatabase<typeof schema>;
 
   constructor(ctx: DurableObjectState, env: DOEnv) {
     super(ctx, env);
     this.storage = this.ctx.storage;
-    this.db = drizzle(this.storage, { logger: true });
+    this.db = drizzle(this.storage, { logger: true, schema });
 
     ctx.blockConcurrencyWhile(async () => {
       await this._migrate();
@@ -122,8 +121,8 @@ export class VotingObject extends DurableObject {
     return getAllCandidates.call(this, ...args);
   }
 
-  getAllCandidatesByRace(...args: Parameters<typeof getAllCandidatesByRace>) {
-    return getAllCandidatesByRace.call(this, ...args);
+  getAllCandidatesByPosition(...args: Parameters<typeof getAllCandidatesByPosition>) {
+    return getAllCandidatesByPosition.call(this, ...args);
   }
 
   getCandidate(...args: Parameters<typeof getCandidate>) {

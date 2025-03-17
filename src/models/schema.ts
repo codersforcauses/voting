@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   foreignKey,
   index,
@@ -10,6 +11,10 @@ export const seatsTable = sqliteTable("seats", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   code: text().notNull().unique(),
 });
+
+export const seatRelations = relations(seatsTable, ({ one }) => ({
+	users: one(usersTable),
+}));
 
 export const usersTable = sqliteTable(
   "users",
@@ -27,6 +32,10 @@ export const usersTable = sqliteTable(
   (usersTable) => [index("seat_idx").on(usersTable.seat_id)]
 );
 
+export const userRelations = relations(usersTable, ({ one }) => ({
+	seats: one(seatsTable),
+}));
+
 export const candidatesTable = sqliteTable("candidates", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   isMember: int({ mode: "boolean" }).notNull(),
@@ -43,6 +52,11 @@ export const candidatesTable = sqliteTable("candidates", {
   say_something: text(),
 });
 
+export const candidateRelations = relations(candidatesTable, ({ many }) => ({
+	nominations: many(nominationsTable),
+	votePreferences: many(votePreferencesTable),
+}));
+
 export const positionsTable = sqliteTable("positions", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   title: text().notNull(),
@@ -50,6 +64,11 @@ export const positionsTable = sqliteTable("positions", {
   priority: int({ mode: "number" }).notNull().unique(),
   openings: int({ mode: "number" }).notNull().default(1),
 });
+
+export const positionRelations = relations(positionsTable, ({ many }) => ({
+	nominations: many(nominationsTable),
+	races: many(racesTable),
+}));
 
 export const nominationsTable = sqliteTable(
   "nominations",
@@ -65,6 +84,11 @@ export const nominationsTable = sqliteTable(
   ]
 );
 
+export const nominationRelations = relations(nominationsTable, ({ one }) => ({
+	candidates: one(candidatesTable, { fields: [nominationsTable.candidate_id], references: [candidatesTable.id] }),
+	positions: one(positionsTable, { fields: [nominationsTable.position_id], references: [positionsTable.id] }),
+}));
+
 export const racesTable = sqliteTable("race", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   position_id: int("positions")
@@ -72,6 +96,11 @@ export const racesTable = sqliteTable("race", {
     .notNull(),
   status: text({ enum: ["closed", "not-started", "started", "finished"] }).default("closed"),
 });
+
+export const racesRelations = relations(racesTable, ({ one, many }) => ({
+	positions: one(positionsTable, { fields: [racesTable.position_id], references: [positionsTable.id] }),
+  votes: many(votesTable)
+}));
 
 export const votesTable = sqliteTable("votes", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
@@ -87,6 +116,11 @@ export const votesTable = sqliteTable("votes", {
   updated_at: int({ mode: "timestamp_ms" }).$onUpdate(() => new Date()),
 });
 
+export const votesRelations = relations(votesTable, ({ one, many }) => ({
+	races: one(racesTable, { fields: [votesTable.race_id], references: [racesTable.id] }),
+  votePreferences: many(votePreferencesTable)
+}));
+
 export const votePreferencesTable = sqliteTable("vote_preferences", {
   vote_id: int("votes")
     .references(() => votesTable.id)
@@ -96,3 +130,8 @@ export const votePreferencesTable = sqliteTable("vote_preferences", {
     .notNull(),
   preference: int({ mode: "number" }).notNull(),
 });
+
+export const votePreferencesRelations = relations(votePreferencesTable, ({ one, many }) => ({
+	votes: one(votesTable, { fields: [votePreferencesTable.vote_id], references: [votesTable.id] }),
+	candidate: one(candidatesTable, { fields: [votePreferencesTable.vote_id], references: [candidatesTable.id] }),
+}));

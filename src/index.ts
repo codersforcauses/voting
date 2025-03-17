@@ -6,18 +6,18 @@ import { app } from "./app";
 import { VotingObject } from "./models";
 import { addStub } from "./middleware/db";
 
-import positionRoutes from "./routes/position";
 import authRoutes from "./routes/auth";
-import adminRoutes from "./routes/admin";
+import positionRoutes from "./routes/position";
+import candidateRoutes from "./routes/candidate";
 
 app.use(secureHeaders());
 app.use(cors());
 app.use(addStub);
 app.use(logger());
 
-app.route("/position", positionRoutes);
 app.route("/auth", authRoutes);
-app.route("/admin", adminRoutes);
+app.route("/position", positionRoutes);
+app.route("/candidate", candidateRoutes);
 
 export default app;
 
