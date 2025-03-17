@@ -29,12 +29,13 @@ export default function Admin() {
   const { hash } = useLocation();
   let currentPage: string;
   let CurrentView = () => <> </>;
+
   if (!hash) {
     currentPage = "Overview";
     CurrentView = OverView;
   } else {
     currentPage = hash.split("#")[1];
-    CurrentView = Users;
+    CurrentView = Users ?? (() => <></>);
     if (currentPage.includes("nomination") || currentPage.includes("result")) {
       currentPage = currentPage.split("=").join(" - ");
       CurrentView = currentPage.includes("nomination")
@@ -42,6 +43,7 @@ export default function Admin() {
         : () => <> </>;
     }
   }
+
   return (
     <SidebarProvider>
       <AppSidebar />

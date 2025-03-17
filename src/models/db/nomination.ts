@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { VotingObject } from "..";
 import { nominationsTable } from "../schema";
 
+// Not sure if this is required since it's just all candidates
 export function getAllNominations(this: VotingObject) {
   return this.db.select().from(nominationsTable);
 }
