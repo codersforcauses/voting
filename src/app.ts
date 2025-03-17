@@ -2,7 +2,7 @@ import { createFactory } from "hono/factory";
 import { VotingObject } from "./models";
 import { UserData } from "./types";
 
-interface Env {
+interface APIEnv {
   Bindings: {};
   Variables: {
     STUB: DurableObjectStub<VotingObject>;
@@ -14,6 +14,6 @@ interface Env {
   };
 }
 
-export const factory = createFactory<Env>();
+export const factory = createFactory<APIEnv>();
 
 export const app = factory.createApp();

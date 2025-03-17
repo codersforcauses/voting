@@ -6,12 +6,14 @@ import { every } from "hono/combine";
 
 const app = factory.createApp();
 
+app.use(every(authenticate, requireAdmin))
+
 app.route("/nominations", nominationRouter);
 app.route("/seat", seatRoutes);
 
 app.get("/", (c) => c.json("admin"));
 
-app.get("/users", every(authenticate, requireAdmin), async (c) => {
+app.get("/users", async (c) => {
   const data = await c.var.STUB.getAllUsers();
 
   const users = data.map(({ users: { seat_id, ...users }, seats }) => ({

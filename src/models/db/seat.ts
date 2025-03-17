@@ -1,22 +1,22 @@
 import { eq } from "drizzle-orm";
 import { VotingObject } from "..";
-import { seatTable, usersTable } from "../schema";
+import { seatsTable, usersTable } from "../schema";
 
 export function getSeat(this: VotingObject, id: number) {
-  return this.db.select().from(seatTable).where(eq(seatTable.id, id));
+  return this.db.select().from(seatsTable).where(eq(seatsTable.id, id));
 }
 
 export function getSeatByCode(this: VotingObject, code: string) {
-  return this.db.select().from(seatTable).where(eq(seatTable.code, code));
+  return this.db.select().from(seatsTable).where(eq(seatsTable.code, code));
 }
 
 export function insertSeat(
   this: VotingObject,
-  data: Omit<typeof seatTable.$inferInsert, "id">
+  data: Omit<typeof seatsTable.$inferInsert, "id">
 ) {
-  return this.db.insert(seatTable).values(data).returning();
+  return this.db.insert(seatsTable).values(data).returning();
 }
 
 export function deleteSeat(this: VotingObject, id: number) {
-  return this.db.delete(seatTable).where(eq(seatTable.id, id)).returning();
+  return this.db.delete(seatsTable).where(eq(seatsTable.id, id)).returning();
 }

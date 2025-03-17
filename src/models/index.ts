@@ -53,18 +53,23 @@ import {
   getVote,
   deleteVote,
 } from "./db/vote";
-import { seedPositions } from "./seed";
+import { seedPositions, seedSeat, seedRaces, seedCandidate } from "./seed";
+import { candidatesTable, nominationsTable, positionsTable, seatsTable } from "./schema";
+import { eq } from "drizzle-orm";
+import { seed } from "drizzle-seed";
+import { BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 
-export interface Env {
+export interface DOEnv {
   ENVIRONMENT: "dev" | "production";
   VOTING_OBJECT: DurableObjectNamespace<VotingObject>;
+  DEFAULT_SEAT: string;
 }
 
 export class VotingObject extends DurableObject {
   storage: DurableObjectStorage;
   db: DrizzleSqliteDODatabase<any>;
 
-  constructor(ctx: DurableObjectState, env: Env) {
+  constructor(ctx: DurableObjectState, env: DOEnv) {
     super(ctx, env);
     this.storage = this.ctx.storage;
     this.db = drizzle(this.storage, { logger: true });
@@ -73,7 +78,16 @@ export class VotingObject extends DurableObject {
       await this._migrate();
 
       if (env.ENVIRONMENT === "dev") {
-        // await seedPositions(this.db)
+        const numPositions = await this.db.$count(positionsTable)
+        if (numPositions === 0) {
+          const positionIds = await seedPositions(this.db)
+          await seedRaces(this.db, positionIds)
+          await seedCandidate(this.db, positionIds) 
+        }
+      }
+      const masterSeat = await this.db.select().from(seatsTable).where(eq(seatsTable.code, env.DEFAULT_SEAT))
+      if (masterSeat.length === 0) {
+        await seedSeat(env, this.db)
       }
     });
   }

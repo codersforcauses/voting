@@ -6,7 +6,7 @@ import {
   text,
 } from "drizzle-orm/sqlite-core";
 
-export const seatTable = sqliteTable("seats", {
+export const seatsTable = sqliteTable("seats", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   code: text().notNull().unique(),
 });
@@ -21,7 +21,7 @@ export const usersTable = sqliteTable(
     student_num: text().unique(),
     role: text({ enum: ["user", "admin"] }).default("user"),
     seat_id: int("seats")
-      .references(() => seatTable.id)
+      .references(() => seatsTable.id)
       .unique(),
   },
   (usersTable) => [index("seat_idx").on(usersTable.seat_id)]
@@ -70,7 +70,7 @@ export const racesTable = sqliteTable("race", {
   position_id: int("positions")
     .references(() => positionsTable.id, { onDelete: "cascade" })
     .notNull(),
-  status: text({ enum: ["closed", "open", "completed"] }).default("closed"),
+  status: text({ enum: ["closed", "not-started", "started", "finished"] }).default("closed"),
 });
 
 export const votesTable = sqliteTable("votes", {
