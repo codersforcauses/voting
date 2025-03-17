@@ -72,7 +72,7 @@ const PositionCard = () => {
               Modify how many positions are available on each role
             </CardDescription>
           </div>
-          <CollapsibleTrigger>
+          <CollapsibleTrigger asChild>
             <Button variant="ghost" size="icon">
               <span className="material-symbols-sharp">expand_all</span>
             </Button>

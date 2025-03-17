@@ -6,3 +6,4 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const BASE_URL = "http://localhost:8787";
+export const WS_URL = "ws://localhost:8787";
