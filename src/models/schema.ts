@@ -68,7 +68,7 @@ export const nominationsTable = sqliteTable(
 export const racesTable = sqliteTable("race", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   position_id: int("positions")
-    .references(() => positionsTable.id)
+    .references(() => positionsTable.id, { onDelete: "cascade" })
     .notNull(),
   status: text({ enum: ["closed", "open", "completed"] }).default("closed"),
 });

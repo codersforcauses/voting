@@ -84,7 +84,7 @@ const Auth = ({
   };
 
   return (
-    <div className="flex items-center justify-center h-screen p-6 md:p-10">
+    <main className="flex items-center justify-center h-screen p-6 md:p-10">
       <div className="flex flex-col w-full max-w-sm gap-6">
         <div className="flex flex-col gap-1">
           <h1 className="font-mono text-xl font-bold">CFC AGM 2025</h1>
@@ -159,7 +159,7 @@ const Auth = ({
           committee member.
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

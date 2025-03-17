@@ -3,11 +3,14 @@ import { UserData } from "@/types";
 import { createClerkClient } from "@clerk/backend";
 import { zValidator } from "@hono/zod-validator";
 import { env } from "hono/adapter";
+import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { sign } from "hono/jwt";
 import { z } from "zod";
 
 const app = factory.createApp();
+
+app.use(cors());
 
 app.post(
   "/",
