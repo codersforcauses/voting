@@ -15,6 +15,7 @@ export default class Race {
   candidateVotes: Map<Candidate, Vote[]> = new Map();
   candidateParcel: Map<Candidate, number> = new Map();
   seatVotes: Map<Seat, Vote> = new Map();
+  remaining: Set<string> = new Set();
   openings: number;
 
   constructor(votes: Map<string, string[]>, openings: number = 1) {
@@ -24,6 +25,7 @@ export default class Race {
       let vote = new Vote(key, value);
       this.seatVotes.set(key, vote);
 
+      this.remaining = this.remaining.union(new Set(value));
       let tmp = this.candidateVotes.get(vote.first!);
 
       if (tmp) {
@@ -35,6 +37,8 @@ export default class Race {
       this.candidateVotes.set(vote.first!, tmp);
     }
     console.log(this.candidateVotes);
+
+    console.log(this.remaining);
   }
 
   // Counts the number of current-preference votes for each candidate
@@ -66,75 +70,105 @@ export default class Race {
   }
 
   hareClarke() {
-    let elected = [];
+    let elected: TransferValue[] = [];
     const quota = Math.ceil(this.seatVotes.size / (this.openings + 1));
-
     console.log(quota);
 
     while (elected.length < this.openings) {
-      let buffer = [];
       let count = this.countVotes();
-
-      // Find candidates elected
-      // TODO: Transfer value should only be on last allocated parcel
-      for (const c of count) {
-        if (c.count >= quota) {
-          const transferValue = (c.count - quota) / c.count;
-          buffer.push({
-            candidate: c.candidate,
-            tv: transferValue,
-          });
-          elected.push(c.candidate);
-        }
-      }
+      let buffer = this.findElectedCandidates(count, quota);
+      elected = elected.concat(buffer);
 
       // Enough Candidates elected - can early exit here
       if (elected.length >= this.openings) {
         break;
       }
 
+      // Clear parcel
+      this.candidateParcel.clear();
+
       // Transfer votes
       if (buffer.length > 0) {
-        // A candidate was elected so transfer their votes to the next candidate
-        for (let c of buffer) {
-          let candidate = c.candidate;
-          let transferValue = c.tv;
-          if (transferValue > 0) {
-            for (let v of this.candidateVotes.get(candidate)!) {
-              v.value *= transferValue;
-              let next = v.next();
-              if (next) {
-                this.candidateVotes.get(next)?.push(v);
-              }
-            }
-          }
-          this.candidateVotes.delete(c.candidate);
-        }
+        this.transferElectedVotes(buffer);
       } else {
-        // TODO: Prematurely culling candidates. Need to re count after a distribution
-        // and work out how to deal with tie breakers.
-        // Transfer votes from lowest candidate
-        // Find candidate with min votes
-        const minCandidate = count.reduce((i, k) =>
-          i.count < k.count ? i : k
-        );
+        this.transferEliminatedVotes(count);
+      }
+      console.log(this.candidateVotes);
+    }
+    return elected;
+  }
 
-        console.log(minCandidate);
-        // For each vote - pop candidate and append to second preference at current value
-        // TODO: skip excluded candidates
-        for (let v of this.candidateVotes
-          .get(minCandidate.candidate)!
-          .values()) {
-          let next = v.next();
-          if (next) {
-            this.candidateVotes.get(next)?.push(v);
-          }
+  nextValidPreference(v: Vote): string | undefined {
+    let next;
+    do {
+      next = v.next();
+      if (next && this.remaining.has(next)) {
+        let tmp = this.candidateVotes.get(next);
+        if (tmp) {
+          tmp.push(v);
+        } else {
+          tmp = [v];
         }
+        this.candidateVotes.set(next, tmp);
 
-        this.candidateVotes.delete(minCandidate.candidate);
-        console.log(this.candidateVotes);
+        // Update the latest parcel
+        const p = this.candidateParcel.get(next) ?? 0;
+        this.candidateParcel.set(next, p + v.value);
+        return next;
+      }
+    } while (next); // If next is undefined it means there's no more candidates
+    return undefined; // Vote is discarded
+  }
+
+  findElectedCandidates(count: Count[], quota: number): TransferValue[] {
+    let elected: TransferValue[] = [];
+
+    // Find candidates elected
+    // TODO: Transfer value should only be on last allocated parcel
+    for (const candidate of count) {
+      if (candidate.count >= quota) {
+        const lastParcel =
+          this.candidateParcel.get(candidate.candidate) ?? candidate.count;
+        const transferValue = (candidate.count - quota) / lastParcel;
+
+        elected.push({
+          candidate: candidate.candidate,
+          tv: transferValue,
+        });
+        this.remaining.delete(candidate.candidate);
       }
     }
     return elected;
+  }
+
+  transferElectedVotes(buffer: TransferValue[]) {
+    // A candidate was elected so transfer their votes to the next candidate
+    for (let c of buffer) {
+      let candidate = c.candidate;
+      let transferValue = c.tv;
+      if (transferValue > 0) {
+        for (let v of this.candidateVotes.get(candidate)!) {
+          v.value *= transferValue;
+          this.nextValidPreference(v);
+        }
+      }
+      this.candidateVotes.delete(c.candidate);
+    }
+  }
+
+  transferEliminatedVotes(count: Count[]) {
+    // Work out how to deal with tie breakers and transfer votes from lowest candidate
+    // Find candidate with min votes
+    const minCandidate = count.reduce((i, k) => (i.count < k.count ? i : k));
+
+    // There is probably a better way to do this - we just need to save the candidate/s
+    // temporarily somewhere.
+    this.remaining.delete(minCandidate.candidate);
+
+    for (let v of this.candidateVotes.get(minCandidate.candidate)!.values()) {
+      this.nextValidPreference(v);
+    }
+
+    this.candidateVotes.delete(minCandidate.candidate);
   }
 }
