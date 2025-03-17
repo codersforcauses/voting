@@ -1,13 +1,16 @@
 import { eq } from "drizzle-orm";
 import { VotingObject } from "..";
-import { racesTable } from "../schema";
+import { positionsTable, racesTable } from "../schema";
 
 export function getRace(this: VotingObject, id: number) {
   return this.db.select().from(racesTable).where(eq(racesTable.id, id));
 }
 
 export function getAllRaces(this: VotingObject) {
-  return this.db.select().from(racesTable);
+  return this.db
+    .select()
+    .from(racesTable)
+    .leftJoin(positionsTable, eq(racesTable.position_id, positionsTable.id));
 }
 
 export function insertRace(
