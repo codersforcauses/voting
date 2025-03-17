@@ -12,11 +12,11 @@ export default class Vote {
 
   constructor(seat: string, votes: string[]) {
     this.seat = seat;
-    this._candidates = votes.reverse();
+    this._candidates = votes.toReversed();
   }
 
   get candidates() {
-    return this._candidates.reverse();
+    return this._candidates.toReversed();
   }
 
   // Returns the effective first preference
@@ -37,7 +37,7 @@ export default class Vote {
   // count.
   nextEffectiveVote(remainingCandidates: Set<string>) {
     for (let c of this.candidates) {
-      if (c in remainingCandidates) {
+      if (remainingCandidates.has(c)) {
         return c;
       }
     }

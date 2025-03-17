@@ -27,11 +27,18 @@ id | user_id | race_id
 Preferences:
 vote_id | candidate_id | preference
 */
-import { Race } from "./election-system";
+import { HareClark } from "./election-system";
 
 export function autocount(data: Map<string, string[]>, openings: number = 1) {
-  const race = new Race(data, openings);
-  return race.autocount();
+  if (openings > 1) {
+    // Multi-candidate race - use hare-clark
+    const race = new HareClark(data, openings);
+    return race.count();
+  } else {
+    // Instant Run-off
+    // const race = new Race(data, openings);
+  }
+  // First past the post
 }
 
 export function test() {
