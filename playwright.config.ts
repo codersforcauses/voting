@@ -28,22 +28,21 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://127.0.0.1:8787',
 
-    extraHTTPHeaders: {
-      // We set this header per GitHub guidelines.
-      'Accept': 'application/vnd.github.v3+json',
-      // Add authorization token to all requests.
-      // Assuming personal access token available in the environment.
-      'Authorization': `token ${process.env.API_TOKEN}`,
-    },
-
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    extraHTTPHeaders: {
+      // Add authorization token to all requests.
+      // Assuming personal access token available in the environment.
+      'Authorization': `token ${process.env.TESTING_API_TOKEN}`,
+    },
   },
+  
 
   /* Run your local dev server before starting the tests */
   // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://127.0.0.1:3000',
+  //   command: 'pnpm dev',
+  //   url: 'http://127.0.0.1:8787',
   //   reuseExistingServer: !process.env.CI,
   // },
 });

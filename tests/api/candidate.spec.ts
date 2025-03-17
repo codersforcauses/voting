@@ -16,4 +16,8 @@ test.describe('Candidates', () => {
     test('should delete candidate with id', async ({ request }) => {
         // TODO
     })
+
+    test('should delete nominations when candidate is deleted', async ({ request }) => {
+        // TODO
+    })
 });
