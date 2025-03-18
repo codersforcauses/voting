@@ -30,6 +30,7 @@ import {
   updateRace,
   deleteRace,
   getCurrentRace,
+  saveElectedForRace,
 } from "./db/race";
 import { getSeat, insertSeat, deleteSeat, getSeatByCode } from "./db/seat";
 import {
@@ -54,7 +55,6 @@ import {
   getVote,
   deleteVote,
   getVoteAggregateForRace,
-  getVoteAggregate,
 } from "./db/vote";
 import { seedSeat, seedCandidate, seedVote, seedUsers, seedPositions, seedRaces } from "./seed";
 import {
@@ -228,6 +228,10 @@ export class VotingObject extends DurableObject {
     return deleteRace.call(this, ...args);
   }
 
+  saveElectedForRace(...args: Parameters<typeof saveElectedForRace>) {
+    return saveElectedForRace.call(this, ...args);
+  }
+
   // Seats
   getSeat(...args: Parameters<typeof getSeat>) {
     return getSeat.call(this, ...args);
@@ -314,9 +318,5 @@ export class VotingObject extends DurableObject {
 
   getVoteAggregateForRace(...args: Parameters<typeof getVoteAggregateForRace>) {
     return getVoteAggregateForRace.call(this, ...args);
-  }
-
-  getVoteAggregate(...args: Parameters<typeof getVoteAggregate>) {
-    return getVoteAggregate.call(this, ...args);
   }
 }

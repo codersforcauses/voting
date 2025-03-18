@@ -46,7 +46,7 @@ export async function updateRace(
   return race
 }
 
-export function calculateWinner(
+export function saveElectedForRace(
   this: VotingObject,
   id: number,
 ) {

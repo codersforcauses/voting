@@ -8,13 +8,6 @@ import { z } from "zod";
 
 const app = factory.createApp();
 
-app.get("/",
-  // every(authenticate, requireAdmin),
-  async (c) => {
-  const data = await c.var.STUB.getVoteAggregate();
-    return c.json(data);
-})
-
 app.get("/:id",
   // every(authenticate, requireAdmin),
   zValidator(
@@ -26,7 +19,7 @@ app.get("/:id",
 async (c) => {
   try {
     const { id } = c.req.valid("param");
-    const data = await c.var.STUB.getVoteAggregateForRace(id);
+    const data = await c.var.STUB.saveElectedForRace(id);
     return c.json(data);
   } catch (error) {
     throw new HTTPException(500, { message: "Could not get vote aggregate" });

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { VotingObject } from "../..";
-import { racesTable, votesTable, votePreferencesTable } from "../schema";
+import { racesTable, votesTable, votePreferencesTable, positionsTable } from "../schema";
 
 export function getAllVotesForRace(this: VotingObject, race: number) {
   return this.db.select().from(votesTable).where(eq(racesTable.id, race));
@@ -27,19 +27,6 @@ export function updateVote(
     .set(data)
     .where(eq(votesTable.id, id))
     .returning();
-}
-
-export function getVoteAggregate(this: VotingObject) {
-  const racesWithVotesAndPreferences = this.db.select().from(racesTable)
-    .leftJoin(
-      votesTable,
-      eq(racesTable.id, votesTable.race_id)
-    )
-    .leftJoin(
-      votePreferencesTable,
-      eq(votesTable.id, votePreferencesTable.vote_id)).all()
-
-  return racesWithVotesAndPreferences
 }
 
 export function getVoteAggregateForRace(this: VotingObject, id: number) {
