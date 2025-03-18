@@ -10,6 +10,9 @@ import {
   Drawer,
 } from "../ui/drawer";
 import { Button } from "../ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { BASE_URL } from "@/lib/utils";
+import { useToken } from "@/lib/user";
 
 export enum Status {
   Open = "Open",
@@ -58,8 +61,24 @@ export function StatusBar({
   position: string;
   candidates: any[];
 }) {
+  const token = useToken();
   const [order, setOrder] = React.useState(candidates);
   const [drawerIsOpen, setDrawerIsOpen] = React.useState(false);
+
+  const voteMutation = useMutation({
+    mutationKey: ["vote", position],
+    mutationFn: async (order: any) => {
+      const res = await fetch(`${BASE_URL}/vote`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ order }),
+      });
+      return res;
+    },
+  });
 
   const onSubmit = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();

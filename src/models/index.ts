@@ -8,70 +8,94 @@ import {
   updatePosition,
   getPosition,
   deletePosition,
-} from "./position";
+} from "./db/position";
 import {
   getAllCandidates,
+  getAllCandidatesByPosition,
   insertCandidate,
   updateCandidate,
   getCandidate,
   deleteCandidate,
-} from "./candidate";
+} from "./db/candidate";
 import {
   getAllNominations,
   getNominationsForPosition,
   insertNomination,
   deleteNomination,
-} from "./nomination";
+} from "./db/nomination";
 import {
   getRace,
   getAllRaces,
   insertRace,
   updateRace,
   deleteRace,
-} from "./race";
-import { getSeat, insertSeat, deleteSeat, getSeatByCode, getAllSeats } from "./seat";
+  getCurrentRace,
+} from "./db/race";
+import { getSeat, insertSeat, deleteSeat, getSeatByCode } from "./db/seat";
 import {
   getAllUsers,
   insertUser,
   updateUser,
   getUser,
+  getUserByEmail,
   deleteUser,
-} from "./user";
+} from "./db/user";
 import {
   getAllVotePreferences,
   insertVotePreference,
   updateVotePreference,
   getVotePreference,
   deleteVotePreference,
-} from "./vote-preference";
+} from "./db/vote-preference";
 import {
   getAllVotes,
   insertVote,
   updateVote,
   getVote,
   deleteVote,
-} from "./vote";
-import { seedPositions } from "./seed";
+} from "./db/vote";
+import { seedPositions, seedSeat, seedRaces, seedCandidate } from "./seed";
+import {
+  candidatesTable,
+  nominationsTable,
+  positionsTable,
+  seatsTable,
+} from "./schema";
+import { eq } from "drizzle-orm";
+import * as schema from "./schema";
 
-export interface Env {
+export interface DOEnv {
   ENVIRONMENT: "dev" | "production";
   VOTING_OBJECT: DurableObjectNamespace<VotingObject>;
+  DEFAULT_SEAT: string;
 }
 
 export class VotingObject extends DurableObject {
   storage: DurableObjectStorage;
-  db: DrizzleSqliteDODatabase<any>;
+  db: DrizzleSqliteDODatabase<typeof schema>;
 
-  constructor(ctx: DurableObjectState, env: Env) {
+  constructor(ctx: DurableObjectState, env: DOEnv) {
     super(ctx, env);
     this.storage = this.ctx.storage;
-    this.db = drizzle(this.storage, { logger: true });
+    this.db = drizzle(this.storage, { logger: true, schema });
 
     ctx.blockConcurrencyWhile(async () => {
       await this._migrate();
 
       if (env.ENVIRONMENT === "dev") {
-        // await seedPositions(this.db)
+        const numPositions = await this.db.$count(positionsTable);
+        if (numPositions === 0) {
+          const positionIds = await seedPositions(this.db);
+          await seedRaces(this.db, positionIds);
+          await seedCandidate(this.db, positionIds);
+        }
+      }
+      const masterSeat = await this.db
+        .select()
+        .from(seatsTable)
+        .where(eq(seatsTable.code, env.DEFAULT_SEAT));
+      if (masterSeat.length === 0) {
+        await seedSeat(env, this.db);
       }
     });
   }
@@ -104,6 +128,12 @@ export class VotingObject extends DurableObject {
   // Candidates
   getAllCandidates(...args: Parameters<typeof getAllCandidates>) {
     return getAllCandidates.call(this, ...args);
+  }
+
+  getAllCandidatesByPosition(
+    ...args: Parameters<typeof getAllCandidatesByPosition>
+  ) {
+    return getAllCandidatesByPosition.call(this, ...args);
   }
 
   getCandidate(...args: Parameters<typeof getCandidate>) {
@@ -146,6 +176,10 @@ export class VotingObject extends DurableObject {
     return getAllRaces.call(this, ...args);
   }
 
+  getCurrentRace(...args: Parameters<typeof getCurrentRace>) {
+    return getCurrentRace.call(this, ...args);
+  }
+
   getRace(...args: Parameters<typeof getRace>) {
     return getRace.call(this, ...args);
   }
@@ -167,10 +201,6 @@ export class VotingObject extends DurableObject {
     return getSeat.call(this, ...args);
   }
 
-  getAllSeats(...args: Parameters<typeof getAllSeats>) {
-    return getAllSeats.call(this, ...args);
-  }
-
   getSeatByCode(...args: Parameters<typeof getSeatByCode>) {
     return getSeatByCode.call(this, ...args);
   }
@@ -190,6 +220,10 @@ export class VotingObject extends DurableObject {
 
   getUser(...args: Parameters<typeof getUser>) {
     return getUser.call(this, ...args);
+  }
+
+  getUserByEmail(...args: Parameters<typeof getUser>) {
+    return getUserByEmail.call(this, ...args);
   }
 
   insertUser(...args: Parameters<typeof insertUser>) {

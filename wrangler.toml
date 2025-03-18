@@ -21,6 +21,7 @@ ENVIRONMENT = "dev"
 # !Make sure not to commit
 CLERK_SECRET_KEY = "PROD_KEY"
 AUTH_SECRET_KEY = "PROD_KEY"
+DEFAULT_SEAT = "000000"
 
 [env.production.vars]
 ENVIRONMENT = "production"

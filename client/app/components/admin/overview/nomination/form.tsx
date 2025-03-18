@@ -21,7 +21,9 @@ import {
 } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
-import type { UseMutateAsyncFunction } from "@tanstack/react-query";
+import { useQuery, type UseMutateAsyncFunction } from "@tanstack/react-query";
+import { BASE_URL } from "@/lib/utils";
+import { useToken } from "@/lib/user";
 
 const formSchema = z
   .object({
@@ -43,7 +45,7 @@ const formSchema = z
         message: "Email is required",
       }),
     positions: z
-      .array(z.string())
+      .array(z.number())
       .refine((value) => value.some((item) => item), {
         message: "At least one position must be selected",
       }),
@@ -78,17 +80,6 @@ const formSchema = z
 
 export type FormSchema = z.infer<typeof formSchema>;
 
-const positions = [
-  { id: "president", label: "President" },
-  { id: "vp", label: "Vice President" },
-  { id: "secretary", label: "Secretary" },
-  { id: "treasurer", label: "Treasurer" },
-  { id: "techlead", label: "Technical Lead" },
-  { id: "marketing", label: "Marketing Officer" },
-  { id: "fresher", label: "Fresher Representative" },
-  { id: "ocm", label: "Ordinary Committee Member" },
-];
-
 interface NominationFormProps {
   title: string;
   btnText: string;
@@ -97,9 +88,22 @@ interface NominationFormProps {
 }
 
 const NominationForm = (props: NominationFormProps) => {
+  const token = useToken();
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: props.defaultValues,
+  });
+
+  const { data: positionsList } = useQuery<{ id: number, title: string }[]>({
+    queryKey: ["positions"],
+    queryFn: async () => {
+      const res = await fetch(`${BASE_URL}/position`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return res.json();
+    },
   });
 
   const isAttending = form.watch("attend");
@@ -214,7 +218,7 @@ const NominationForm = (props: NominationFormProps) => {
               <FormItem>
                 <FormLabel className="font-mono">Positions applied</FormLabel>
                 <div className="grid grid-cols-4 gap-x-4 gap-y-2">
-                  {positions.map((item) => (
+                  {positionsList?.map((item) => (
                     <FormField
                       key={item.id}
                       control={form.control}
@@ -240,13 +244,13 @@ const NominationForm = (props: NominationFormProps) => {
                               />
                             </FormControl>
                             <FormLabel className="font-normal">
-                              {item.label}
+                              {item.title}
                             </FormLabel>
                           </FormItem>
                         );
                       }}
                     />
-                  ))}
+                  )) ?? "Loading positions..."}
                 </div>
                 <FormMessage />
               </FormItem>

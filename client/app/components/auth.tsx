@@ -13,8 +13,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type { User } from "@/lib/user";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "./ui/input-otp";
+import { BASE_URL } from "@/lib/utils";
 
 const formSchema = z.object({
   email: z
@@ -38,9 +38,9 @@ const defaultValues = {
 };
 
 const Auth = ({
-  setUser,
+  setToken,
 }: {
-  setUser: React.Dispatch<React.SetStateAction<User>>;
+  setToken: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
@@ -49,39 +49,42 @@ const Auth = ({
 
   const mutation = useMutation({
     mutationFn: (data: FormSchema) => {
-      return fetch(`http://localhost:8787/auth`, {
+      return fetch(`${BASE_URL}/auth`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(data),
       });
     },
   });
 
-  const onSubmit = async (data: FormSchema) => {
-    try {
-      const response = await mutation.mutateAsync(data);
-      if (response.status === 404) {
-        form.setError("email", {
+  const onSubmit = async (formData: FormSchema) => {
+    const response = await mutation.mutateAsync(formData);
+
+    if (!response.ok) {
+      const message = await response.text();
+
+      if (message.toLocaleLowerCase().includes("code")) {
+        form.setError("code", {
           type: "manual",
-          message: "User not found",
-        });
-        throw new Error("User not found");
-      } else if (response.status === 401) {
-        form.setError("email", {
-          type: "manual",
-          message: "User is not a CFC member",
+          message,
         });
       } else {
-        const user = await response.json();
-        window.sessionStorage.setItem("user", JSON.stringify(user));
-        setUser(user);
+        form.setError("email", {
+          type: "manual",
+          message,
+        });
       }
-    } catch (error) {
-      console.error(error);
+    } else {
+      const token = await response.json();
+      window.sessionStorage.setItem("token", token);
+      setToken(token);
     }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen p-6 md:p-10">
+    <main className="flex items-center justify-center h-screen p-6 md:p-10">
       <div className="flex flex-col w-full max-w-sm gap-6">
         <div className="flex flex-col gap-1">
           <h1 className="font-mono text-xl font-bold">CFC AGM 2025</h1>
@@ -139,9 +142,14 @@ const Auth = ({
             <Button
               type="submit"
               disabled={form.formState.isSubmitting}
-              className="w-full"
+              className="w-full relative"
             >
               Continue
+              {form.formState.isSubmitting && (
+                <span className="absolute material-symbols-sharp right-4 animate-spin">
+                  progress_activity
+                </span>
+              )}
             </Button>
           </form>
         </Form>
@@ -151,7 +159,7 @@ const Auth = ({
           committee member.
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

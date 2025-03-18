@@ -1,9 +1,9 @@
 import { eq } from "drizzle-orm";
-import { VotingObject } from "..";
-import { votesTable } from "./schema";
+import { VotingObject } from "../..";
+import { racesTable, votesTable } from "../schema";
 
-export function getAllVotes(this: VotingObject) {
-  return this.db.select().from(votesTable);
+export function getAllVotes(this: VotingObject, id: number) {
+  return this.db.select().from(votesTable).where(eq(racesTable.id, id));
 }
 
 export function getVote(this: VotingObject, id: number) {
@@ -22,7 +22,11 @@ export function updateVote(
   id: number,
   data: Partial<Omit<typeof votesTable.$inferInsert, "id">>
 ) {
-  return this.db.update(votesTable).set(data).where(eq(votesTable.id, id)).returning();
+  return this.db
+    .update(votesTable)
+    .set(data)
+    .where(eq(votesTable.id, id))
+    .returning();
 }
 
 export function deleteVote(this: VotingObject, id: number) {
