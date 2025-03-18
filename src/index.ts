@@ -12,6 +12,7 @@ import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import seatRoutes from "./routes/seat";
 import resultsRoutes from "./routes/results";
+import voteRoutes from "./routes/vote";
 import positionRoutes from "./routes/position";
 import candidateRoutes from "./routes/candidate";
 
@@ -27,6 +28,7 @@ app.route("/candidate", candidateRoutes);
 app.route("/race", raceRoutes);
 app.route("/seat", seatRoutes);
 app.route("/results", resultsRoutes);
+app.route("/vote", voteRoutes);
 
 app.get("/sse", async (c) => {
   c.header("Content-Encoding", "Identity");

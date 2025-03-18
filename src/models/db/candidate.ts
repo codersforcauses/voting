@@ -7,12 +7,23 @@ import {
   racesTable,
 } from "../schema";
 
-export function getAllCandidates(this: VotingObject) {
-  return this.db.query.candidatesTable.findMany({
-    with: {
-      nominations: true,
-    },
-  });
+export async function getAllCandidates(this: VotingObject) {
+  const [positions, candidates] = await Promise.all([
+    this.db.select().from(positionsTable),
+    this.db.query.candidatesTable.findMany({
+      with: {
+        nominations: true,
+      },
+    }),
+  ]);
+
+  return candidates.map(({ nominations, ...candidate }) => ({
+    ...candidate,
+    positions: nominations.map(({ position_id }) => ({
+      id: position_id,
+      title: positions.find((p) => p.id === position_id)?.title,
+    })),
+  }));
 }
 
 export function getAllCandidatesByPosition(this: VotingObject, id: number) {
