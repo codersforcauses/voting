@@ -72,9 +72,6 @@ export function saveElectedForRace(
   // },
 
   // this.
-  
-  
-  
 }
 
 export function deleteRace(this: VotingObject, id: number) {

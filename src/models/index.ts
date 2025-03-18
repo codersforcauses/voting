@@ -57,12 +57,13 @@ import {
   getVoteAggregateForRace,
 } from "./db/vote";
 import {
-  seedSeat,
   seedCandidate,
   seedVote,
   seedUsers,
   seedPositions,
   seedRaces,
+  seedMasterSeat,
+  seedSeats,
 } from "./seed";
 import {
   candidatesTable,
@@ -98,7 +99,7 @@ export class VotingObject extends DurableObject {
         .from(seatsTable)
         .where(eq(seatsTable.code, env.DEFAULT_SEAT));
       if (masterSeat.length === 0) {
-        await seedSeat(env, this.db);
+        await seedMasterSeat(env, this.db);
       }
 
       if (env.ENVIRONMENT === "dev") {
@@ -113,7 +114,8 @@ export class VotingObject extends DurableObject {
         // Seed Users
         const numUsers = await this.db.$count(usersTable);
         if (numUsers === 0) {
-          await seedUsers(this.db);
+          const seatIds = await seedSeats(this.db, 10)
+          await seedUsers(this.db, 10, seatIds);
         }
 
         // Seed Votes

@@ -12,6 +12,7 @@ import {
 import { DOEnv } from ".";
 import { seed } from "drizzle-seed";
 import { BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
+import { randomInt } from "crypto";
 
 export async function seedPositions(db: DrizzleSqliteDODatabase<any>) {
   return db
@@ -121,16 +122,31 @@ export function seedRaces(
   })
 }
 
-export function seedSeat(env: DOEnv, db: DrizzleSqliteDODatabase<any>) {
+export function seedMasterSeat(env: DOEnv, db: DrizzleSqliteDODatabase<any>) {
   return db.insert(seatsTable).values([
     {
       code: env.DEFAULT_SEAT,
     },
   ]);
+
+}
+
+export function seedSeats(db: DrizzleSqliteDODatabase<any>, number: number) {
+  return db.insert(seatsTable).values(Array.from({ length: number }).map(() => {
+    return {
+      code: randomInt(0, 1000000).toString().padStart(6, "0")
+    }
+  })).returning({
+    seat_id: seatsTable.id
+  });
 }
 
 export async function seedUsers(
   db: DrizzleSqliteDODatabase<any>,
+  number: number,
+  seats: {
+    seat_id: number
+  }[]
 ) {
   await seed(db as BaseSQLiteDatabase<any, any>, {
     users: usersTable,
@@ -138,10 +154,10 @@ export async function seedUsers(
     users: {
       columns: {
         seat_id: f.valuesFromArray({
-          values: [1]
+          values: seats.map((seat) => seat.seat_id),
         })
       },
-      count: 10
+      count: number
     }
   }));
 }
