@@ -48,7 +48,7 @@ import {
   deleteVotePreference,
 } from "./db/vote-preference";
 import {
-  getAllVotes,
+  getAllVotesForRace,
   insertVote,
   updateVote,
   getVote,
@@ -260,8 +260,8 @@ export class VotingObject extends DurableObject {
   }
 
   // Votes
-  getAllVotes(...args: Parameters<typeof getAllVotes>) {
-    return getAllVotes.call(this, ...args);
+  getAllVotesForRace(...args: Parameters<typeof getAllVotesForRace>) {
+    return getAllVotesForRace.call(this, ...args);
   }
 
   getVote(...args: Parameters<typeof getVote>) {

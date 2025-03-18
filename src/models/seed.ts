@@ -109,7 +109,7 @@ export async function seedCandidate(
         past_clubs: f.loremIpsum({ sentencesCount: 1 }),
         say_something: f.loremIpsum({ sentencesCount: 1 }),
       },
-      count: 7,
+      count: 4,
       with: {
         nominations: 3,
       },

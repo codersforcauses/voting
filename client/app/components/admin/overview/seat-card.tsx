@@ -18,7 +18,7 @@ const SeatGenerator = () => {
     enabled: false,
     queryKey: ["seat"],
     queryFn: () =>
-      fetch(`${BASE_URL}/admin/seat`, {
+      fetch(`${BASE_URL}/seat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

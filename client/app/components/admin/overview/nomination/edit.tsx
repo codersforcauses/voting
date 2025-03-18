@@ -10,11 +10,11 @@ const NominationEdit = ({ id }: EditForm) => {
   const { data: defaultValues } = useQuery({
     queryKey: ["nomination", id],
     queryFn: () =>
-      fetch(`${BASE_URL}/admin/nominations/${id}`).then((res) => res.json()),
+      fetch(`${BASE_URL}/nominations/${id}`).then((res) => res.json()),
   });
   const mutation = useMutation({
     mutationFn: (data: FormSchema) =>
-      fetch(`${BASE_URL}/admin/nomination`, {
+      fetch(`${BASE_URL}/nomination`, {
         method: "POST",
         body: JSON.stringify(data),
       }),

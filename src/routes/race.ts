@@ -29,16 +29,22 @@ app.patch(
       current: z.boolean(),
     })
   ),
+  zValidator(
+    "param",
+    z.object({
+      id: z.number({ coerce: true }),
+    })
+  ),
   async (c) => {
-    const id = c.req.param("id");
-    const { status, current } = await c.req.valid("json");
+    const { id } = c.req.valid("param");
+    const { status, current } = c.req.valid("json");
     try {
-      const data = await c.var.STUB.updateRace(Number(id), { status, current });
-
+      const data = await c.var.STUB.updateRace(id, { status, current });
+      
       return c.json(data);
     } catch (err) {
       throw new HTTPException(500, {
-        message: "Error updating",
+        message: "Error updating race",
       });
     }
   }

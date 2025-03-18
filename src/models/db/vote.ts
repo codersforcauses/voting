@@ -2,8 +2,8 @@ import { eq } from "drizzle-orm";
 import { VotingObject } from "../..";
 import { racesTable, votesTable } from "../schema";
 
-export function getAllVotes(this: VotingObject, id: number) {
-  return this.db.select().from(votesTable).where(eq(racesTable.id, id));
+export function getAllVotesForRace(this: VotingObject, race: number) {
+  return this.db.select().from(votesTable).where(eq(racesTable.id, race));
 }
 
 export function getVote(this: VotingObject, id: number) {
@@ -28,6 +28,12 @@ export function updateVote(
     .where(eq(votesTable.id, id))
     .returning();
 }
+
+// export function getFancyVoteGroup(this: VotingObject, race: number) {
+//   return this.db.select().from(votesTable).leftJoin()
+
+
+// }
 
 export function deleteVote(this: VotingObject, id: number) {
   return this.db.delete(votesTable).where(eq(votesTable.id, id)).returning();
