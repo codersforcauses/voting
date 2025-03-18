@@ -93,6 +93,14 @@ export class VotingObject extends DurableObject {
     ctx.blockConcurrencyWhile(async () => {
       await this._migrate();
 
+      const masterSeat = await this.db
+        .select()
+        .from(seatsTable)
+        .where(eq(seatsTable.code, env.DEFAULT_SEAT));
+      if (masterSeat.length === 0) {
+        await seedSeat(env, this.db);
+      }
+
       if (env.ENVIRONMENT === "dev") {
         // Seed Positions, Races and Candidates
         const numPositions = await this.db.$count(positionsTable);
@@ -127,14 +135,6 @@ export class VotingObject extends DurableObject {
             await seedVote(this.db, candidateIds, raceIds, user_ids);
           }
         }
-      }
-
-      const masterSeat = await this.db
-        .select()
-        .from(seatsTable)
-        .where(eq(seatsTable.code, env.DEFAULT_SEAT));
-      if (masterSeat.length === 0) {
-        await seedSeat(env, this.db);
       }
     });
   }

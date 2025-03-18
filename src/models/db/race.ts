@@ -51,7 +51,6 @@ export function saveElectedForRace(
   id: number,
 ) {
   const raceData = this.getVoteAggregateForRace(id)
-
   const formattedData = Object.keys(raceData).reduce<Record<string, number[]>>((acc, curr) => {
     if (!acc[curr]) acc[curr] = []
     if (raceData[curr]) acc[curr] = raceData[curr].preferences.sort((a, b) => a.preference - b.preference).map(pref => pref.candidate_id)
