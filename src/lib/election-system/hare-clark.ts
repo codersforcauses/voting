@@ -6,7 +6,6 @@ export default class HareClark extends Race {
   count() {
     let elected: TransferValue[] = [];
     const quota = Math.ceil(this.seatVotes.size / (this.openings + 1));
-    console.log(quota);
 
     while (elected.length < this.openings) {
       let count = this.countVotes();
@@ -27,7 +26,7 @@ export default class HareClark extends Race {
       } else {
         this.transferEliminatedVotes(count);
       }
-      console.log(this.candidateVotes);
+      // console.log(this.candidateVotes);
     }
     return elected;
   }
@@ -37,12 +36,8 @@ export default class HareClark extends Race {
     do {
       next = v.next();
       if (next && this.remaining.has(next)) {
-        let tmp = this.candidateVotes.get(next);
-        if (tmp) {
-          tmp.push(v);
-        } else {
-          tmp = [v];
-        }
+        let tmp = this.candidateVotes.get(next) ?? [];
+        tmp.push(v);
         this.candidateVotes.set(next, tmp);
 
         // Update the latest parcel
@@ -93,17 +88,8 @@ export default class HareClark extends Race {
   transferEliminatedVotes(count: Count[]) {
     // Work out how to deal with tie breakers and transfer votes from lowest candidate
     // Find candidate with min votes
-    const minCandidate = count.reduce((i, k) => {
-      if (i.count < k.count) {
-        return i;
-      }
-      if (k.count < i.count) {
-        return k;
-      }
-      return this.tieBreaker(i, k);
-    });
-
-    console.log(minCandidate);
+    const minCandidate = count.reduce(this.sort.bind(this));
+    // console.log(minCandidate);
 
     // There is probably a better way to do this - we just need to save the candidate/s
     // temporarily somewhere.

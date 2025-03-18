@@ -3,7 +3,8 @@
   "scripts": {
     "db:generate": "drizzle-kit generate",
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy --minify"
+    "deploy": "wrangler deploy --minify",
+    "test": "playwright test"
   },
   "dependencies": {
     "@clerk/backend": "1.25.1",

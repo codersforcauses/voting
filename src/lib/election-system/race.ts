@@ -8,26 +8,27 @@ export default class Race {
   remaining: Set<string> = new Set();
   openings: number;
 
-  constructor(votes: Map<string, string[]>, openings: number = 1) {
+  constructor(
+    votes: Map<string, string[]> | Record<string, string[]>,
+    openings: number = 1
+  ) {
     this.openings = openings;
+
+    if (!(votes instanceof Map)) {
+      votes = new Map<string, string[]>(Object.entries(votes));
+    }
 
     for (const [key, value] of votes) {
       let vote = new Vote(key, value);
       this.seatVotes.set(key, vote);
 
       this.remaining = this.remaining.union(new Set(value));
-      let tmp = this.candidateVotes.get(vote.first!);
-
-      if (tmp) {
-        tmp.push(vote);
-      } else {
-        tmp = [vote];
-      }
-
+      let tmp = this.candidateVotes.get(vote.first!) ?? [];
+      tmp.push(vote);
       this.candidateVotes.set(vote.first!, tmp);
     }
-    console.log(this.candidateVotes);
-    console.log(this.remaining);
+    // console.log(this.candidateVotes);
+    // console.log(this.remaining);
   }
 
   // Counts the number of current-preference votes for each candidate
@@ -48,44 +49,24 @@ export default class Race {
     return result;
   }
 
-  tieBreaker(i: Count, k: Count) {
-    let count: Map<string, number> = new Map();
-
-    for (let c of [i, k]) {
-      let votes = this.candidateVotes.get(c.candidate)!;
-      for (let v of this.candidateVotes.get(c.candidate)!) {
-        // console.log(v);
-        let next = v.nextEffectiveVote(
-          this.remaining.difference(new Set([c.candidate]))
-        );
-        // console.log(next);
-        if (next) {
-          let tmp = count.get(next);
-          if (tmp) {
-            tmp += 1;
-          } else {
-            tmp = 1;
-          }
-          count.set(next, tmp);
-        }
-      }
-    }
-    // console.log(count);
-
-    // throw Error("Exit");
-    let iVal = count.get(i.candidate);
-    let kVal = count.get(k.candidate);
-
-    if (iVal) {
-      if (kVal) {
-        if (iVal < kVal) {
-          return i;
-        }
-        return k;
-      }
+  sort(i: Count, k: Count) {
+    if (i.count < k.count) {
       return i;
     }
-    return i;
+    if (k.count < i.count) {
+      return k;
+    }
+    return this.tieBreaker(i, k);
+  }
+
+  tieBreaker(i: Count, k: Count) {
+    console.log(i, k);
+    // Perform count back - if no count back breaks the tie then rely on random
+    // tie breaker. It's possible to simulate several elections if it's favourable
+    // to award the win to the most probable candidate.
+
+    // Select by random lot
+    return getRandomInt(2) > 0 ? i : k;
   }
 }
 

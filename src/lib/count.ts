@@ -30,38 +30,17 @@ vote_id | candidate_id | preference
 import { HareClark } from "./election-system";
 
 export function autocount(data: Map<string, string[]>, openings: number = 1) {
+  let count;
   if (openings > 1) {
     // Multi-candidate race - use hare-clark
     const race = new HareClark(data, openings);
-    return race.count();
+    count = race.count();
   } else {
     // Instant Run-off
     // const race = new Race(data, openings);
   }
   // First past the post
+
+  count = count?.map((i) => i.candidate);
+  return count;
 }
-
-export function test() {
-  const data = new Map<string, string[]>([
-    ["745983", ["A", "C", "F"]],
-    ["382917", ["A", "D", "H", "L", "K"]],
-    ["000111", ["A", "F", "E", "C"]],
-    ["999888", ["A", "D", "B", "C", "H", "I", "F", "G", "L"]],
-    ["123123", ["E", "A", "L"]],
-    ["443523", ["F", "B", "H", "I", "J", "K", "C"]],
-    ["789789", ["C", "B", "E", "F", "G", "H", "I", "L", "J", "K"]],
-    ["321321", ["F", "B", "H", "I", "J", "K", "C"]],
-    ["001234", ["C", "B", "E", "F", "G", "H"]],
-    ["987654", ["L", "B", "J", "I", "H", "E", "D", "A"]],
-    ["456456", ["B", "D", "C", "K", "I", "J"]],
-  ]);
-
-  /* 
-  I can tie break by counting the total number of vote for each candidate
-  down the preference order (stopping at whoever is left in the count first)
-  */
-
-  console.log(autocount(data, 2));
-}
-
-test();
