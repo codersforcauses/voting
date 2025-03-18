@@ -11,6 +11,7 @@ drizzle
 .idea/workspace.xml
 .idea/usage.statistics.xml
 .idea/shelf
+.nova/
 
 # deps
 node_modules/

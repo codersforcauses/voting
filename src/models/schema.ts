@@ -1,11 +1,13 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
+  check,
   foreignKey,
   index,
   int,
   primaryKey,
   sqliteTable,
   text,
+  unique,
 } from "drizzle-orm/sqlite-core";
 
 export const seatsTable = sqliteTable("seats", {
@@ -140,15 +142,22 @@ export const votesRelations = relations(votesTable, ({ one, many }) => ({
   votePreferences: many(votePreferencesTable),
 }));
 
-export const votePreferencesTable = sqliteTable("vote_preferences", {
-  vote_id: int("votes")
-    .references(() => votesTable.id)
-    .notNull(),
-  candidate_id: int("candidates")
-    .references(() => candidatesTable.id, { onDelete: "cascade" })
-    .notNull(),
-  preference: int({ mode: "number" }).notNull(),
-});
+export const votePreferencesTable = sqliteTable(
+  "vote_preferences",
+  {
+    vote_id: int("votes")
+      .references(() => votesTable.id)
+      .notNull(),
+    candidate_id: int("candidates")
+      .references(() => candidatesTable.id, { onDelete: "cascade" })
+      .notNull(),
+    preference: int({ mode: "number" }).notNull(),
+  },
+  (t) => [
+    unique().on(t.vote_id, t.preference),
+    check("preference_check", sql`${t.preference} > 0`), // Votes start from 1 for first-preference
+  ]
+);
 
 export const votePreferencesRelations = relations(
   votePreferencesTable,
