@@ -70,7 +70,10 @@ export const racesTable = sqliteTable("race", {
   position_id: int("positions")
     .references(() => positionsTable.id, { onDelete: "cascade" })
     .notNull(),
-  status: text({ enum: ["closed", "not-started", "started", "finished"] }).default("closed"),
+  status: text({
+    enum: ["closed", "open", "finished"],
+  }).default("closed"),
+  current: int({ mode: "boolean" }).default(false),
 });
 
 export const votesTable = sqliteTable("votes", {

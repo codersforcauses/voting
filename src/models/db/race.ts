@@ -13,6 +13,14 @@ export function getAllRaces(this: VotingObject) {
     .leftJoin(positionsTable, eq(racesTable.position_id, positionsTable.id));
 }
 
+export function getCurrentRace(this: VotingObject) {
+  return this.db
+    .select()
+    .from(racesTable)
+    .where(eq(racesTable.current, true))
+    .leftJoin(positionsTable, eq(racesTable.position_id, positionsTable.id));
+}
+
 export function insertRace(
   this: VotingObject,
   data: Omit<typeof racesTable.$inferInsert, "id">

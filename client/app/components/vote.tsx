@@ -7,47 +7,43 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { WS_URL } from "@/lib/utils";
-import { QueryClient, useQueryClient } from "@tanstack/react-query";
+import { BASE_URL } from "@/lib/utils";
+
+const useSSE = () => {
+  const [data, setData] = React.useState(null);
+  const [error, setError] = React.useState(null);
+
+  React.useEffect(() => {
+    const es = new EventSource(`${BASE_URL}/sse`);
+
+    es.onmessage = (event) => {
+      setData(JSON.parse(event.data));
+    };
+    es.onerror = (error) => {
+      console.log(error);
+
+      setError(error);
+      es.close();
+    };
+    return () => {
+      es.close();
+    };
+  }, []);
+
+  return {
+    data: React.useMemo(() => data, [data]),
+    error,
+  };
+};
 
 const Vote = () => {
-  const [val, setVal] = React.useState();
-  const queryClient = useQueryClient(
-    new QueryClient({
-      defaultOptions: {
-        queries: {
-          staleTime: Infinity,
-        },
-      },
-    })
-  );
-  React.useLayoutEffect(() => {
-    const websocket = new WebSocket(`${WS_URL}/ws`);
+  const { data, error } = useSSE();
 
-    websocket.onopen = () => {
-      console.log("connected");
-    };
-
-    websocket.onmessage = (event) => {
-      setVal(JSON.parse(event.data));
-
-      //   // TODO: fix query data when working
-      //   queryClient.setQueriesData(data.entity, (oldData) => {
-      //     const update = (entity) =>
-      //       entity.id === data.id ? { ...entity, ...data.payload } : entity;
-
-      //     return Array.isArray(oldData) ? oldData.map(update) : update(oldData);
-      //   });
-    };
-
-    return () => {
-      websocket.close();
-    };
-  }, [queryClient]);
+  console.log(data);
 
   return (
     <main className="h-screen p-6 md:p-10">
-      <h1 className="text-2xl">Nominated Candidates {val}</h1>
+      <h1 className="text-2xl">Nominated Candidates</h1>
       <Accordion type="multiple" className="pb-10">
         {candidates.map((data, index) => (
           <AccordionItem key={data.name} value={`item-${index}`}>

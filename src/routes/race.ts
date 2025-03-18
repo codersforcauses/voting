@@ -18,6 +18,32 @@ app.get("/", every(authenticate, requireAdmin), async (c) => {
   }
 });
 
+app.patch(
+  "/:id",
+  authenticate,
+  requireAdmin,
+  zValidator(
+    "json",
+    z.object({
+      status: z.enum(["closed", "open", "finished"]),
+      current: z.boolean(),
+    })
+  ),
+  async (c) => {
+    const id = c.req.param("id");
+    const { status, current } = await c.req.valid("json");
+    try {
+      const data = await c.var.STUB.updateRace(Number(id), { status, current });
+
+      return c.json(data);
+    } catch (err) {
+      throw new HTTPException(500, {
+        message: "Error updating",
+      });
+    }
+  }
+);
+
 // app.post(
 //   "/",
 //   zValidator(

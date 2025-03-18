@@ -29,6 +29,7 @@ import {
   insertRace,
   updateRace,
   deleteRace,
+  getCurrentRace,
 } from "./db/race";
 import { getSeat, insertSeat, deleteSeat, getSeatByCode } from "./db/seat";
 import {
@@ -54,7 +55,12 @@ import {
   deleteVote,
 } from "./db/vote";
 import { seedPositions, seedSeat, seedRaces, seedCandidate } from "./seed";
-import { candidatesTable, nominationsTable, positionsTable, seatsTable } from "./schema";
+import {
+  candidatesTable,
+  nominationsTable,
+  positionsTable,
+  seatsTable,
+} from "./schema";
 import { eq } from "drizzle-orm";
 import { seed } from "drizzle-seed";
 import { BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
@@ -78,16 +84,19 @@ export class VotingObject extends DurableObject {
       await this._migrate();
 
       if (env.ENVIRONMENT === "dev") {
-        const numPositions = await this.db.$count(positionsTable)
+        const numPositions = await this.db.$count(positionsTable);
         if (numPositions === 0) {
-          const positionIds = await seedPositions(this.db)
-          await seedRaces(this.db, positionIds)
-          await seedCandidate(this.db, positionIds) 
+          const positionIds = await seedPositions(this.db);
+          await seedRaces(this.db, positionIds);
+          await seedCandidate(this.db, positionIds);
         }
       }
-      const masterSeat = await this.db.select().from(seatsTable).where(eq(seatsTable.code, env.DEFAULT_SEAT))
+      const masterSeat = await this.db
+        .select()
+        .from(seatsTable)
+        .where(eq(seatsTable.code, env.DEFAULT_SEAT));
       if (masterSeat.length === 0) {
-        await seedSeat(env, this.db)
+        await seedSeat(env, this.db);
       }
     });
   }
@@ -164,6 +173,10 @@ export class VotingObject extends DurableObject {
   // Races
   getAllRaces(...args: Parameters<typeof getAllRaces>) {
     return getAllRaces.call(this, ...args);
+  }
+
+  getCurrentRace(...args: Parameters<typeof getCurrentRace>) {
+    return getCurrentRace.call(this, ...args);
   }
 
   getRace(...args: Parameters<typeof getRace>) {
