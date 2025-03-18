@@ -16,18 +16,25 @@ export default class HareClark extends Race {
 
   count() {
     let elected: TransferValue[] = [];
-    const quota = Math.ceil(this.votes.size / (this.openings + 1));
+    const quota = Math.floor(this.votes.size / (this.openings + 1)) + 1;
+    console.log("QUOTA: ", quota);
 
     while (elected.length < this.openings) {
       let count = this.countVotes();
       let buffer = this.findElectedCandidates(count, quota);
 
-      // at this point we might have too many candidates and we need to
-      // tie break the last-elected winners
-      elected = elected.concat(buffer);
+      // Do we have enough positions?
+      // This is our chance to early exit (and maybe break ties)
+      let total = elected.length + buffer.length;
+      if (total > this.openings) {
+        // Tie Break by sorting vote value
+        buffer.sort(this.sort.bind(this));
+        const cut = this.openings - elected.length;
+        return elected.concat(buffer.slice(buffer.length - cut));
+      }
 
-      // Enough Candidates elected - can early exit here
-      if (elected.length >= this.openings) {
+      elected = elected.concat(buffer);
+      if (total == this.openings) {
         break;
       }
 
@@ -40,7 +47,7 @@ export default class HareClark extends Race {
       } else {
         this.transferEliminatedVotes(count);
       }
-      // console.log(this.candidateVotes);
+      console.log(this.candidates);
     }
     return elected;
   }
@@ -75,8 +82,11 @@ export default class HareClark extends Race {
           candidate: c.candidate,
           tv: transferValue,
           votes: this.candidates.get(c.candidate)!,
+          count: c.count,
         });
         this.candidates.delete(c.candidate);
+      } else if (c.count < quota && c.count > quota - 0.1) {
+        console.warn("WARNING: ", c);
       }
     }
     return elected;
@@ -97,7 +107,7 @@ export default class HareClark extends Race {
   transferEliminatedVotes(count: Count[]) {
     // Work out how to deal with tie breakers and transfer votes from lowest
     // candidate. Find candidate with min votes
-    const minCandidate = count.reduce(this.sort.bind(this));
+    const minCandidate = count.reduce(this.reduce.bind(this));
     const candidateVotes = this.candidates.get(minCandidate.candidate)!;
     this.candidates.delete(minCandidate.candidate);
 

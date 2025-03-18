@@ -10,7 +10,7 @@ A         | 1
 B         | 1
 */
 
-import { Candidate, Count, Seat } from "./types";
+import { Candidate, Count, Seat, Sortable } from "./types";
 import Vote from "./vote";
 
 export default class Race {
@@ -56,21 +56,28 @@ export default class Race {
     return result;
   }
 
-  sort(i: Count, k: Count) {
+  sort(i: Sortable, k: Sortable) {
+    // if (i.count < k.count) return i;
+    // if (k.count < i.count) return k;
+
+    return i.count - k.count;
+  }
+
+  reduce<T extends Sortable>(i: T, k: T) {
     if (i.count < k.count) return i;
     if (k.count < i.count) return k;
 
-    return this.tieBreaker(i, k);
+    return this.tieBreaker(i, k) > 0 ? i : k;
   }
 
-  tieBreaker(i: Count, k: Count) {
-    console.log(i, k);
+  tieBreaker(i: Sortable, k: Sortable) {
+    // console.log(i, k);
     // Perform count back - if no count back breaks the tie then rely on random
     // tie breaker. It's possible to simulate several elections if it's favourable
     // to award the win to the most probable candidate.
 
     // Select by random lot
-    return getRandomInt(2) > 0 ? i : k;
+    return getRandomInt(2);
   }
 }
 
