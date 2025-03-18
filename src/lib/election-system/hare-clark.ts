@@ -1,5 +1,5 @@
 import Race from "./race";
-import { Candidate, Count, TransferValue } from "./types";
+import { Candidate, Count, Seat, TransferValue } from "./types";
 import Vote from "./vote";
 
 export default class HareClark extends Race {
@@ -7,7 +7,7 @@ export default class HareClark extends Race {
   openings: number = 1;
 
   constructor(
-    votes: Map<string, number[]> | Record<string, number[]>,
+    votes: Map<Seat, Candidate[]> | Record<Seat, Candidate[]>,
     openings: number = 2
   ) {
     super(votes);
@@ -52,7 +52,7 @@ export default class HareClark extends Race {
     return elected;
   }
 
-  nextValidPreference(v: Vote): number | undefined {
+  nextValidPreference(v: Vote): Candidate | undefined {
     let next;
     do {
       next = v.next();

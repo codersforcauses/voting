@@ -1,7 +1,7 @@
 import Vote from "./vote";
 
-type Candidate = number;
-type Seat = string;
+type Candidate = PropertyKey;
+type Seat = PropertyKey;
 type Count = {
   candidate: Candidate;
   count: number;

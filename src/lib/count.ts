@@ -27,16 +27,16 @@ id | user_id | race_id
 Preferences:
 vote_id | candidate_id | preference
 */
-import { HareClark } from "./election-system";
+import { Candidate, HareClark, Seat } from "./election-system";
 
-export function autocount(data: Record<string, number[]>, openings: number = 1) {
-  let count;
+export function autocount<C extends Candidate>(
+  data: Record<Seat, C[]>,
+  openings: number = 1): C[] {
   // Multi-candidate race - use hare-clark
   // Hare-clark is a super-set of instant-run-off, so if used with only 1 opening
   // it just acts like instant run off anyway.
   const race = new HareClark(data, openings);
-  count = race.count();
-
-  count = count?.map((i) => i.candidate);
-  return count;
+  const count = race.count();
+  
+  return count?.map((i) => i.candidate as C);
 }
