@@ -151,7 +151,9 @@ const UserTable = ({ data, refetch, isRefetching }: UserTableProps) => {
         <div className="order-1 space-x-2 ml-auto md:order-2">
           <Button variant="outline" disabled={isRefetching} onClick={refetch}>
             {isRefetching && (
-              <span className="material-symbols-sharp animate-spin">sync</span>
+              <span className="material-symbols-sharp !text-base animate-spin">
+                sync
+              </span>
             )}
             Refetch
           </Button>

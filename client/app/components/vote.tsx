@@ -1,6 +1,5 @@
 import * as React from "react";
-import { Status, StatusBar } from "@/components/status-bar/status-bar";
-import { candidates } from "@/mocks/candidate";
+import { StatusBar } from "@/components/status-bar/status-bar";
 import {
   Accordion,
   AccordionContent,
@@ -8,9 +7,19 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { BASE_URL } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { useToken } from "@/lib/user";
+import QUESTIONS from "@/lib/questions";
+
+type Data = {
+  position_id: number;
+  race_id: number;
+  status: "open" | "closed" | "finished";
+  title: string;
+};
 
 const useSSE = () => {
-  const [data, setData] = React.useState(null);
+  const [data, setData] = React.useState<Data | null>(null);
   const [error, setError] = React.useState(null);
 
   React.useEffect(() => {
@@ -38,53 +47,85 @@ const useSSE = () => {
 
 const Vote = () => {
   const { data, error } = useSSE();
+  const token = useToken();
+  const { data: positions } = useQuery({
+    queryKey: ["positions"],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/position`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.json();
+    },
+  });
+  const { data: candidatesByPosition } = useQuery({
+    enabled: !!data?.position_id,
+    queryKey: ["nominees", data?.position_id],
+    queryFn: async () => {
+      const response = await fetch(
+        `${BASE_URL}/candidate/position/${data?.position_id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.json();
+    },
+  });
+  const { data: candidatesList } = useQuery({
+    enabled: !data,
+    queryKey: ["nominees", "all"],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/candidate`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.json();
+    },
+  });
 
-  console.log(data);
+  const candidates = candidatesByPosition || candidatesList || [];
+  console.log(candidates);
 
   return (
     <main className="h-screen p-6 md:p-10">
       <h1 className="text-2xl">Nominated Candidates</h1>
       <Accordion type="multiple" className="pb-10">
-        {candidates.map((data, index) => (
-          <AccordionItem key={data.name} value={`item-${index}`}>
+        {candidates.map(({ name, id, ...data }) => (
+          <AccordionItem key={name} value={id}>
             <AccordionTrigger>
-              <div className="text-xl font-semibold">{data.name}</div>
+              <div className="text-xl font-semibold">{name}</div>
             </AccordionTrigger>
-            <AccordionContent>
-              <div className="text-zinc-400">Why do you want to join?</div>
-              <div>{data.reasonForJoining}</div>
-              <div className="mt-2 text-zinc-400">
-                How would you benefit the club?
-              </div>
-              <div>{data.benefitToClub}</div>
-              <div className="mt-2 text-zinc-400">
-                Are there any initiatives or events you would like to run if you
-                were elected?
-              </div>
-              <div>{data.initiativesOrEvents}</div>
-              <div className="mt-2 text-zinc-400">
-                Are you currently a part of any other club's committee?
-              </div>
-              <div>{data.currentCommittee}</div>
-              <div className="mt-2 text-zinc-400">
-                Have you previously been part of any other club's committee?
-              </div>
-              <div>{data.previousCommittee}</div>
-              <div className="mt-2 text-zinc-400">Can you attend the AGM?</div>
-              <div>{data.canAttendAGM}</div>
-              <div className="mt-2 text-zinc-400">
-                If no, what should be said on your behalf at the AGM?
-              </div>
-              <div>{data.messageForAGM}</div>
+            <AccordionContent className="gap-4 flex flex-col">
+              {Object.entries(data).map(([key, value]) => {
+                if (QUESTIONS.find((q) => q.id === key)) {
+                  return (
+                    <div key={key}>
+                      <div className="text-muted-foreground">
+                        {QUESTIONS.find((q) => q.id === key)?.question}
+                      </div>
+                      <div className="text-base">{value}</div>
+                    </div>
+                  );
+                }
+              })}
             </AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>
-      <StatusBar
-        status={Status.Open}
-        position="President"
-        candidates={candidates}
-      />
+      {data && (
+        <StatusBar
+          status={data.status}
+          position={data.title}
+          candidates={candidates}
+        />
+      )}
     </main>
   );
 };

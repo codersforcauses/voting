@@ -14,11 +14,7 @@ import { useMutation } from "@tanstack/react-query";
 import { BASE_URL } from "@/lib/utils";
 import { useToken } from "@/lib/user";
 
-export enum Status {
-  Open = "Open",
-  Closed = "Closed",
-  NotYetOpen = "Not Yet Open",
-}
+type Status = "open" | "closed" | "finished";
 
 const ReorderItem = ({
   candidate,
@@ -86,7 +82,7 @@ export function StatusBar({
     setDrawerIsOpen(false);
   };
 
-  if (status === Status.Open) {
+  if (status === "open") {
     return (
       <Drawer handleOnly open={drawerIsOpen} onOpenChange={setDrawerIsOpen}>
         <DrawerTrigger asChild>
@@ -111,11 +107,7 @@ export function StatusBar({
             className="grid gap-1 overflow-y-auto"
           >
             {order.map((candidate, i) => (
-              <ReorderItem
-                key={candidate.name}
-                candidate={candidate}
-                index={i}
-              />
+              <ReorderItem key={candidate.id} candidate={candidate} index={i} />
             ))}
           </Reorder.Group>
           <DrawerFooter>

@@ -20,12 +20,12 @@ const Users = () => {
   const { data, refetch, isRefetching } = useQuery<User[]>({
     queryKey: ["users"],
     queryFn: () =>
-      fetch(`${BASE_URL}/admin/users`, {
+      fetch(`${BASE_URL}/users`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }).then((res) => res.json()),
-    refetchInterval: 1000 * 3,
+    refetchInterval: 1000 * 10,
   });
 
   const refetchData = React.useCallback(() => {

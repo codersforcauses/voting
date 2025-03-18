@@ -3,6 +3,7 @@ import {
   foreignKey,
   index,
   int,
+  primaryKey,
   sqliteTable,
   text,
 } from "drizzle-orm/sqlite-core";
@@ -13,7 +14,7 @@ export const seatsTable = sqliteTable("seats", {
 });
 
 export const seatRelations = relations(seatsTable, ({ one }) => ({
-	users: one(usersTable),
+  users: one(usersTable),
 }));
 
 export const usersTable = sqliteTable(
@@ -33,7 +34,7 @@ export const usersTable = sqliteTable(
 );
 
 export const userRelations = relations(usersTable, ({ one }) => ({
-	seats: one(seatsTable),
+  seats: one(seatsTable),
 }));
 
 export const candidatesTable = sqliteTable("candidates", {
@@ -53,8 +54,8 @@ export const candidatesTable = sqliteTable("candidates", {
 });
 
 export const candidateRelations = relations(candidatesTable, ({ many }) => ({
-	nominations: many(nominationsTable),
-	votePreferences: many(votePreferencesTable),
+  nominations: many(nominationsTable),
+  votePreferences: many(votePreferencesTable),
 }));
 
 export const positionsTable = sqliteTable("positions", {
@@ -66,27 +67,36 @@ export const positionsTable = sqliteTable("positions", {
 });
 
 export const positionRelations = relations(positionsTable, ({ many }) => ({
-	nominations: many(nominationsTable),
-	races: many(racesTable),
+  nominations: many(nominationsTable),
+  races: many(racesTable),
 }));
 
 export const nominationsTable = sqliteTable(
   "nominations",
   {
-    candidate_id: int("candidate_id"),
-    position_id: int("position_id"),
+    candidate_id: int("candidate_id")
+      .references(() => candidatesTable.id, { onDelete: "cascade" })
+      .notNull(),
+    position_id: int("position_id")
+      .references(() => positionsTable.id, { onDelete: "cascade" })
+      .notNull(),
   },
   (table) => [
-    foreignKey({
-      columns: [table.candidate_id],
-      foreignColumns: [candidatesTable.id],
-    }).onDelete("cascade"),
+    primaryKey({
+      columns: [table.candidate_id, table.position_id],
+    }),
   ]
 );
 
 export const nominationRelations = relations(nominationsTable, ({ one }) => ({
-	candidates: one(candidatesTable, { fields: [nominationsTable.candidate_id], references: [candidatesTable.id] }),
-	positions: one(positionsTable, { fields: [nominationsTable.position_id], references: [positionsTable.id] }),
+  candidates: one(candidatesTable, {
+    fields: [nominationsTable.candidate_id],
+    references: [candidatesTable.id],
+  }),
+  positions: one(positionsTable, {
+    fields: [nominationsTable.position_id],
+    references: [positionsTable.id],
+  }),
 }));
 
 export const racesTable = sqliteTable("race", {
@@ -101,8 +111,11 @@ export const racesTable = sqliteTable("race", {
 });
 
 export const racesRelations = relations(racesTable, ({ one, many }) => ({
-	positions: one(positionsTable, { fields: [racesTable.position_id], references: [positionsTable.id] }),
-  votes: many(votesTable)
+  positions: one(positionsTable, {
+    fields: [racesTable.position_id],
+    references: [positionsTable.id],
+  }),
+  votes: many(votesTable),
 }));
 
 export const votesTable = sqliteTable("votes", {
@@ -120,8 +133,11 @@ export const votesTable = sqliteTable("votes", {
 });
 
 export const votesRelations = relations(votesTable, ({ one, many }) => ({
-	races: one(racesTable, { fields: [votesTable.race_id], references: [racesTable.id] }),
-  votePreferences: many(votePreferencesTable)
+  races: one(racesTable, {
+    fields: [votesTable.race_id],
+    references: [racesTable.id],
+  }),
+  votePreferences: many(votePreferencesTable),
 }));
 
 export const votePreferencesTable = sqliteTable("vote_preferences", {
@@ -134,7 +150,16 @@ export const votePreferencesTable = sqliteTable("vote_preferences", {
   preference: int({ mode: "number" }).notNull(),
 });
 
-export const votePreferencesRelations = relations(votePreferencesTable, ({ one, many }) => ({
-	votes: one(votesTable, { fields: [votePreferencesTable.vote_id], references: [votesTable.id] }),
-	candidate: one(candidatesTable, { fields: [votePreferencesTable.vote_id], references: [candidatesTable.id] }),
-}));
+export const votePreferencesRelations = relations(
+  votePreferencesTable,
+  ({ one, many }) => ({
+    votes: one(votesTable, {
+      fields: [votePreferencesTable.vote_id],
+      references: [votesTable.id],
+    }),
+    candidate: one(candidatesTable, {
+      fields: [votePreferencesTable.vote_id],
+      references: [candidatesTable.id],
+    }),
+  })
+);
