@@ -52,11 +52,18 @@ import {
   getAllVotesForRace,
   insertVote,
   updateVote,
-  getVote,
+  getVoteByUser,
   deleteVote,
   getVoteAggregateForRace,
 } from "./db/vote";
-import { seedSeat, seedCandidate, seedVote, seedUsers, seedPositions, seedRaces } from "./seed";
+import {
+  seedSeat,
+  seedCandidate,
+  seedVote,
+  seedUsers,
+  seedPositions,
+  seedRaces,
+} from "./seed";
 import {
   candidatesTable,
   racesTable,
@@ -94,30 +101,30 @@ export class VotingObject extends DurableObject {
           await seedRaces(this.db, positionIds);
           await seedCandidate(this.db, positionIds);
         }
-        
+
         // Seed Users
         const numUsers = await this.db.$count(usersTable);
         if (numUsers === 0) {
-          await seedUsers(this.db)
+          await seedUsers(this.db);
         }
-        
+
         // Seed Votes
         const numVotes = await this.db.$count(votesTable);
         if (numVotes === 0) {
           const races = await this.db.select().from(racesTable);
           const raceIds = races.map((race) => ({
-            race_id: race.id
-          }))
+            race_id: race.id,
+          }));
           const candidates = await this.db.select().from(candidatesTable);
           const candidateIds = candidates.map((candidate) => ({
-            candidate_id: candidate.id
-          }))
+            candidate_id: candidate.id,
+          }));
           const users = await this.db.select().from(usersTable);
           const user_ids = users.map((user) => ({
-            id: user.id
-          }))
-          if(users.length > 0) {
-            await seedVote(this.db, candidateIds, raceIds, user_ids)
+            id: user.id,
+          }));
+          if (users.length > 0) {
+            await seedVote(this.db, candidateIds, raceIds, user_ids);
           }
         }
       }
@@ -300,8 +307,8 @@ export class VotingObject extends DurableObject {
     return getAllVotesForRace.call(this, ...args);
   }
 
-  getVote(...args: Parameters<typeof getVote>) {
-    return getVote.call(this, ...args);
+  getVoteByUser(...args: Parameters<typeof getVoteByUser>) {
+    return getVoteByUser.call(this, ...args);
   }
 
   insertVote(...args: Parameters<typeof insertVote>) {

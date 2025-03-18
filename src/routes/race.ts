@@ -40,7 +40,7 @@ app.patch(
     const { status, current } = c.req.valid("json");
     try {
       const data = await c.var.STUB.updateRace(id, { status, current });
-      
+
       return c.json(data);
     } catch (err) {
       throw new HTTPException(500, {
