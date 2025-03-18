@@ -5,12 +5,15 @@ import {
   positionsTable,
   racesTable,
   seatsTable,
+  usersTable,
+  votePreferencesTable,
+  votesTable,
 } from "./schema";
 import { DOEnv } from ".";
 import { seed } from "drizzle-seed";
 import { BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 
-export function seedPositions(db: DrizzleSqliteDODatabase<any>) {
+export async function seedPositions(db: DrizzleSqliteDODatabase<any>) {
   return db
     .insert(positionsTable)
     .values([
@@ -68,23 +71,6 @@ export function seedPositions(db: DrizzleSqliteDODatabase<any>) {
     });
 }
 
-export function seedRaces(
-  db: DrizzleSqliteDODatabase<any>,
-  values: {
-    position_id: number;
-  }[]
-) {
-  return db.insert(racesTable).values(values);
-}
-
-export function seedSeat(env: DOEnv, db: DrizzleSqliteDODatabase<any>) {
-  return db.insert(seatsTable).values([
-    {
-      code: env.DEFAULT_SEAT,
-    },
-  ]);
-}
-
 export async function seedCandidate(
   db: DrizzleSqliteDODatabase<any>,
   values: {
@@ -122,4 +108,72 @@ export async function seedCandidate(
       },
     },
   }));
+}
+
+export function seedRaces(
+  db: DrizzleSqliteDODatabase<any>,
+  values: {
+    position_id: number
+  }[]
+) {
+  return db.insert(racesTable).values(values).returning({
+    race_id: racesTable.id
+  })
+}
+
+export function seedSeat(env: DOEnv, db: DrizzleSqliteDODatabase<any>) {
+  return db.insert(seatsTable).values([
+    {
+      code: env.DEFAULT_SEAT,
+    },
+  ]);
+}
+
+export async function seedUsers(
+  db: DrizzleSqliteDODatabase<any>,
+) {
+  await seed(db as BaseSQLiteDatabase<any, any>, {
+    users: usersTable,
+  }).refine((f) => ({
+    users: {
+      columns: {
+        seat_id: f.valuesFromArray({
+          values: [1]
+        })
+      },
+      count: 10
+    }
+  }));
+}
+
+export async function seedVote(
+  db: DrizzleSqliteDODatabase<any>,
+  candidates: {
+    candidate_id: number
+  }[],
+  races: {
+    race_id: number;
+  }[],
+  users: {
+    id: string;
+  }[],
+) {
+  for (const { race_id } of races) {
+    for (const { id: user_id } of users) {
+      const randomOrderCandidates = [...candidates].sort(() => Math.floor(3 * Math.random()) - 2)
+      const [{ vote_id }] = await db.insert(votesTable).values([{
+        race_id,
+        user_id,
+       }]).returning({
+        vote_id: votesTable.id
+       })
+        await db.insert(votePreferencesTable).values(
+          randomOrderCandidates.map(({ candidate_id }, i) => ({
+            vote_id,
+            candidate_id,
+            preference: i + 1
+          }))
+        )
+    }
+  }
 }

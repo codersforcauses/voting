@@ -1,8 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { factory } from "@/app";
 import { z } from "zod";
-import { HTTPException } from "hono/http-exception";
-import { authenticate, requireAdmin } from "@/middleware/auth";
+import { authenticate } from "@/middleware/auth";
 
 const app = factory.createApp();
 

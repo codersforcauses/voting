@@ -11,6 +11,7 @@ import raceRoutes from "./routes/race";
 import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import seatRoutes from "./routes/seat";
+import resultsRoutes from "./routes/results";
 import positionRoutes from "./routes/position";
 import candidateRoutes from "./routes/candidate";
 
@@ -25,6 +26,7 @@ app.route("/position", positionRoutes);
 app.route("/candidate", candidateRoutes);
 app.route("/race", raceRoutes);
 app.route("/seat", seatRoutes);
+app.route("/results", resultsRoutes);
 
 app.get("/sse", async (c) => {
   c.header("Content-Encoding", "Identity");

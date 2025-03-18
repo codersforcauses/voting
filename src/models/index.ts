@@ -53,16 +53,20 @@ import {
   updateVote,
   getVote,
   deleteVote,
+  getVoteAggregateForRace,
+  getVoteAggregate,
 } from "./db/vote";
-import { seedPositions, seedSeat, seedRaces, seedCandidate } from "./seed";
+import { seedSeat, seedCandidate, seedVote, seedUsers, seedPositions, seedRaces } from "./seed";
 import {
   candidatesTable,
-  nominationsTable,
+  racesTable,
+  votesTable,
   positionsTable,
   seatsTable,
+  usersTable,
 } from "./schema";
-import { eq } from "drizzle-orm";
 import * as schema from "./schema";
+import { eq } from "drizzle-orm";
 
 export interface DOEnv {
   ENVIRONMENT: "dev" | "production";
@@ -83,13 +87,41 @@ export class VotingObject extends DurableObject {
       await this._migrate();
 
       if (env.ENVIRONMENT === "dev") {
+        // Seed Positions, Races and Candidates
         const numPositions = await this.db.$count(positionsTable);
         if (numPositions === 0) {
           const positionIds = await seedPositions(this.db);
           await seedRaces(this.db, positionIds);
           await seedCandidate(this.db, positionIds);
         }
+        
+        // Seed Users
+        const numUsers = await this.db.$count(usersTable);
+        if (numUsers === 0) {
+          await seedUsers(this.db)
+        }
+        
+        // Seed Votes
+        const numVotes = await this.db.$count(votesTable);
+        if (numVotes === 0) {
+          const races = await this.db.select().from(racesTable);
+          const raceIds = races.map((race) => ({
+            race_id: race.id
+          }))
+          const candidates = await this.db.select().from(candidatesTable);
+          const candidateIds = candidates.map((candidate) => ({
+            candidate_id: candidate.id
+          }))
+          const users = await this.db.select().from(usersTable);
+          const user_ids = users.map((user) => ({
+            id: user.id
+          }))
+          if(users.length > 0) {
+            await seedVote(this.db, candidateIds, raceIds, user_ids)
+          }
+        }
       }
+
       const masterSeat = await this.db
         .select()
         .from(seatsTable)
@@ -278,5 +310,13 @@ export class VotingObject extends DurableObject {
 
   deleteVote(...args: Parameters<typeof deleteVote>) {
     return deleteVote.call(this, ...args);
+  }
+
+  getVoteAggregateForRace(...args: Parameters<typeof getVoteAggregateForRace>) {
+    return getVoteAggregateForRace.call(this, ...args);
+  }
+
+  getVoteAggregate(...args: Parameters<typeof getVoteAggregate>) {
+    return getVoteAggregate.call(this, ...args);
   }
 }

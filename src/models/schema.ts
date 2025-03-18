@@ -1,7 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
   check,
-  foreignKey,
   index,
   int,
   primaryKey,
@@ -12,7 +11,7 @@ import {
 
 export const seatsTable = sqliteTable("seats", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
-  code: text().notNull().unique(),
+  code: text("code").notNull().unique(),
 });
 
 export const seatRelations = relations(seatsTable, ({ one }) => ({
@@ -28,7 +27,7 @@ export const usersTable = sqliteTable(
     name: text().notNull(),
     student_num: text().unique(),
     role: text({ enum: ["user", "admin"] }).default("user"),
-    seat_id: int("seats")
+    seat_id: int("seat_id")
       .references(() => seatsTable.id)
       .unique(),
   },
@@ -103,7 +102,7 @@ export const nominationRelations = relations(nominationsTable, ({ one }) => ({
 
 export const racesTable = sqliteTable("race", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
-  position_id: int("positions")
+  position_id: int("position_id")
     .references(() => positionsTable.id, { onDelete: "cascade" })
     .notNull(),
   status: text({
@@ -122,10 +121,10 @@ export const racesRelations = relations(racesTable, ({ one, many }) => ({
 
 export const votesTable = sqliteTable("votes", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
-  user_id: int("users")
+  user_id: text("user_id")
     .references(() => usersTable.id)
     .notNull(),
-  race_id: int("races")
+  race_id: int("race_id")
     .references(() => racesTable.id)
     .notNull(),
   created_at: int({ mode: "timestamp_ms" })
@@ -145,23 +144,23 @@ export const votesRelations = relations(votesTable, ({ one, many }) => ({
 export const votePreferencesTable = sqliteTable(
   "vote_preferences",
   {
-    vote_id: int("votes")
+    vote_id: int("vote_id")
       .references(() => votesTable.id)
       .notNull(),
-    candidate_id: int("candidates")
+    candidate_id: int("candidate_id")
       .references(() => candidatesTable.id, { onDelete: "cascade" })
       .notNull(),
     preference: int({ mode: "number" }).notNull(),
   },
   (t) => [
     unique().on(t.vote_id, t.preference),
-    check("preference_check", sql`${t.preference} > 0`), // Votes start from 1 for first-preference
+    check("preference_check", sql`${t.preference} >= 0`), // Votes start from 1 for first-preference
   ]
 );
 
 export const votePreferencesRelations = relations(
   votePreferencesTable,
-  ({ one, many }) => ({
+  ({ one }) => ({
     votes: one(votesTable, {
       fields: [votePreferencesTable.vote_id],
       references: [votesTable.id],
@@ -176,10 +175,10 @@ export const votePreferencesRelations = relations(
 export const electedTable = sqliteTable(
   "elected",
   {
-    candidate_id: int("candidates")
+    candidate_id: int("candidate_id")
       .references(() => candidatesTable.id, { onDelete: "cascade" })
       .notNull(),
-    position_id: int("positions")
+    position_id: int("position_id")
       .references(() => positionsTable.id, { onDelete: "cascade" })
       .notNull(),
   },

@@ -42,12 +42,22 @@ export async function updateRace(
   if (data.status === "finished") {
     
   }
+
+  return race
 }
 
 export function calculateWinner(
   this: VotingObject,
   id: number,
 ) {
+  const raceData = this.getVoteAggregateForRace(id)
+
+  const formattedData = Object.keys(raceData).reduce<Record<string, number[]>>((acc, curr) => {
+    if (!acc[curr]) acc[curr] = []
+    if (raceData[curr]) acc[curr] = raceData[curr].preferences.sort((a, b) => a.preference - b.preference).map(pref => pref.candidate_id)
+    return acc
+  }, {})
+  return formattedData
   // data: {
   //   "745983": ["A", "C", "F"],
   //   "382917": ["A", "D", "H", "L", "K"],
