@@ -1,41 +1,48 @@
+/*
+
+Preference  | 1    2
+Person 1 -> ["A", "B"]
+Person 2 -> ["B", "C"]
+
+
+Candidate | Count
+A         | 1
+B         | 1
+*/
+
 import { Candidate, Count, Seat } from "./types";
 import Vote from "./vote";
 
 export default class Race {
-  candidateVotes: Map<Candidate, Vote[]> = new Map();
-  candidateParcel: Map<Candidate, number> = new Map();
-  seatVotes: Map<Seat, Vote> = new Map();
-  remaining: Set<string> = new Set();
-  openings: number;
+  candidates: Map<Candidate, Vote[]> = new Map();
+  votes: Map<Seat, Vote> = new Map();
 
-  constructor(
-    votes: Map<string, string[]> | Record<string, string[]>,
-    openings: number = 1
-  ) {
-    this.openings = openings;
-
+  constructor(votes: Map<string, string[]> | Record<string, string[]>) {
+    // Convert the type if we get a record instead of a map
+    // This is used for the testing procedures since records are easier to create
     if (!(votes instanceof Map)) {
       votes = new Map<string, string[]>(Object.entries(votes));
     }
 
     for (const [key, value] of votes) {
       let vote = new Vote(key, value);
-      this.seatVotes.set(key, vote);
+      this.votes.set(key, vote);
 
-      this.remaining = this.remaining.union(new Set(value));
-      let tmp = this.candidateVotes.get(vote.first!) ?? [];
-      tmp.push(vote);
-      this.candidateVotes.set(vote.first!, tmp);
+      // Ensures each candidate in this vote has an initialised array in the map
+      for (let c of vote.candidates) {
+        let tmp = this.candidates.get(c) ?? [];
+        this.candidates.set(c, tmp);
+      }
+      // Add the first preference vote to the correct candidate
+      this.candidates.get(vote.first!)?.push(vote);
     }
-    // console.log(this.candidateVotes);
-    // console.log(this.remaining);
   }
 
   // Counts the number of current-preference votes for each candidate
   countVotes() {
     let result: Count[] = [];
 
-    for (let [c, votes] of this.candidateVotes) {
+    for (let [c, votes] of this.candidates) {
       let count = 0;
 
       for (let v of votes) {
@@ -50,12 +57,9 @@ export default class Race {
   }
 
   sort(i: Count, k: Count) {
-    if (i.count < k.count) {
-      return i;
-    }
-    if (k.count < i.count) {
-      return k;
-    }
+    if (i.count < k.count) return i;
+    if (k.count < i.count) return k;
+
     return this.tieBreaker(i, k);
   }
 
