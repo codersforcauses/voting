@@ -1,5 +1,5 @@
 import Race from "./race";
-import { Candidate, Count, Seat, TransferValue } from "./types";
+import { Candidate, Count, TransferValue } from "./types";
 import Vote from "./vote";
 
 export default class HareClark extends Race {
@@ -47,7 +47,7 @@ export default class HareClark extends Race {
       } else {
         this.transferEliminatedVotes(count);
       }
-      console.log(this.candidates);
+      // console.log(this.candidates);
     }
     return elected;
   }
@@ -86,7 +86,7 @@ export default class HareClark extends Race {
         });
         this.candidates.delete(c.candidate);
       } else if (c.count < quota && c.count > quota - 0.1) {
-        console.warn("WARNING: ", c);
+        console.warn("WARNING POSSIBLE FLOAT ARTEFACT: ", c);
       }
     }
     return elected;

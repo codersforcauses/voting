@@ -1035,6 +1035,6 @@ export const data: any = [
 			],
 		},
 		positions: 6,
-		expectedWinners: ["O", "F", "A", "H", "L", "C"],
+		expectedWinners: ["O", "F", "A", "H", "E", "L"],
 	},
 ];

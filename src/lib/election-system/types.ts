@@ -15,6 +15,7 @@ type TransferValue = {
 
 interface Sortable {
   count: number;
+  candidate: Candidate;
 }
 
 export { Candidate, Seat, Count, Sortable, TransferValue };
