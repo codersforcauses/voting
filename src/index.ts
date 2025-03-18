@@ -7,11 +7,11 @@ import { app } from "./app";
 import { VotingObject } from "./models";
 import { addStub } from "./middleware/db";
 
-import positionRoutes from "./routes/position";
 import raceRoutes from "./routes/race";
 import authRoutes from "./routes/auth";
-import adminRoutes from "./routes/admin";
 import voteRoutes from "./routes/vote";
+import positionRoutes from "./routes/position";
+import candidateRoutes from "./routes/candidate";
 
 app.use(secureHeaders());
 app.use(cors()); // Need to reconfigure since this breaks web sockets
@@ -19,8 +19,8 @@ app.use(addStub);
 app.use(logger());
 
 app.route("/auth", authRoutes);
-app.route("/admin", adminRoutes);
 app.route("/position", positionRoutes);
+app.route("/candidate", candidateRoutes);
 app.route("/race", raceRoutes);
 
 app.get("/sse", async (c) => {

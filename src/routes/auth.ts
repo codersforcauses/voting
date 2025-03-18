@@ -22,7 +22,7 @@ app.post(
     })
   ),
   async (c) => {
-    const { email, code } = await c.req.valid("json");
+    const { email, code } = c.req.valid("json");
 
     const [seat] = await c.var.STUB.getSeatByCode(code);
 
