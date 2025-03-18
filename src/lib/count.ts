@@ -31,15 +31,11 @@ import { HareClark } from "./election-system";
 
 export function autocount(data: Map<string, string[]>, openings: number = 1) {
   let count;
-  if (openings > 1) {
-    // Multi-candidate race - use hare-clark
-    const race = new HareClark(data, openings);
-    count = race.count();
-  } else {
-    // Instant Run-off
-    // const race = new Race(data, openings);
-  }
-  // First past the post
+  // Multi-candidate race - use hare-clark
+  // Hare-clark is a super-set of instant-run-off, so if used with only 1 opening
+  // it just acts like instant run off anyway.
+  const race = new HareClark(data, openings);
+  count = race.count();
 
   count = count?.map((i) => i.candidate);
   return count;
