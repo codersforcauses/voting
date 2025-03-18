@@ -15,6 +15,7 @@ import resultsRoutes from "./routes/results";
 import voteRoutes from "./routes/vote";
 import positionRoutes from "./routes/position";
 import candidateRoutes from "./routes/candidate";
+import nominationRoutes from "./routes/nomination";
 
 app.use(secureHeaders());
 app.use(cors()); // Need to reconfigure since this breaks web sockets
@@ -29,6 +30,7 @@ app.route("/race", raceRoutes);
 app.route("/seat", seatRoutes);
 app.route("/results", resultsRoutes);
 app.route("/vote", voteRoutes);
+app.route("/nomination", nominationRoutes);
 
 app.get("/sse", async (c) => {
   c.header("Content-Encoding", "Identity");

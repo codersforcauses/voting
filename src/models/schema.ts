@@ -178,13 +178,13 @@ export const electedTable = sqliteTable(
     candidate_id: int("candidate_id")
       .references(() => candidatesTable.id, { onDelete: "cascade" })
       .notNull(),
-    position_id: int("position_id")
-      .references(() => positionsTable.id, { onDelete: "cascade" })
+    race_id: int("race_id")
+      .references(() => racesTable.id, { onDelete: "cascade" })
       .notNull(),
   },
   (table) => [
     primaryKey({
-      columns: [table.candidate_id, table.position_id],
+      columns: [table.candidate_id, table.race_id],
     }),
   ]
 );
@@ -194,8 +194,8 @@ export const electedRelations = relations(electedTable, ({ one }) => ({
     fields: [electedTable.candidate_id],
     references: [candidatesTable.id],
   }),
-  positions: one(positionsTable, {
-    fields: [electedTable.position_id],
-    references: [positionsTable.id],
+  races: one(racesTable, {
+    fields: [electedTable.race_id],
+    references: [racesTable.id],
   }),
 }));

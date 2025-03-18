@@ -8,9 +8,9 @@ export default class Vote {
 
   // The private _candidates is the reversed array
   // use the candidates getter to access the in-order preferences
-  private _candidates: string[];
+  private _candidates: number[];
 
-  constructor(seat: string, votes: string[]) {
+  constructor(seat: string, votes: number[]) {
     this.seat = seat;
     this._candidates = votes.toReversed();
   }
@@ -24,7 +24,7 @@ export default class Vote {
     return this._candidates.at(-1);
   }
 
-  next(): string | undefined {
+  next(): number | undefined {
     // TODO: This one might scream at us when there's no items in the list
     // (or one item left)
     this._candidates.pop();
@@ -35,7 +35,7 @@ export default class Vote {
   // remaining candidates. Used to tie-break step 5 when two candidates have
   // the same votes and we need to decide which candidate to remove from the
   // count.
-  nextEffectiveVote(remainingCandidates: Set<string>) {
+  nextEffectiveVote(remainingCandidates: Set<number>) {
     for (let c of this.candidates) {
       if (remainingCandidates.has(c)) {
         return c;

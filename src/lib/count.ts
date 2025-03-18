@@ -29,7 +29,7 @@ vote_id | candidate_id | preference
 */
 import { HareClark } from "./election-system";
 
-export function autocount(data: Map<string, string[]>, openings: number = 1) {
+export function autocount(data: Record<string, number[]>, openings: number = 1) {
   let count;
   // Multi-candidate race - use hare-clark
   // Hare-clark is a super-set of instant-run-off, so if used with only 1 opening

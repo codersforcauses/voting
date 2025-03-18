@@ -1,6 +1,6 @@
 import Vote from "./vote";
 
-type Candidate = string;
+type Candidate = number;
 type Seat = string;
 type Count = {
   candidate: Candidate;

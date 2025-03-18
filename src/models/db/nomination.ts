@@ -1,6 +1,6 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, notInArray } from "drizzle-orm";
 import { VotingObject } from "..";
-import { nominationsTable } from "../schema";
+import { electedTable, nominationsTable } from "../schema";
 
 // Not sure if this is required since it's just all candidates
 export function getAllNominations(this: VotingObject) {

@@ -1,15 +1,25 @@
 import { factory } from "@/app";
-import { authenticate, requireAdmin } from "@/middleware/auth";
 import { zValidator } from "@hono/zod-validator";
-import { randomInt } from "crypto";
-import { every } from "hono/combine";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
 const app = factory.createApp();
 
+app.post("/recalc/race/:id", 
+  zValidator(
+    "param",
+    z.object({
+      id: z.number({ coerce: true }),
+    })
+  ),
+  async (c) => {
+    const { id } = c.req.valid("param");
+    const results = await c.var.STUB.saveElectedForRace(id)
+    return c.json(results)
+  }
+)
+
 app.get("/:id",
-  // every(authenticate, requireAdmin),
   zValidator(
     "param",
     z.object({
@@ -17,13 +27,16 @@ app.get("/:id",
     })
   ),
 async (c) => {
-  try {
-    const { id } = c.req.valid("param");
-    const data = await c.var.STUB.saveElectedForRace(id);
-    return c.json(data);
-  } catch (error) {
-    throw new HTTPException(500, { message: "Could not get vote aggregate" });
-  }
+  const { id } = c.req.valid("param");
+  const previouslyElected = await c.var.STUB.getElectedForRace(id)
+  if (previouslyElected.length === 0) throw new HTTPException(404, { message: "No results found for race" });
+  return c.json(previouslyElected);
 });
+
+app.get("/", async (c) => {
+  const data = await c.var.STUB.getAllElected()
+  if (data.length === 0) throw new HTTPException(404, { message: "No results found" });
+  return c.json(data)
+})
 
 export default app;

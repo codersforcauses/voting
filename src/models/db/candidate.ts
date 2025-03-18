@@ -1,7 +1,8 @@
-import { eq } from "drizzle-orm";
+import { eq, and, notInArray } from "drizzle-orm";
 import { VotingObject } from "../..";
 import {
   candidatesTable,
+  electedTable,
   nominationsTable,
   positionsTable,
   racesTable,
@@ -30,7 +31,13 @@ export function getAllCandidatesByPosition(this: VotingObject, id: number) {
   return this.db
     .select()
     .from(nominationsTable)
-    .where(eq(nominationsTable.position_id, id))
+    .where(and(
+      eq(nominationsTable.position_id, id),
+      notInArray(
+        nominationsTable.candidate_id,
+        this.db.select({ data: electedTable.candidate_id }).from(electedTable)
+      )
+    ))
     .leftJoin(
       candidatesTable,
       eq(nominationsTable.candidate_id, candidatesTable.id)

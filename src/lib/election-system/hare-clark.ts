@@ -7,7 +7,7 @@ export default class HareClark extends Race {
   openings: number = 1;
 
   constructor(
-    votes: Map<string, string[]> | Record<string, string[]>,
+    votes: Map<string, number[]> | Record<string, number[]>,
     openings: number = 2
   ) {
     super(votes);
@@ -52,7 +52,7 @@ export default class HareClark extends Race {
     return elected;
   }
 
-  nextValidPreference(v: Vote): string | undefined {
+  nextValidPreference(v: Vote): number | undefined {
     let next;
     do {
       next = v.next();

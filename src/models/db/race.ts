@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { VotingObject } from "..";
 import { positionsTable, racesTable } from "../schema";
+import { autocount } from "@/lib/count";
 
 export function getRace(this: VotingObject, id: number) {
   return this.db.select().from(racesTable).where(eq(racesTable.id, id));
@@ -56,22 +57,12 @@ export function saveElectedForRace(
     if (raceData[curr]) acc[curr] = raceData[curr].preferences.sort((a, b) => a.preference - b.preference).map(pref => pref.candidate_id)
     return acc
   }, {})
-  return formattedData
-  // data: {
-  //   "745983": ["A", "C", "F"],
-  //   "382917": ["A", "D", "H", "L", "K"],
-  //   "000111": ["A", "F", "E", "C"],
-  //   "999888": ["A", "D", "B", "C", "H", "I", "F", "G", "L"],
-  //   "123123": ["A", "E", "L"],
-  //   "443523": ["A", "B", "H", "I", "J", "K", "C"],
-  //   "789789": ["C", "B", "E", "F", "G", "H", "I", "L", "J", "K"],
-  //   "321321": ["F", "B", "H", "I", "J", "K", "C"],
-  //   "001234": ["C", "B", "E", "F", "G", "H"],
-  //   "987654": ["L", "B", "J", "I", "H", "E", "D", "A"],
-  //   "456456": ["B", "D", "C", "K", "I", "J"],
-  // },
 
-  // this.
+  const successfulCandidates = autocount(formattedData, 2)
+  return this.insertElected(successfulCandidates.map(candidate => ({
+    candidate_id: candidate,
+    race_id: id
+  })))
 }
 
 export function deleteRace(this: VotingObject, id: number) {

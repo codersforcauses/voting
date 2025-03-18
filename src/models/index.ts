@@ -75,6 +75,7 @@ import {
 } from "./schema";
 import * as schema from "./schema";
 import { eq } from "drizzle-orm";
+import { getAllElected, getElectedForRace, insertElected } from "./db/elected";
 
 export interface DOEnv {
   ENVIRONMENT: "dev" | "production";
@@ -327,5 +328,18 @@ export class VotingObject extends DurableObject {
 
   getVoteAggregateForRace(...args: Parameters<typeof getVoteAggregateForRace>) {
     return getVoteAggregateForRace.call(this, ...args);
+  }
+
+  // Elected
+  insertElected(...args: Parameters<typeof insertElected>) {
+    return insertElected.call(this, ...args);
+  }
+
+  getAllElected(...args: Parameters<typeof getAllElected>) {
+    return getAllElected.call(this, ...args);
+  }
+
+  getElectedForRace(...args: Parameters<typeof getElectedForRace>) {
+    return getElectedForRace.call(this, ...args);
   }
 }

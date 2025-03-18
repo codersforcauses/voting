@@ -27,13 +27,8 @@ app.post(
     const { id: race_id } = c.req.valid("param");
     const data = c.req.valid("json");
     const user_id = c.get("ID");
-    try {
-      console.log(data);
-      return c.json({ message: "hello" });
-      // await c.var.STUB.insertPosition(validated);
-    } catch (err) {
-      console.log("weeee");
-    }
+    // await c.var.STUB.insertVote({data});
+    c.json({ message: "Successfully submitted vote"})
   }
 );
 
