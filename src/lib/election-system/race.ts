@@ -80,7 +80,7 @@ export default class Race {
   }
 
   tieBreaker(i: Sortable, k: Sortable) {
-    console.log("Countback:", i, k, this.countback);
+    // console.log("Countback:", i, k, this.countback);
     // console.log(i, k);
     // Perform count back - if no count back breaks the tie then rely on random
     // tie breaker. It's possible to simulate several elections if it's favourable

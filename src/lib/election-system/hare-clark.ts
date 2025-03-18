@@ -17,7 +17,7 @@ export default class HareClark extends Race {
   count() {
     let elected: TransferValue[] = [];
     const quota = Math.floor(this.votes.size / (this.openings + 1)) + 1;
-    console.log("QUOTA: ", quota);
+    // console.log("QUOTA: ", quota);
 
     while (elected.length < this.openings) {
       let count = this.countVotes();
