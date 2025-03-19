@@ -3,12 +3,28 @@ import { BASE_URL } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useToken } from "@/lib/user";
 
-type SSEData = {
-  position_id: number;
+type WSData = {
   race_id: number;
   status: "open" | "closed" | "finished";
-  title: string;
 };
+
+type RaceStatus = "closed" | "open" | "finished"
+
+interface Race {
+  race: {
+    id: number;
+    position_id: number;
+    status: RaceStatus;
+    current: boolean | null;
+  };
+  positions: {
+      id: number;
+      title: string;
+      description: string;
+      priority: number;
+      openings: number;
+  }
+}
 
 interface Position {
   id: number;
@@ -42,8 +58,13 @@ interface ReturnedCandidate extends BaseCandidate {
   }[];
 }
 
-export const useSSE = () => {
-  const [data, setData] = React.useState<SSEData | null>(null);
+interface ElectedCandidate {
+  id: number;
+  name: string;
+}
+
+export const useWS = () => {
+  const [data, setData] = React.useState<WSData | null>(null);
   const [error, setError] = React.useState<any>(null);
 
   React.useEffect(() => {
@@ -96,6 +117,46 @@ export const usePositions = () => {
   return data;
 };
 
+export const useCurrentRace = () => {
+  const token = useToken();
+
+  const { data: race, refetch } = useQuery<Race>({
+    queryKey: ["currentRace"],
+    queryFn: async () => {
+      const response = await fetch(
+        `${BASE_URL}/race/current`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.json();
+    },
+  });
+
+  return [race, refetch] as const;
+}
+
+export const useRaces = () => {
+  const token = useToken();
+
+    const { data: racesData, refetch } = useQuery<Race[]>({
+      queryKey: ["races"],
+      queryFn: async () => {
+        const res = await fetch(`${BASE_URL}/race`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return res.json();
+      },
+    });
+
+    return [racesData, refetch] as const;
+}
+
 export const useCandidates = (position_id?: number | string) => {
   const token = useToken();
 
@@ -136,3 +197,22 @@ export const useCandidates = (position_id?: number | string) => {
 
   return React.useMemo(() => candidates || [], [candidates]);
 };
+
+export const useResults = (race_id?: number | string) => {
+  const token = useToken();
+
+    const { data: racesData, refetch } = useQuery<ElectedCandidate[]>({
+      enabled: false,
+      queryKey: ["results", race_id],
+      queryFn: async () => {
+        const res = await fetch(`${BASE_URL}/results/${race_id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return res.json();
+      },
+    });
+
+    return [racesData, refetch] as const;
+}
