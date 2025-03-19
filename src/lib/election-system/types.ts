@@ -2,10 +2,12 @@ import Vote from "./vote";
 
 type Candidate = PropertyKey;
 type Seat = PropertyKey;
+
 type Count = {
   candidate: Candidate;
   count: number;
 };
+
 type TransferValue = {
   candidate: Candidate;
   tv: number;
