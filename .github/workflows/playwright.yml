@@ -23,9 +23,6 @@ jobs:
     - name: Run dev API
       run: pnpm dev &
 
-    - name: Wait for server to be ready
-      run: npx wait-on http://localhost:8787
-
     - name: Run Playwright tests
       run: pnpm exec playwright test
 
