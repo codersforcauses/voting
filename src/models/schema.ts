@@ -153,7 +153,9 @@ export const votePreferencesTable = sqliteTable(
     preference: int({ mode: "number" }).notNull(),
   },
   (t) => [
-    unique().on(t.vote_id, t.preference),
+    primaryKey({
+      columns: [t.candidate_id, t.vote_id],
+    }),
     check("preference_check", sql`${t.preference} >= 0`), // Votes start from 1 for first-preference
   ]
 );
