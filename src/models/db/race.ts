@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, ne } from "drizzle-orm";
 import { VotingObject } from "..";
 import { positionsTable, racesTable } from "../schema";
 import { autocount } from "@/lib/count";
@@ -19,7 +19,8 @@ export function getCurrentRace(this: VotingObject) {
     .select()
     .from(racesTable)
     .where(eq(racesTable.current, true))
-    .leftJoin(positionsTable, eq(racesTable.position_id, positionsTable.id));
+    .leftJoin(positionsTable, eq(racesTable.position_id, positionsTable.id))
+    .get();
 }
 
 export function insertRace(
@@ -34,36 +35,38 @@ export async function updateRace(
   id: number,
   data: Partial<Omit<typeof racesTable.$inferInsert, "id">>
 ) {
-  await this.db
+  const updatedRace = this.db
     .update(racesTable)
-    .set(data)
-    .where(eq(racesTable.id, id));
+    .set({
+      current: true,
+      status: data.status
+    })
+    .where(eq(racesTable.id, id)).returning().get();
 
-  const currentRace = this.db.select().from(racesTable).where(eq(racesTable.id, id)).leftJoin(
-    positionsTable,
-    eq(positionsTable.id, racesTable.position_id)
-  ).get()
+  this.db
+    .update(racesTable)
+    .set({ current: false })
+    .where(ne(racesTable.id, id)).returning().all();
 
-  if (currentRace) {
-    this.broadcast(JSON.stringify({
-      race_id: currentRace.race.id,
-      status: currentRace.race.status,
-      position_id: currentRace.positions?.id,
-      title: currentRace.positions?.title,
-    }))
-  }
+  this.broadcast(JSON.stringify({
+    race_id: updatedRace.id,
+    status: updatedRace.status
+  }))
 
   if (data.status === "finished") {
-    
+    const elected = this.getElectedForRace(id)
+    if (elected.length === 0) this.saveElectedForRace(updatedRace.id).all()
   }
 
-  return currentRace
+  return updatedRace
 }
 
 export function saveElectedForRace(
   this: VotingObject,
   id: number,
 ) {
+  const race = this.db.select().from(racesTable).where(eq(racesTable.id, id)).get()!
+  const position = this.db.select().from(positionsTable).where(eq(positionsTable.id, race.position_id)).get()!
   const raceData = this.getVoteAggregateForRace(id)
   const formattedData = Object.keys(raceData).reduce<Record<string, number[]>>((acc, curr) => {
     if (!acc[curr]) acc[curr] = []
@@ -71,7 +74,7 @@ export function saveElectedForRace(
     return acc
   }, {})
 
-  const successfulCandidates = autocount(formattedData, 2)
+  const successfulCandidates = autocount(formattedData, position.openings)
   return this.insertElected(successfulCandidates.map(candidate => ({
     candidate_id: candidate,
     race_id: id

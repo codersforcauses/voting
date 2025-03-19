@@ -59,26 +59,15 @@ import {
   getVoteAggregateForRace,
 } from "./db/vote";
 import {
-  seedCandidate,
-  seedVote,
-  seedUsers,
-  seedPositions,
-  seedRaces,
   seedMasterSeat,
-  seedSeats,
+  devSeeds,
 } from "./seed";
 import {
-  candidatesTable,
-  racesTable,
-  votesTable,
-  positionsTable,
   seatsTable,
-  usersTable,
 } from "./schema";
 import * as schema from "./schema";
 import { eq } from "drizzle-orm";
 import { getAllElected, getElectedForRace, insertElected } from "./db/elected";
-import { SSEStreamingApi } from "hono/streaming";
 
 export interface DOEnv {
   ENVIRONMENT: "dev" | "production";
@@ -94,7 +83,7 @@ export class VotingObject extends DurableObject {
   constructor(ctx: DurableObjectState, env: DOEnv) {
     super(ctx, env);
     this.storage = this.ctx.storage;
-    this.db = drizzle(this.storage, { logger: false, schema });
+    this.db = drizzle(this.storage, { logger: true, schema });
 
     this.connections = new Map();
     for (const ws of this.ctx.getWebSockets()) {
@@ -115,40 +104,7 @@ export class VotingObject extends DurableObject {
       }
 
       if (env.ENVIRONMENT === "dev") {
-        // Seed Positions, Races and Candidates
-        const numPositions = await this.db.$count(positionsTable);
-        if (numPositions === 0) {
-          const positionIds = await seedPositions(this.db);
-          await seedRaces(this.db, positionIds);
-          await seedCandidate(this.db, positionIds);
-        }
-
-        // Seed Users
-        const numUsers = await this.db.$count(usersTable);
-        if (numUsers === 0) {
-          const seatIds = await seedSeats(this.db, 10);
-          await seedUsers(this.db, 10, seatIds);
-        }
-
-        // Seed Votes
-        const numVotes = await this.db.$count(votesTable);
-        if (numVotes === 0) {
-          const races = await this.db.select().from(racesTable);
-          const raceIds = races.map((race) => ({
-            race_id: race.id,
-          }));
-          const candidates = await this.db.select().from(candidatesTable);
-          const candidateIds = candidates.map((candidate) => ({
-            candidate_id: candidate.id,
-          }));
-          const users = await this.db.select().from(usersTable);
-          const user_ids = users.map((user) => ({
-            id: user.id,
-          }));
-          if (users.length > 0) {
-            await seedVote(this.db, candidateIds, raceIds, user_ids);
-          }
-        }
+        devSeeds(this.db)
       }
     });
   }

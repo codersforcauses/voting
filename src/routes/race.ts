@@ -18,6 +18,11 @@ app.get("/", every(authenticate, requireAdmin), async (c) => {
   }
 });
 
+app.get("/current", async (c) => {
+  const data = await c.var.STUB.getCurrentRace()
+  return c.json(data)
+})
+
 app.patch(
   "/:id",
   authenticate,
@@ -43,6 +48,7 @@ app.patch(
 
       return c.json(data);
     } catch (err) {
+      console.error(err)
       throw new HTTPException(500, {
         message: "Error updating race",
       });
