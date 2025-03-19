@@ -23,7 +23,7 @@ const QUESTIONS = [
   {
     id: "say_something",
     question:
-      "If the nominee cannot attend the AGM, what should be said on their behalf?",
+      "If the nominee cannot attend the AGM, anything they wish to say?",
   },
 ];
 

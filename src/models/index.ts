@@ -47,12 +47,14 @@ import {
   updateVotePreference,
   getVotePreference,
   deleteVotePreference,
+  getVotePreferencesForVote,
 } from "./db/vote-preference";
 import {
   getAllVotesForRace,
   insertVote,
   updateVote,
-  getVoteByUser,
+  getAllVotesByUser,
+  getVoteByUserAndRace,
   deleteVote,
   getVoteAggregateForRace,
 } from "./db/vote";
@@ -115,7 +117,7 @@ export class VotingObject extends DurableObject {
         // Seed Users
         const numUsers = await this.db.$count(usersTable);
         if (numUsers === 0) {
-          const seatIds = await seedSeats(this.db, 10)
+          const seatIds = await seedSeats(this.db, 10);
           await seedUsers(this.db, 10, seatIds);
         }
 
@@ -293,6 +295,12 @@ export class VotingObject extends DurableObject {
     return getVotePreference.call(this, ...args);
   }
 
+  getVotePreferencesForVote(
+    ...args: Parameters<typeof getVotePreferencesForVote>
+  ) {
+    return getVotePreferencesForVote.call(this, ...args);
+  }
+
   insertVotePreference(...args: Parameters<typeof insertVotePreference>) {
     return insertVotePreference.call(this, ...args);
   }
@@ -310,8 +318,12 @@ export class VotingObject extends DurableObject {
     return getAllVotesForRace.call(this, ...args);
   }
 
-  getVoteByUser(...args: Parameters<typeof getVoteByUser>) {
-    return getVoteByUser.call(this, ...args);
+  getAllVotesByUser(...args: Parameters<typeof getAllVotesByUser>) {
+    return getAllVotesByUser.call(this, ...args);
+  }
+
+  getVoteByUserAndRace(...args: Parameters<typeof getVoteByUserAndRace>) {
+    return getVoteByUserAndRace.call(this, ...args);
   }
 
   insertVote(...args: Parameters<typeof insertVote>) {

@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -15,10 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import {
   Select,
   SelectContent,
@@ -104,6 +100,7 @@ const RaceCard = () => {
         status: "closed",
         current: true,
       });
+      setRaceStatus("closed");
       refetch();
     }
   };
@@ -122,7 +119,7 @@ const RaceCard = () => {
             </TooltipTrigger>
             <TooltipContent className="space-y-2">
               <p className="font-semibold">Icon information</p>
-              <ul className="flex justify-center flex-col gap-2">
+              <ul className="flex flex-col justify-center gap-2">
                 <li className="flex items-center gap-1">
                   <span className="material-symbols-sharp text-base!">
                     lock
@@ -151,12 +148,12 @@ const RaceCard = () => {
           </Tooltip>
         </TooltipProvider>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 flex-1">
+      <CardContent className="flex flex-col flex-1 gap-4">
         <div className="h-full">hello</div>
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Select value={currentPositionID} onValueChange={onSelectionChange}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Position" />
+              <SelectValue placeholder="Select position" />
             </SelectTrigger>
             <SelectContent>
               {positions?.map((position) => (

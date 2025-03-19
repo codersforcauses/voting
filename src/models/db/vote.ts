@@ -1,16 +1,34 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { VotingObject } from "../..";
-import { racesTable, votesTable, votePreferencesTable, positionsTable } from "../schema";
+import {
+  racesTable,
+  votesTable,
+  votePreferencesTable,
+  positionsTable,
+} from "../schema";
 
 export function getAllVotesForRace(this: VotingObject, race: number) {
   return this.db.select().from(votesTable).where(eq(racesTable.id, race));
 }
 
-export function getVoteByUser(this: VotingObject, user_id: string) {
+export function getAllVotesByUser(this: VotingObject, user_id: string) {
   return this.db
     .select()
     .from(votesTable)
     .where(eq(votesTable.user_id, user_id));
+}
+
+export function getVoteByUserAndRace(
+  this: VotingObject,
+  user_id: string,
+  race_id: number
+) {
+  return this.db
+    .select()
+    .from(votesTable)
+    .where(
+      and(eq(votesTable.user_id, user_id), eq(votesTable.race_id, race_id))
+    );
 }
 
 export function insertVote(

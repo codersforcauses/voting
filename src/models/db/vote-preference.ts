@@ -33,7 +33,16 @@ export function insertVotePreference(
   this: VotingObject,
   data: Omit<typeof votePreferencesTable.$inferInsert, "id">
 ) {
-  return this.db.insert(votePreferencesTable).values(data).returning();
+  return this.db
+    .insert(votePreferencesTable)
+    .values(data)
+    .onConflictDoUpdate({
+      target: [votePreferencesTable.vote_id, votePreferencesTable.candidate_id],
+      set: {
+        preference: data.preference,
+      },
+    })
+    .returning();
 }
 
 export function updateVotePreference(

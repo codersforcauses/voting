@@ -48,29 +48,48 @@ const ReorderItem = ({
   );
 };
 
-export function StatusBar({
+const StatusBar = ({
+  race_id,
   status,
   position,
   candidates,
 }: {
+  race_id: number | string;
   status: Status;
   position: string;
   candidates: any[];
-}) {
+}) => {
   const token = useToken();
-  const [order, setOrder] = React.useState(candidates);
+  const data = candidates.map((candidate) => ({
+    id: candidate.id,
+    name: candidate.name,
+  }));
+  const [id, setID] = React.useState<string | number>();
+  const [order, setOrder] = React.useState<
+    {
+      id: string | number;
+      name: string;
+    }[]
+  >([]);
   const [drawerIsOpen, setDrawerIsOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (id !== race_id && drawerIsOpen) {
+      setID(race_id);
+      setOrder(data);
+    }
+  }, [id, race_id, data, drawerIsOpen]);
 
   const voteMutation = useMutation({
     mutationKey: ["vote", position],
     mutationFn: async (order: any) => {
-      const res = await fetch(`${BASE_URL}/vote`, {
+      const res = await fetch(`${BASE_URL}/vote/${race_id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ order }),
+        body: JSON.stringify(order),
       });
       return res;
     },
@@ -78,7 +97,7 @@ export function StatusBar({
 
   const onSubmit = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
-    console.log(order);
+    voteMutation.mutateAsync(order);
     setDrawerIsOpen(false);
   };
 
@@ -125,4 +144,6 @@ export function StatusBar({
       </div>
     );
   }
-}
+};
+
+export default StatusBar;
