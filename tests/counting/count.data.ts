@@ -6,6 +6,20 @@ export const data: {
   positions?: number;
 }[] = [
 	{
+		name: "Test - Not enough preferences",
+		data: {
+			"745983": ["A"],
+			"382917": ["A"],
+			"384517": ["A"],
+			"443523": ["B"],
+			"789789": ["B"],
+			"987654": ["C"],
+			"999888": ["D"],
+			"321321": ["F"],
+		},
+		expectedWinners: ["A", "B"],
+	},
+	{
 		name: "Test 1 - Original",
 		data: {
 			"745983": ["A", "C", "F"],
