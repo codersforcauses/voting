@@ -47,21 +47,21 @@ export const useSSE = () => {
   const [error, setError] = React.useState<any>(null);
 
   React.useEffect(() => {
-    const es = new EventSource(`${BASE_URL}/sse`);
+    const ws = new WebSocket(`${BASE_URL}/ws`);
 
-    es.onmessage = (event) => {
+    ws.onmessage = (event) => {
       setData((prev) => {
         if (!prev || JSON.stringify(prev) !== event.data)
           return JSON.parse(event.data);
         return prev;
       });
     };
-    es.onerror = (error) => {
+    ws.onerror = (error) => {
       setError(error);
-      es.close();
+      ws.close();
     };
     return () => {
-      es.close();
+      ws.close();
     };
   }, []);
 
@@ -133,8 +133,6 @@ export const useCandidates = (position_id?: number | string) => {
   });
 
   const candidates = position_id ? candidatesByPosition : candidatesList;
-
-  console.log(candidates);
 
   return React.useMemo(() => candidates || [], [candidates]);
 };

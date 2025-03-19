@@ -78,6 +78,7 @@ import {
 import * as schema from "./schema";
 import { eq } from "drizzle-orm";
 import { getAllElected, getElectedForRace, insertElected } from "./db/elected";
+import { SSEStreamingApi } from "hono/streaming";
 
 export interface DOEnv {
   ENVIRONMENT: "dev" | "production";
@@ -88,11 +89,19 @@ export interface DOEnv {
 export class VotingObject extends DurableObject {
   storage: DurableObjectStorage;
   db: DrizzleSqliteDODatabase<typeof schema>;
+  connections: Map<string, WebSocket>;
 
   constructor(ctx: DurableObjectState, env: DOEnv) {
     super(ctx, env);
     this.storage = this.ctx.storage;
-    this.db = drizzle(this.storage, { logger: true, schema });
+    this.db = drizzle(this.storage, { logger: false, schema });
+
+    this.connections = new Map();
+    for (const ws of this.ctx.getWebSockets()) {
+      const { connectionId } = ws.deserializeAttachment();
+      console.log("hydrated connection", connectionId)
+      this.connections.set(connectionId, ws);
+    }
 
     ctx.blockConcurrencyWhile(async () => {
       await this._migrate();
@@ -144,8 +153,48 @@ export class VotingObject extends DurableObject {
     });
   }
 
+  fetch(request?: Request): Response | Promise<Response> {
+    const webSocketPair = new WebSocketPair();
+    const [client, server] = Object.values(webSocketPair);
+
+    const connectionId = crypto.randomUUID();
+
+    this.ctx.acceptWebSocket(server);
+    this.connections.set(connectionId, server);
+    server.serializeAttachment({ connectionId });
+
+    console.log("New websocket connection", this.connections.size, "connections open");
+
+    return new Response(null, {
+      status: 101,
+      webSocket: client
+    });
+  }
+
   async _migrate() {
     migrate(this.db, migrations);
+  }
+
+  webSocketError(ws: WebSocket, error: unknown) {
+    console.error("webSocketError", error);
+    this.connections.delete(ws.deserializeAttachment().connectionId);
+    console.log(this.connections.size, "connections open");
+  }
+
+  webSocketClose(
+    ws: WebSocket,
+    _code: number,
+    _reason: string,
+    _wasClean: boolean
+  ) {
+    this.connections.delete(ws.deserializeAttachment().connectionId);
+    console.log("webSocketClose,", this.connections.size, "connections open");
+  }
+
+  broadcast(message: string) {
+    for (const connection of this.connections) {
+      connection[1].send(message);
+    }
   }
 
   // Positions

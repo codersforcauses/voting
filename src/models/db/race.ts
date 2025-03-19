@@ -34,17 +34,30 @@ export async function updateRace(
   id: number,
   data: Partial<Omit<typeof racesTable.$inferInsert, "id">>
 ) {
-  const race = await this.db
+  await this.db
     .update(racesTable)
     .set(data)
-    .where(eq(racesTable.id, id))
-    .returning();
+    .where(eq(racesTable.id, id));
+
+  const currentRace = this.db.select().from(racesTable).where(eq(racesTable.id, id)).leftJoin(
+    positionsTable,
+    eq(positionsTable.id, racesTable.position_id)
+  ).get()
+
+  if (currentRace) {
+    this.broadcast(JSON.stringify({
+      race_id: currentRace.race.id,
+      status: currentRace.race.status,
+      position_id: currentRace.positions?.id,
+      title: currentRace.positions?.title,
+    }))
+  }
 
   if (data.status === "finished") {
     
   }
 
-  return race
+  return currentRace
 }
 
 export function saveElectedForRace(
