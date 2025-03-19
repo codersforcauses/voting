@@ -25,10 +25,12 @@ import Vote from "./vote";
     declared elected. We use the Droop Quota here [3].
  
  2. Count
-  - The current first preferences from each ballot paper is tallied.
+  - The total-votes for each candidate is tallied.
   - On the first count, this is the first preference for each vote.
-  - On subsequent counts, the current first preference is the next valid
-    preference from eliminated or elected candidates.
+  - On subsequent counts, the total-votes is the sum of the votes value (if 
+    diminished by transfer value) at the next valid preference.
+  - Candidates eliminated or elected are no longer valid preferences. However, 
+    candidates who received no first-preference votes are valid until eliminated.
   
  3. Declaring candidates elected
   - Candidates who have more than the required quota of votes are elected. Note
@@ -62,7 +64,7 @@ import Vote from "./vote";
   - See the Race class for details on tie breaking the lowest candidate.
   
   The count is complete when the number of candidates remaining is the same as
-  the remaining vacancies or when all candidates are elected.
+  the remaining vacancies or when all positions are filled.
   
   ## Transfers to candidates with no first-preference votes
   All candidates are eligible for a transfer until they're eliminated. 
@@ -136,8 +138,8 @@ import Vote from "./vote";
   
   * Note * 
   Real elections are less contrived and the chance of a random 
-  tie-breaker diminishes with the more votes in an election. See the tie-breaker
-  discussion on the Race class.
+  tie-breaker diminishes with the more votes in an election. See the 
+  resolvability discussion on the Race class.
   
   ## Use for Instant-Runoff Voting (IRV)
   The instant-runoff voting method looks very different because it elects only 
@@ -146,7 +148,7 @@ import Vote from "./vote";
   
   The transfer value is ignored, because with only one position, the system 
   exits as soon as that candidate is elected. The transfer from min candidates 
-  is the same procedure.Because The system requires the elected candidate to 
+  is the same procedure. Because the system requires the elected candidate to 
   have more than 50% of the votes (which looks a lot like the droop quota for a 
   single candidate), eliminates the candidate with the least first-preference 
   votes, and distributes those  preferences at full value. This process is 
