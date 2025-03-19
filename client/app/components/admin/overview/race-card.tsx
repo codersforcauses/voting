@@ -151,7 +151,11 @@ const RaceCard = () => {
       <CardContent className="flex flex-col flex-1 gap-4">
         <div className="h-full">hello</div>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Select value={currentPositionID} onValueChange={onSelectionChange}>
+          <Select
+            disabled={raceStatus === "open"}
+            value={currentPositionID}
+            onValueChange={onSelectionChange}
+          >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select position" />
             </SelectTrigger>
