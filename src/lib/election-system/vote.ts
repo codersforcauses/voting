@@ -13,22 +13,22 @@ export default class Vote {
 
   constructor(seat: Seat, votes: Candidate[]) {
     this.seat = seat;
-    this._candidates = votes.toReversed();
+    this._candidates = votes;
   }
 
   get candidates() {
-    return this._candidates.toReversed();
+    return this._candidates.slice();
   }
 
   // Returns the effective first preference
   get first() {
-    return this._candidates.at(-1);
+    return this._candidates.at(0);
   }
 
   next(): Candidate | undefined {
     // TODO: This one might scream at us when there's no items in the list
     // (or one item left)
-    this._candidates.pop();
+    this._candidates = this._candidates.slice(1);
     return this.first;
   }
 
