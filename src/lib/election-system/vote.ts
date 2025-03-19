@@ -1,14 +1,14 @@
 import { Candidate, Seat } from "./types";
+
 /*
-
-
+The vote class maintains all the state for a single vote. This includes the
+voter ID (seat), the value of the vote as it's transferred between preferences, 
+and the list of candidates in preferential order.
 */
 export default class Vote {
   public seat: Seat;
   public value: number = 1;
 
-  // The private _candidates is the reversed array
-  // use the candidates getter to access the in-order preferences
   private _candidates: Candidate[];
 
   constructor(seat: Seat, votes: Candidate[]) {
@@ -20,22 +20,24 @@ export default class Vote {
     return this._candidates.toReversed();
   }
 
-  // Returns the effective first preference
   get first() {
     return this._candidates.at(-1);
   }
 
+  // Sets and returns the next candidate for this vote
   next(): Candidate | undefined {
-    // TODO: This one might scream at us when there's no items in the list
-    // (or one item left)
     this._candidates.pop();
     return this.first;
   }
 
-  // Returns the next candidate that will get this vote out of a set of
-  // remaining candidates. Used to tie-break step 5 when two candidates have
-  // the same votes and we need to decide which candidate to remove from the
-  // count.
+  /** 
+   * Returns the next candidate that will get this vote out of a set of
+   * remaining candidates. Could be used to perform forward-looking tie break.
+   * 
+   * @deprecated This isn't and probably shouldn't be used. We couldn't find
+   * forward looking tie-breaks in common election procedures while researching 
+   * this feature.
+   */
   nextEffectiveVote(remainingCandidates: Set<Candidate>) {
     for (let c of this.candidates) {
       if (remainingCandidates.has(c)) {
