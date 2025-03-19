@@ -26,13 +26,7 @@ export default class Vote {
 
   // Sets and returns the next candidate for this vote
   next(): Candidate | undefined {
-<<<<<<< HEAD
-    // TODO: This one might scream at us when there's no items in the list
-    // (or one item left)
-    this._candidates = this._candidates.slice(1);
-=======
     this._candidates.pop();
->>>>>>> 78808d8d8
     return this.first;
   }
 
