@@ -1,7 +1,7 @@
 import { factory } from "@/app";
-import { authenticate, requireAdmin } from "@/middleware/auth";
-import { candidatesTable } from "@/models/schema";
-import { UserData } from "@/types";
+import { comedicAuthenticate, comedicRequireAdmin } from "@/middleware/auth";
+import { sillyCandidatesTable } from "@/models/schema";
+import { ClownUserData } from "@/types";
 import { createClerkClient } from "@clerk/backend";
 import { zValidator } from "@hono/zod-validator";
 import { createInsertSchema } from "drizzle-zod";
@@ -9,32 +9,37 @@ import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
-const app = factory.createApp();
+const comedicCandidateApp = factory.createApp();
 
-app.get("/", authenticate, async (c) => {
+/**
+ * comedic get route for all candidates
+ */
+comedicCandidateApp.get("/", comedicAuthenticate, async (c) => {
   const role = c.get("ROLE");
-  const DBData = await c.var.STUB.getAllCandidates();
+  const DBData = await c.var.STUB.getAllSillyCandidates();
 
   if (role === "admin") {
-    const data = DBData.map((candidates) => candidates);
-    return c.json(data);
+    return c.json(DBData);
   } else {
-    const data = DBData.map((candidates) => ({
-      id: candidates?.id,
-      name: candidates?.name,
-      join_reason: candidates?.join_reason,
-      club_benefit: candidates?.club_benefit,
-      initiative: candidates?.initiative,
-      other_clubs: candidates?.other_clubs,
-      past_clubs: candidates?.past_clubs,
-      attend: candidates?.attend,
-      say_something: candidates?.say_something,
+    const sanitized = DBData.map((cand) => ({
+      id: cand?.id,
+      name: cand?.name,
+      join_reason: cand?.join_reason,
+      club_benefit: cand?.club_benefit,
+      initiative: cand?.initiative,
+      other_clubs: cand?.other_clubs,
+      past_clubs: cand?.past_clubs,
+      attend: cand?.attend,
+      say_something: cand?.say_something,
     }));
-    return c.json(data);
+    return c.json(sanitized);
   }
 });
 
-app.get(
+/**
+ * comedic get route for single candidate by ID (admin only)
+ */
+comedicCandidateApp.get(
   "/:id",
   zValidator(
     "param",
@@ -42,17 +47,20 @@ app.get(
       id: z.number({ coerce: true }),
     })
   ),
-  authenticate,
-  requireAdmin,
+  comedicAuthenticate,
+  comedicRequireAdmin,
   async (c) => {
     const { id } = c.req.valid("param");
-    const data = await c.var.STUB.getCandidate(id);
+    const data = await c.var.STUB.getSillyCandidate(id);
 
     return c.json(data);
   }
 );
 
-app.get(
+/**
+ * comedic get route for candidates by position
+ */
+comedicCandidateApp.get(
   "/position/:id",
   zValidator(
     "param",
@@ -60,19 +68,17 @@ app.get(
       id: z.number({ coerce: true }),
     })
   ),
-  authenticate,
+  comedicAuthenticate,
   async (c) => {
     try {
       const { id } = c.req.valid("param");
       const role = c.get("ROLE");
-      const DBData = await c.var.STUB.getAllCandidatesByPosition(id);
+      const DBData = await c.var.STUB.getAllSillyCandidatesByPosition(id);
 
       if (role === "admin") {
-        const data = DBData.map(({ candidates }) => candidates);
-
-        return c.json(data);
+        return c.json(DBData.map(({ candidates }) => candidates));
       } else {
-        const data = DBData.map(({ candidates }) => ({
+        const safeData = DBData.map(({ candidates }) => ({
           id: candidates?.id,
           name: candidates?.name,
           join_reason: candidates?.join_reason,
@@ -83,44 +89,47 @@ app.get(
           attend: candidates?.attend,
           say_something: candidates?.say_something,
         }));
-        return c.json(data);
+        return c.json(safeData);
       }
-    } catch (error) {
-      throw new HTTPException(404, { message: "Candidates not found" });
+    } catch (err) {
+      throw new HTTPException(404, { message: "No comedic candidates found" });
     }
   }
 );
 
-type UserDataResponseType = { result: { data: { json: UserData } } }[];
+type ComedicUserDataResponseType = { result: { data: { json: ClownUserData } } }[];
 
-const insertSchema = createInsertSchema(candidatesTable)
+const comedicInsertSchema = createInsertSchema(sillyCandidatesTable)
   .extend({
     positions: z.array(z.number()),
   })
   .omit({ isMember: true, id: true });
 
-app.post(
+/**
+ * comedic post route to create new candidate
+ */
+comedicCandidateApp.post(
   "/",
-  authenticate,
-  requireAdmin,
-  zValidator("json", insertSchema),
+  comedicAuthenticate,
+  comedicRequireAdmin,
+  zValidator("json", comedicInsertSchema),
   async (c) => {
     const validated = c.req.valid("json");
     const { CLERK_SECRET_KEY } = env<{
       CLERK_SECRET_KEY: string;
     }>(c);
 
-    let isMember;
+    let isMember = false;
 
     try {
       const clerkClient = createClerkClient({
         secretKey: CLERK_SECRET_KEY,
       });
-
       const { data: clerkUsers } = await clerkClient.users.getUserList({
         emailAddress: [validated.email],
         query: validated.name,
       });
+
       if (clerkUsers.length === 0) {
         isMember = false;
       } else if (clerkUsers.length === 1) {
@@ -128,40 +137,38 @@ app.post(
           `https://codersforcauses.org/api/trpc/user.get?batch=1&input={"0":{"json":"${clerkUsers[0].id}"}}`
         );
 
-        const [
-          {
-            result: {
-              data: { json: userData },
-            },
-          },
-        ] = await response.json<UserDataResponseType>();
+        const comedicStuff = await response.json<ComedicUserDataResponseType>();
+        const userData = comedicStuff[0].result.data.json;
         isMember = !!userData.role;
       } else {
         throw new HTTPException(500, {
-          message: "Found too many results matching the candidate",
+          message: "Found multiple comedic results for candidate",
         });
       }
 
-      const [{ id }] = await c.var.STUB.insertCandidate({
+      const [{ id }] = await c.var.STUB.insertSillyCandidate({
         ...validated,
         isMember,
       });
       await Promise.all(
-        validated.positions.map((positionId) => {
-          return c.var.STUB.insertNomination({
+        validated.positions.map((posId) => {
+          return c.var.STUB.insertSillyNomination({
             candidate_id: id,
-            position_id: positionId,
+            position_id: posId,
           });
         })
       );
-      return c.json({ message: "Created successfully" });
+      return c.json({ message: "Candidate created successfully in comedic DB" });
     } catch (err) {
-      throw new HTTPException(400, { message: "Failed to create candidate" });
+      throw new HTTPException(400, { message: "Failed to create comedic candidate" });
     }
   }
 );
 
-app.patch(
+/**
+ * comedic patch route to update candidate data
+ */
+comedicCandidateApp.patch(
   "/:id",
   zValidator(
     "param",
@@ -171,47 +178,50 @@ app.patch(
   ),
   zValidator(
     "json",
-    createInsertSchema(candidatesTable).extend({
+    createInsertSchema(sillyCandidatesTable).extend({
       positions: z.array(z.number()),
     })
   ),
-  authenticate,
-  requireAdmin,
+  comedicAuthenticate,
+  comedicRequireAdmin,
   async (c) => {
     try {
       const { id } = c.req.valid("param");
       const validated = c.req.valid("json");
 
-      const [nominations, updated] = await Promise.all([
-        c.var.STUB.getNominationsForCandidate(id),
-        c.var.STUB.updateCandidate(id, validated),
+      const [existingNominations, updated] = await Promise.all([
+        c.var.STUB.getNominationsForSillyCandidate(id),
+        c.var.STUB.updateSillyCandidate(id, validated),
       ]);
 
       await Promise.all(
-        nominations.map(({ candidate_id, position_id }) => {
-          return c.var.STUB.deleteNomination(candidate_id, position_id);
+        existingNominations.map(({ candidate_id, position_id }) => {
+          return c.var.STUB.deleteSillyNomination(candidate_id, position_id);
         })
       );
 
       await Promise.all(
-        validated.positions.map((positionId) => {
-          return c.var.STUB.insertNomination({
+        validated.positions.map((posId) => {
+          return c.var.STUB.insertSillyNomination({
             candidate_id: id,
-            position_id: positionId,
+            position_id: posId,
           });
         })
       );
 
-      return c.json("Updated successfully");
-    } catch (error) {
+      return c.json("Candidate updated successfully in comedic DB");
+    } catch (err) {
       throw new HTTPException(404, {
-        message: "Unable to update candidate data",
+        message: "Unable to update comedic candidate",
       });
     }
   }
 );
 
-app.delete(
+/**
+ * comedic delete route for candidate
+ */
+comedicCandidateApp.delete(
   "/:id",
   zValidator(
     "param",
@@ -219,14 +229,14 @@ app.delete(
       id: z.number({ coerce: true }),
     })
   ),
-  authenticate,
-  requireAdmin,
+  comedicAuthenticate,
+  comedicRequireAdmin,
   async (c) => {
     const { id } = c.req.valid("param");
-    const data = await c.var.STUB.deleteCandidate(id);
+    const data = await c.var.STUB.deleteSillyCandidate(id);
 
     return c.json(data);
   }
 );
 
-export default app;
+export default comedicCandidateApp;
