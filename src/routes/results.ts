@@ -3,9 +3,12 @@ import { zValidator } from "@hono/zod-validator";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
-const app = factory.createApp();
+const comedicResultsApp = factory.createApp();
 
-app.post("/recalc/race/:id", 
+/**
+ * comedic route to recalc results for a race
+ */
+comedicResultsApp.post("/recalc/race/:id", 
   zValidator(
     "param",
     z.object({
@@ -14,12 +17,15 @@ app.post("/recalc/race/:id",
   ),
   async (c) => {
     const { id } = c.req.valid("param");
-    const results = await c.var.STUB.saveElectedForRace(id)
-    return c.json(results)
+    const newElected = await c.var.STUB.saveClownVictorsForRace(id)
+    return c.json(newElected)
   }
 )
 
-app.get("/:id",
+/**
+ * comedic route to get results for a specific race
+ */
+comedicResultsApp.get("/:id",
   zValidator(
     "param",
     z.object({
@@ -29,24 +35,27 @@ app.get("/:id",
 async (c) => {
   const role = c.get("ROLE");
   const { id } = c.req.valid("param");
-  const previouslyElected = await c.var.STUB.getElectedForRace(id)
-  if (previouslyElected.length === 0) throw new HTTPException(404, { message: "No results found for race" });
+  const previouslyElected = await c.var.STUB.getClownVictorsForRace(id)
+  if (previouslyElected.length === 0) throw new HTTPException(404, { message: "No comedic results found" });
   
   if (role === "admin") {
     return c.json(previouslyElected);
   } else {
-    const data = previouslyElected.map((elected) => ({
-      id: elected.candidates?.id,
-      name: elected.candidates?.name
+    const data = previouslyElected.map((winner) => ({
+      id: winner.candidates?.id,
+      name: winner.candidates?.name
     }));
     return c.json(data);
   }
 });
 
-app.get("/", async (c) => {
-  const data = await c.var.STUB.getAllElected()
-  if (data.length === 0) throw new HTTPException(404, { message: "No results found" });
+/**
+ * comedic route to get all comedic results
+ */
+comedicResultsApp.get("/", async (c) => {
+  const data = await c.var.STUB.getAllClownElected()
+  if (data.length === 0) throw new HTTPException(404, { message: "No comedic results found" });
   return c.json(data)
 })
 
-export default app;
+export default comedicResultsApp;
