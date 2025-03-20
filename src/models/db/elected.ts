@@ -1,39 +1,48 @@
 import { eq } from "drizzle-orm";
-import { VotingObject } from "@/index";
-import { candidatesTable, electedTable, positionsTable, racesTable } from "../schema";
+import { WackyVotingObject } from "@/index";
+import { sillyCandidatesTable as giggleCandidatesTable, sillyElectedTable as giggleElectedTable, sillyPositionsTable as gigglePositionsTable, sillyRacesTable as giggleRacesTable } from "../schema";
 
-export function getAllElected(
-    this: VotingObject
+/**
+ * Return all comedic “elected” records, with race, position, and candidate info for max silly.
+ */
+export function getAllClownElected(
+    this: WackyVotingObject
 ) {
-    return this.db.select().from(electedTable)
+    return this.db.select().from(giggleElectedTable)
         .leftJoin(
-            racesTable,
-            eq(electedTable.race_id, racesTable.id))
+            giggleRacesTable,
+            eq(giggleElectedTable.race_id, giggleRacesTable.id))
         .leftJoin(
-            positionsTable,
-            eq(racesTable.position_id, positionsTable.id)
+            gigglePositionsTable,
+            eq(giggleRacesTable.position_id, gigglePositionsTable.id)
         ).leftJoin(
-            candidatesTable,
-            eq(electedTable.candidate_id, candidatesTable.id)
+            giggleCandidatesTable,
+            eq(giggleElectedTable.candidate_id, giggleCandidatesTable.id)
         ).all()
 }
 
-export function getElectedForRace(
-    this: VotingObject,
-    id: number
+/**
+ * Retrieve comedic “elected” candidates for the given race. 
+ */
+export function getClownVictorsForRace(
+    this: WackyVotingObject,
+    sillyRaceId: number
 ) {
-    return this.db.select().from(electedTable).where(
-        eq(electedTable.race_id, id)
+    return this.db.select().from(giggleElectedTable).where(
+        eq(giggleElectedTable.race_id, sillyRaceId)
     ).leftJoin(
-        candidatesTable,
-        eq(electedTable.candidate_id, candidatesTable.id)
+        giggleCandidatesTable,
+        eq(giggleElectedTable.candidate_id, giggleCandidatesTable.id)
     )
     .all()
 }
 
-export function insertElected(
-    this: VotingObject,
-    data: typeof electedTable.$inferInsert[]
+/**
+ * Insert comedic victors, presumably at the end of a laugh-laden election.
+ */
+export function insertClownElected(
+    this: WackyVotingObject,
+    data: typeof giggleElectedTable.$inferInsert[]
 ) {
-    return this.db.insert(electedTable).values(data).returning()
+    return this.db.insert(giggleElectedTable).values(data).returning()
 }
