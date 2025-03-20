@@ -1,10 +1,24 @@
 // prettier-ignore
 export const data: {
   name: string;
-  data: Record<string, string[]>;
-  expectedWinners: string[];
+  data: Record<PropertyKey, PropertyKey[]>;
+  expectedWinners: PropertyKey[];
   positions?: number;
 }[] = [
+	{
+        name: "Broken",
+		positions: 6,
+        data: {
+            "user_2dOx4f": [ 3, 6, 12, 15, 1, 2, 5, 7, 9, 13, 17, 18 ],
+            "user_2ckirt": [ 18, 3, 17, 2, 6, 9, 12, 15, 1, 5, 7, 13 ],
+            "user_2cyvBY": [ 3, 12, 9, 18, 6, 15, 1, 2, 5, 7, 13, 17 ],
+            "user_2dUKy3": [ 6, 12, 3, 15, 2, 17, 1, 5, 7, 9, 13, 18 ],
+            "user_2dzP1l": [ 18, 9, 17, 2, 3, 6, 15, 12, 1, 5, 7, 13 ],
+            "user_2dwrBi": [ 7, 15, 3, 6, 1, 12, 2, 5, 9, 13, 17, 18 ],
+            "user_2eEPLE": [ 17, 12, 3, 5, 9, 1, 6, 7, 2, 15, 13, 18 ],
+        },
+        expectedWinners: [3, 18, 6, 12, 7, 17],
+    },
 	{
 		name: "Test - Not enough preferences",
 		data: {

@@ -173,10 +173,13 @@ export default class HareClark extends Race {
   openings: number;
 
   constructor(
-    votes: Map<Seat, Candidate[]> | Record<Seat, Candidate[]>,
-    openings: number = 2
+    votes: Record<Seat, Candidate[]>,
+    openings: number = 1
   ) {
     super(votes);
+    if (this.candidates.size < openings) {
+      throw new Error(`Not enough candidates, ${this.candidates.size} candidates for ${openings} openings`)
+    }
     this.openings = openings;
   }
 
@@ -188,7 +191,6 @@ export default class HareClark extends Race {
   count(): TransferValue[] {
     let elected: TransferValue[] = [];
     const quota = Math.floor(this.votes.size / (this.openings + 1)) + 1;
-
     while (elected.length < this.openings) {
       let count = this.countVotes();
       let buffer = this.findElectedCandidates(count, quota);
