@@ -61,13 +61,18 @@ app.patch(
     });
 
     try {
-      await Promise.all([
+      // is separate to avoid clashes with data for insert and update
+      await Promise.all(
         positionsToUpdate.map(({ id, ...pos }) =>
           c.var.STUB.updatePosition(id, pos)
-        ),
-        positionsToDelete.map((id) => c.var.STUB.deletePosition(id)),
-        positionsToAdd.map(({ id, ...pos }) => c.var.STUB.insertPosition(pos)),
-      ]);
+        )
+      );
+      await Promise.all(
+        positionsToDelete.map((id) => c.var.STUB.deletePosition(id))
+      );
+      await Promise.all(
+        positionsToAdd.map(({ id, ...pos }) => c.var.STUB.insertPosition(pos))
+      );
 
       return c.json({ message: "Updated successfully" });
     } catch (error) {
