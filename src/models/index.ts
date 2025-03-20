@@ -62,8 +62,11 @@ import {
 import {
   seedMasterSeat,
   devSeeds,
+  seedPositions,
+  seedRaces,
 } from "./seed";
 import {
+  positionsTable,
   seatsTable,
 } from "./schema";
 import * as schema from "./schema";
@@ -102,6 +105,13 @@ export class VotingObject extends DurableObject {
         .where(eq(seatsTable.code, env.INIT_SEAT));
       if (masterSeat.length === 0) {
         await seedMasterSeat(env, this.db);
+      }
+
+      // Seed Positions, Races
+      const numPositions = await this.db.$count(positionsTable);
+      if (numPositions === 0) {
+        const positionIds = await seedPositions(this.db);
+        await seedRaces(this.db, positionIds);
       }
 
       if (env.ENVIRONMENT === "dev") {
