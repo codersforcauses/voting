@@ -199,7 +199,7 @@ const CandidateTable = ({
             <DialogTrigger asChild>
               <Button variant="outline">
                 <span className="material-symbols-sharp text-base!">add</span>
-                Add Candidate
+                Add candidate
               </Button>
             </DialogTrigger>
             <NominationAdd close={() => setCreateCandidateDialog(false)} />

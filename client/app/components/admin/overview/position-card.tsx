@@ -21,47 +21,86 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import type { Position } from "@/lib/types";
+import { useToken } from "@/lib/user";
+import { BASE_URL } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 const formSchema = z.object({
-  president: z.string(),
-  vp: z.string(),
-  secretary: z.string(),
-  treasurer: z.string(),
-  techlead: z.string(),
-  marketing: z.string(),
-  fresher: z.string(),
-  ocm: z.string(),
+  positions: z
+    .array(
+      z.object({
+        id: z.number({ coerce: true }).optional(),
+        title: z.string().min(2, "Position title is required"),
+        description: z.string().min(2, "Position description is required"),
+        priority: z.number({ coerce: true }),
+        openings: z
+          .number({ coerce: true })
+          .gte(1, "At least one opening is required"),
+      })
+    )
+    .min(1, "At least one position is required"),
 });
 
 type FormSchema = z.infer<typeof formSchema>;
 
-const defaultValues = {
-  president: "1",
-  vp: "1",
-  secretary: "1",
-  treasurer: "1",
-  techlead: "1",
-  marketing: "1",
-  fresher: "1",
-  ocm: "6",
-};
+const PositionCard = ({ positions }: { positions: Position[] }) => {
+  const token = useToken();
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation({
+    mutationFn: async ({ positions }: FormSchema) => {
+      const response = await fetch(`${BASE_URL}/position`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        method: "PATCH",
+        body: JSON.stringify(positions),
+      });
+      const val = await response.json();
+      return val;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["positions"] });
+    },
+  });
 
-const PositionCard = () => {
-  const form = useForm<FormSchema>({
+  const defaultValues = {
+    positions,
+  };
+
+  const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues,
   });
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "positions",
+  });
+
+  const empty = {
+    id: -(fields.length + 1),
+    title: "",
+    description: "",
+    priority: fields.length + 1,
+    openings: 1,
+  };
 
   const onSubmit = async (data: FormSchema) => {
-    console.log(data);
+    await mutate(data);
   };
 
   return (
-    <Collapsible className="md:col-span-3 lg:col-span-4 gap-4">
+    <Collapsible className="md:col-span-2 lg:col-span-4 gap-4">
       <Card>
         <CardHeader className="flex flex-row justify-between items-center">
           <div>
@@ -69,7 +108,7 @@ const PositionCard = () => {
               Positions Available
             </CardTitle>
             <CardDescription>
-              Modify how many positions are available on each role
+              Modify the positions available and how many openings are available
             </CardDescription>
           </div>
           <CollapsibleTrigger asChild>
@@ -82,120 +121,111 @@ const PositionCard = () => {
           <CardContent>
             <Form {...form}>
               <form
+                id="position-form"
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="grid md:grid-cols-3 gap-y-2 gap-x-4"
+                className="flex flex-col gap-6"
               >
-                <FormField
-                  control={form.control}
-                  name="president"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-mono">President</FormLabel>
-                      <FormControl>
-                        <Input inputMode="numeric" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="vp"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-mono">
-                        Vice president
-                      </FormLabel>
-                      <FormControl>
-                        <Input inputMode="numeric" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="secretary"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-mono">Secretary</FormLabel>
-                      <FormControl>
-                        <Input inputMode="numeric" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="treasurer"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-mono">Treasurer</FormLabel>
-                      <FormControl>
-                        <Input inputMode="numeric" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="techlead"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-mono">
-                        Technical lead
-                      </FormLabel>
-                      <FormControl>
-                        <Input inputMode="numeric" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="marketing"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-mono">
-                        Marketing officer
-                      </FormLabel>
-                      <FormControl>
-                        <Input inputMode="numeric" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="fresher"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-mono">
-                        Fresher representative
-                      </FormLabel>
-                      <FormControl>
-                        <Input inputMode="numeric" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="ocm"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-mono">
-                        Ordinary committee member
-                      </FormLabel>
-                      <FormControl>
-                        <Input inputMode="numeric" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                <div className="flex justify-end">
+                  <Button variant="outline" onClick={() => append(empty)}>
+                    <span className="material-symbols-sharp text-base!">
+                      add
+                    </span>
+                    Create position
+                  </Button>
+                </div>
+                {fields.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="flex flex-col md:flex-row gap-4"
+                  >
+                    <FormField
+                      control={form.control}
+                      name={`positions.${index}.title`}
+                      render={({ field }) => (
+                        <FormItem className="w-full">
+                          <FormLabel className="font-mono">Title</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`positions.${index}.description`}
+                      render={({ field }) => (
+                        <FormItem className="w-full">
+                          <FormLabel className="font-mono">
+                            Description
+                          </FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex w-full md:w-min gap-4">
+                      <FormField
+                        control={form.control}
+                        name={`positions.${index}.priority`}
+                        render={({ field }) => (
+                          <FormItem className="w-full md:w-min">
+                            <FormLabel className="font-mono">
+                              Priority
+                            </FormLabel>
+                            <FormControl>
+                              <Input inputMode="numeric" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`positions.${index}.openings`}
+                        render={({ field }) => (
+                          <FormItem className="w-full md:w-min">
+                            <FormLabel className="font-mono">
+                              Openings
+                            </FormLabel>
+                            <FormControl>
+                              <Input inputMode="numeric" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => remove(index)}
+                            >
+                              <span className="material-symbols-sharp text-base! text-destructive-foreground">
+                                delete
+                              </span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Delete {item.title}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </div>
+                ))}
               </form>
             </Form>
           </CardContent>
           <CardFooter>
-            <Button variant="secondary" className="w-full">
+            <Button
+              form="position-form"
+              type="submit"
+              variant="secondary"
+              className="w-full"
+            >
               Save
             </Button>
           </CardFooter>
