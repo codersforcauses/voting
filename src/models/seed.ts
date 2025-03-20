@@ -1,127 +1,131 @@
 import { DrizzleSqliteDODatabase } from "drizzle-orm/durable-sqlite";
 import {
-  candidatesTable,
-  nominationsTable,
-  positionsTable,
-  racesTable,
-  seatsTable,
-  usersTable,
-  votePreferencesTable,
-  votesTable,
+  sillyCandidatesTable as giggleCandidatesTable,
+  sillyNominationsTable as giggleNominationsTable,
+  sillyPositionsTable as gigglePositionsTable,
+  sillyRacesTable as giggleRacesTable,
+  sillySeatsTable as giggleSeatsTable,
+  sillyUsersTable as giggleUsersTable,
+  sillyVotePreferencesTable as giggleVotePreferencesTable,
+  sillyVotesTable as giggleVotesTable,
 } from "./schema";
-import { DOEnv } from ".";
+import { DillyDOEnv } from ".";
 import { seed } from "drizzle-seed";
 import { BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import { randomInt } from "crypto";
 
-export async function devSeeds(db: DrizzleSqliteDODatabase<any>) {
-  // Seed Candidates
-  const positions = db.select().from(positionsTable).all();
-  const numCandidates = await db.$count(candidatesTable);
-  if (numCandidates === 0) {
-    await seedCandidates(
+/**
+ * conjureClownSeeds spawns a circus of seed data if none exists in the DB.
+ */
+export async function conjureClownSeeds(db: DrizzleSqliteDODatabase<any>) {
+  // Let’s see if there are already giggleCandidates
+  const positions = db.select().from(gigglePositionsTable).all();
+  const existingCandidateCount = await db.$count(giggleCandidatesTable);
+  if (existingCandidateCount === 0) {
+    await seedGiggleCandidates(
       db,
-      positions.map((positions) => ({ position_id: positions.id })),
+      positions.map((pos) => ({ position_id: pos.id })),
       4
     );
   }
 
-  // Seed Users
-  const numUsers = await db.$count(usersTable);
-  if (numUsers === 0) {
-    const seatIds = await seedSeats(db, 10);
-    await seedUsers(db, 10, seatIds);
+  // Insert sillyUsers
+  const existingUserCount = await db.$count(giggleUsersTable);
+  if (existingUserCount === 0) {
+    const seatIds = await sproutLaughingSeats(db, 10);
+    await sproutSillyUsers(db, 10, seatIds);
   }
 
-  // Seed Votes
-  const numVotes = await db.$count(votesTable);
-  if (numVotes === 0) {
-    const races = await db.select().from(racesTable);
+  // Insert sillyVotes
+  const existingVoteCount = await db.$count(giggleVotesTable);
+  if (existingVoteCount === 0) {
+    const races = await db.select().from(giggleRacesTable);
     const raceIds = races.map((race) => ({
       race_id: race.id,
     }));
-    const candidates = await db.select().from(candidatesTable);
-    const candidateIds = candidates.map((candidate) => ({
-      candidate_id: candidate.id,
+    const allCandidates = await db.select().from(giggleCandidatesTable);
+    const candidateIds = allCandidates.map((cand) => ({
+      candidate_id: cand.id,
     }));
-    const users = await db.select().from(usersTable);
-    const user_ids = users.map((user) => ({
-      id: user.id,
+    const allUsers = await db.select().from(giggleUsersTable);
+    const userIds = allUsers.map((u) => ({
+      id: u.id,
     }));
-    if (users.length > 0) {
-      // await seedVote(db, candidateIds, raceIds, user_ids);
+    if (allUsers.length > 0) {
+      // If you want to seed wacky votes, you can uncomment:
+      // await sprinkleGoofyVotes(db, candidateIds, raceIds, userIds);
     }
   }
 }
 
-export async function seedPositions(db: DrizzleSqliteDODatabase<any>) {
+export async function sproutPositions(db: DrizzleSqliteDODatabase<any>) {
   return db
-    .insert(positionsTable)
+    .insert(gigglePositionsTable)
     .values([
       {
-        title: "President",
-        description: "Runs the club",
+        title: "Supreme Cackler",
+        description: "Oversees the comedic chaos",
         priority: 1,
         openings: 1,
       },
       {
-        title: "Vice President",
-        description: "Assists the President",
+        title: "Assistant Punster",
+        description: "Assists the Supreme Cackler with puns",
         priority: 2,
         openings: 1,
       },
       {
-        title: "Secretary",
-        description: "Keeps minutes of meetings",
+        title: "Giggle Notetaker",
+        description: "Records all jokes and one-liners",
         priority: 3,
         openings: 1,
       },
       {
-        title: "Treasurer",
-        description: "Manages club finances",
+        title: "Treasure Hoarder",
+        description: "Guards the silly gold coins",
         priority: 4,
         openings: 1,
       },
       {
-        title: "Technical Lead",
-        description: "Oversees technical projects",
+        title: "Techno-Jester",
+        description: "Runs comedic tech illusions",
         priority: 5,
         openings: 1,
       },
       {
-        title: "Marketing Officer",
-        description: "Handles marketing and promotions",
+        title: "Marketing Mischief Maker",
+        description: "Concocts pranks and promotions",
         priority: 6,
         openings: 1,
       },
       {
-        title: "Fresher Representative",
-        description: "Represents the interests of first year students",
+        title: "Fledgling Jokester",
+        description: "Represents comedic newbies",
         priority: 7,
         openings: 1,
       },
       {
-        title: "Ordinary Committee Member",
-        description: "General committee member",
+        title: "Ordinary Banana Wrangler",
+        description: "Handles everyday silliness",
         priority: 8,
         openings: 6,
       },
     ])
     .returning({
-      position_id: positionsTable.id,
+      position_id: gigglePositionsTable.id,
     });
 }
 
-export async function seedCandidates(
+export async function seedGiggleCandidates(
   db: DrizzleSqliteDODatabase<any>,
-  values: {
+  clownPositions: {
     position_id: number;
   }[],
-  number: number
+  howMany: number
 ) {
   await seed(db as BaseSQLiteDatabase<any, any>, {
-    candidates: candidatesTable,
-    nominations: nominationsTable,
+    candidates: giggleCandidatesTable,
+    nominations: giggleNominationsTable,
   }).refine((f) => ({
     candidates: {
       columns: {
@@ -137,7 +141,7 @@ export async function seedCandidates(
         past_clubs: f.loremIpsum({ sentencesCount: 1 }),
         say_something: f.loremIpsum({ sentencesCount: 1 }),
       },
-      count: number,
+      count: howMany,
       with: {
         nominations: 5,
       },
@@ -145,91 +149,91 @@ export async function seedCandidates(
     nominations: {
       columns: {
         position_id: f.valuesFromArray({
-          values: values.map((pos) => pos.position_id),
+          values: clownPositions.map((pos) => pos.position_id),
         }),
       },
     },
   }));
 }
 
-export function seedRaces(
+export function sproutRaces(
   db: DrizzleSqliteDODatabase<any>,
-  values: {
+  sillyPositionIds: {
     position_id: number;
   }[]
 ) {
-  return db.insert(racesTable).values(values).returning({
-    race_id: racesTable.id,
+  return db.insert(giggleRacesTable).values(sillyPositionIds).returning({
+    race_id: giggleRacesTable.id,
   });
 }
 
-export function seedMasterSeat(env: DOEnv, db: DrizzleSqliteDODatabase<any>) {
-  return db.insert(seatsTable).values([
+export function sproutRoyalPotty(env: DillyDOEnv, db: DrizzleSqliteDODatabase<any>) {
+  return db.insert(giggleSeatsTable).values([
     {
       code: env.INIT_SEAT,
     },
   ]);
 }
 
-export function seedSeats(db: DrizzleSqliteDODatabase<any>, number: number) {
+export function sproutLaughingSeats(db: DrizzleSqliteDODatabase<any>, countOfSeats: number) {
   return db
-    .insert(seatsTable)
+    .insert(giggleSeatsTable)
     .values(
-      Array.from({ length: number }).map(() => {
+      Array.from({ length: countOfSeats }).map(() => {
         return {
           code: randomInt(0, 1000000).toString().padStart(6, "0"),
         };
       })
     )
     .returning({
-      seat_id: seatsTable.id,
+      seat_id: giggleSeatsTable.id,
     });
 }
 
-export async function seedUsers(
+export async function sproutSillyUsers(
   db: DrizzleSqliteDODatabase<any>,
-  number: number,
-  seats: {
+  howMany: number,
+  seatIds: {
     seat_id: number;
   }[]
 ) {
   await seed(db as BaseSQLiteDatabase<any, any>, {
-    users: usersTable,
+    users: giggleUsersTable,
   }).refine((f) => ({
     users: {
       columns: {
         seat_id: f.valuesFromArray({
-          values: seats.map((seat) => seat.seat_id),
+          values: seatIds.map((seat) => seat.seat_id),
         }),
         role: f.valuesFromArray({
           values: ["user", "admin"],
         }),
         name: f.fullName(),
       },
-      count: number,
+      count: howMany,
     },
   }));
 }
 
-export async function seedVote(
+export async function sprinkleGoofyVotes(
   db: DrizzleSqliteDODatabase<any>,
-  candidates: {
+  candidateList: {
     candidate_id: number;
   }[],
-  races: {
+  raceList: {
     race_id: number;
   }[],
-  users: {
+  userList: {
     id: string;
   }[]
 ) {
-  for (const { race_id } of races) {
-    for (const { id: user_id } of users) {
-      const randomOrderCandidates = [...candidates].sort(
+  for (const { race_id } of raceList) {
+    for (const { id: user_id } of userList) {
+      const randomOrderCandidates = [...candidateList].sort(
         () => Math.floor(3 * Math.random()) - 2
       );
       const [{ vote_id }] = await db
-        .insert(votesTable)
+        .insert(giggleVotesTable)
         .values([
           {
             race_id,
@@ -237,9 +241,9 @@ export async function seedVote(
           },
         ])
         .returning({
-          vote_id: votesTable.id,
+          vote_id: giggleVotesTable.id,
         });
-      await db.insert(votePreferencesTable).values(
+      await db.insert(giggleVotePreferencesTable).values(
         randomOrderCandidates.map(({ candidate_id }, i) => ({
           vote_id,
           candidate_id,
