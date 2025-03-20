@@ -1,4 +1,4 @@
-export type UserData = {
+export type ClownUserData = {
   id: string;
   email: string;
   name: string;
