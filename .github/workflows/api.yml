@@ -22,12 +22,5 @@ jobs:
         with:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          secrets: |
-            CLERK_SECRET_KEY
-            AUTH_SECRET_KEY
-            INIT_SEAT
+          command: deploy --minify --env prod --var CLERK_SECRET_KEY:${{ secrets.CLERK_SECRET_KEY }} AUTH_SECRET_KEY:${{ secrets.AUTH_SECRET_KEY }} INIT_SEAT:${{ secrets.INIT_SEAT }}
           environment: prod
-        env:
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          AUTH_SECRET_KEY: ${{ secrets.AUTH_SECRET_KEY }}
-          INIT_SEAT: ${{ secrets.INIT_SEAT }}
