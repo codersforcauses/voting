@@ -1,23 +1,23 @@
-import Vote from "./vote";
+import ComedicVote from "./vote";
 
-type Candidate = PropertyKey;
-type Seat = PropertyKey;
+type ComedicCandidate = PropertyKey;
+type SqueakySeat = PropertyKey;
 
-type Count = {
-  candidate: Candidate;
+type ComedicCount = {
+  candidate: ComedicCandidate;
   count: number;
 };
 
-type TransferValue = {
-  candidate: Candidate;
+type ComedicTransferValue = {
+  candidate: ComedicCandidate;
   tv: number;
-  votes: Vote[];
+  votes: ComedicVote[];
   count: number;
 };
 
-interface Sortable {
+interface ComedicSortable {
   count: number;
-  candidate: Candidate;
+  candidate: ComedicCandidate;
 }
 
-export { Candidate, Seat, Count, Sortable, TransferValue };
+export { ComedicCandidate, SqueakySeat, ComedicCount, ComedicSortable, ComedicTransferValue };
