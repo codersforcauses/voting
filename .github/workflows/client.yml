@@ -28,4 +28,5 @@ jobs:
           workingDirectory: './client'
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-# Need to add API endpoint
+        env:
+          VITE_API_URL: https://openvote-api-prod.drub.workers.dev
