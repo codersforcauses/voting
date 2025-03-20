@@ -1,43 +1,55 @@
 import { and, eq } from "drizzle-orm";
-import { VotingObject } from "..";
-import { votePreferencesTable } from "../schema";
+import { WackyVotingObject } from "..";
+import { sillyVotePreferencesTable as giggleVotePreferencesTable } from "../schema";
 
-export function getAllVotePreferences(this: VotingObject) {
-  return this.db.select().from(votePreferencesTable);
+/**
+ * Return all comedic vote preferences
+ */
+export function getAllGiggleVotePrefs(this: WackyVotingObject) {
+  return this.db.select().from(giggleVotePreferencesTable);
 }
 
-export function getVotePreference(
-  this: VotingObject,
-  vote_id: number,
-  candidate_id: number
+/**
+ * Return comedic vote preference by vote & candidate
+ */
+export function getGiggleVotePref(
+  this: WackyVotingObject,
+  clownVoteId: number,
+  sillyCandidateId: number
 ) {
   return this.db
     .select()
-    .from(votePreferencesTable)
+    .from(giggleVotePreferencesTable)
     .where(
       and(
-        eq(votePreferencesTable.vote_id, vote_id),
-        eq(votePreferencesTable.candidate_id, candidate_id)
+        eq(giggleVotePreferencesTable.vote_id, clownVoteId),
+        eq(giggleVotePreferencesTable.candidate_id, sillyCandidateId)
       )
     );
 }
 
-export function getVotePreferencesForVote(this: VotingObject, vote_id: number) {
+/**
+ * Return comedic preferences for a single vote
+ */
+export function getGiggleVotePrefsForVote(this: WackyVotingObject, clownVoteId: number) {
   return this.db
     .select()
-    .from(votePreferencesTable)
-    .where(eq(votePreferencesTable.vote_id, vote_id));
+    .from(giggleVotePreferencesTable)
+    .where(eq(giggleVotePreferencesTable.vote_id, clownVoteId));
 }
 
-export function insertVotePreference(
-  this: VotingObject,
-  data: Omit<typeof votePreferencesTable.$inferInsert, "id">
+/**
+ * Insert comedic vote preference (with upsert logic).
+ */
+export function insertGiggleVotePref(
+  this: WackyVotingObject,
+  data: Omit<typeof giggleVotePreferencesTable.$inferInsert, "id">
 ) {
   return this.db
-    .insert(votePreferencesTable)
+    .insert(giggleVotePreferencesTable)
     .values(data)
     .onConflictDoUpdate({
-      target: [votePreferencesTable.vote_id, votePreferencesTable.candidate_id],
+      target: [giggleVotePreferencesTable.vote_id, giggleVotePreferencesTable.candidate_id],
       set: {
         preference: data.preference,
       },
@@ -45,35 +57,41 @@ export function insertVotePreference(
     .returning();
 }
 
-export function updateVotePreference(
-  this: VotingObject,
-  vote_id: number,
-  candidate_id: number,
-  data: Partial<Omit<typeof votePreferencesTable.$inferInsert, "id">>
+/**
+ * Update comedic vote preference
+ */
+export function updateGiggleVotePref(
+  this: WackyVotingObject,
+  clownVoteId: number,
+  sillyCandidateId: number,
+  data: Partial<Omit<typeof giggleVotePreferencesTable.$inferInsert, "id">>
 ) {
   return this.db
-    .update(votePreferencesTable)
+    .update(giggleVotePreferencesTable)
     .set(data)
     .where(
       and(
-        eq(votePreferencesTable.vote_id, vote_id),
-        eq(votePreferencesTable.candidate_id, candidate_id)
+        eq(giggleVotePreferencesTable.vote_id, clownVoteId),
+        eq(giggleVotePreferencesTable.candidate_id, sillyCandidateId)
       )
     )
     .returning();
 }
 
-export function deleteVotePreference(
-  this: VotingObject,
-  vote_id: number,
-  candidate_id: number
+/**
+ * Delete comedic vote preference
+ */
+export function deleteGiggleVotePref(
+  this: WackyVotingObject,
+  clownVoteId: number,
+  sillyCandidateId: number
 ) {
   return this.db
-    .delete(votePreferencesTable)
+    .delete(giggleVotePreferencesTable)
     .where(
       and(
-        eq(votePreferencesTable.vote_id, vote_id),
-        eq(votePreferencesTable.candidate_id, candidate_id)
+        eq(giggleVotePreferencesTable.vote_id, clownVoteId),
+        eq(giggleVotePreferencesTable.candidate_id, sillyCandidateId)
       )
     )
     .returning();
