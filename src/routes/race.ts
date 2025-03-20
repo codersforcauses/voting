@@ -18,6 +18,23 @@ app.get("/", every(authenticate, requireAdmin), async (c) => {
   }
 });
 
+app.get("/:id", zValidator(
+  "param",
+  z.object({
+    id: z.number({ coerce: true }),
+  })
+), async (c) => {
+  try {
+    const { id } = c.req.valid("param");
+    const race = await c.var.STUB.getRace(id);
+    return c.json(race);
+  } catch (err) {
+    throw new HTTPException(500, {
+      message: "Unable to get race",
+    });
+  }
+});
+
 app.patch(
   "/:id",
   authenticate,

@@ -31,6 +31,14 @@ interface Candidate extends BaseCandidate {
   positions: number[];
 }
 
+type Race = {
+  current: boolean;
+  id: number;
+  position_id: number;
+  status: string;
+  tally: string;
+}
+
 const chartConfig = {
   desktop: {
     label: "Desktop",
@@ -44,11 +52,19 @@ const chartConfig = {
 
 const ResultGraph = () => {
   // const positions = usePositions();
-  const tally = useCandidates();
-
-  console.log(tally);
+  const race = useRace() as Race;  
+  console.log(race);
+  let tally;  
+  try {
+    tally = JSON.parse(race.tally);
+    console.log("Successful parse", tally);
+  } catch (error) {
+    tally = []
+    console.warn(error, race.tally);
+  }
   
-  const candidates = tally[0] ?? [];
+  console.log("Tally", tally);
+  const candidates = tally.at(0) ?? {};
   const lines: any[] = [];
   let key = 0;
   
@@ -92,7 +108,7 @@ const ResultGraph = () => {
             tickFormatter={(value) => value.slice(0, 3)}
           />
           {lines}
-          <ReferenceLine y={30} stroke="red" strokeDasharray="5 5" label="Quota" />
+          {lines.length > 0 && <ReferenceLine y={30} stroke="red" strokeDasharray="5 5" label="Quota" />}
         </LineChart>
       </ChartContainer>
       {
@@ -109,30 +125,29 @@ const ResultGraph = () => {
   );
 };
 
-export const useCandidates = () => {
+export const useRace = () => {
   const token = useToken();
 
   // get all candidates
-  const { data: results } = useQuery<any[]>({
+  const { data: results } = useQuery<any>({
     queryKey: ["results", "all"],
     queryFn: async () => {
-      const response = await fetch(`${BASE_URL}/results/2`, {
+      const response = await fetch(`${BASE_URL}/race/1`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
-      // return response.json();
+      console.log(await response.json());
+      // return await response.json();
       
-      return [
-        {'A': 50, 'E': 0, 'L': 0, 'F': 20, 'B': 10, 'H': 10, 
-          'I': 0, 'J': 0, 'K': 0, 'C': 20, 'D': 0, 'G': 0},
-        {'E': 2, 'F': 22, 'B': 12, 'H': 10, 'C': 20, 'D': 4},
-        {'F': 22, 'B': 12, 'H': 10, 'C': 20, 'D': 4},
-        {'F': 22, 'B': 14, 'H': 12, 'C': 20},
-        {'F': 22, 'B': 24, 'C': 20},
-        {'F': 22, 'B': 44}
-      ];
+      return {
+        current: false,
+        id: 1,
+        position_id: 1,
+        status: "finished",
+        tally: "[{\"A\":50,\"E\":0,\"L\":0,\"F\":20,\"B\":10,\"H\":10,\"I\":0,\"J\":0,\"K\":0,\"C\":20,\"D\":0,\"G\":0},{\"E\":2,\"F\":22,\"B\":12,\"H\":10,\"C\":20,\"D\":4},{\"F\":22,\"B\":12,\"H\":10,\"C\":20,\"D\":4},{\"F\":22,\"B\":14,\"H\":12,\"C\":20},{\"F\":22,\"B\":24,\"C\":20},{\"F\":22,\"B\":44}]"
+};
     },
   });
 
