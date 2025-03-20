@@ -9,16 +9,22 @@ import {
   unique,
 } from "drizzle-orm/sqlite-core";
 
-export const seatsTable = sqliteTable("seats", {
+/**
+ * Whoopee seat table (like physical seats, but sillier).
+ */
+export const sillySeatsTable = sqliteTable("seats", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   code: text("code").notNull().unique(),
 });
 
-export const seatRelations = relations(seatsTable, ({ one }) => ({
-  users: one(usersTable),
+export const sillySeatRelations = relations(sillySeatsTable, ({ one }) => ({
+  users: one(() => sillyUsersTable),
 }));
 
-export const usersTable = sqliteTable(
+/**
+ * Comedic users table
+ */
+export const sillyUsersTable = sqliteTable(
   "users",
   {
     id: text().primaryKey(),
@@ -28,17 +34,20 @@ export const usersTable = sqliteTable(
     student_num: text().unique(),
     role: text({ enum: ["user", "admin"] }).default("user"),
     seat_id: int("seat_id")
-      .references(() => seatsTable.id)
+      .references(() => sillySeatsTable.id)
       .unique(),
   },
   (usersTable) => [index("seat_idx").on(usersTable.seat_id)]
 );
 
-export const userRelations = relations(usersTable, ({ one }) => ({
-  seats: one(seatsTable),
+export const sillyUserRelations = relations(sillyUsersTable, ({ one }) => ({
+  seats: one(sillySeatsTable),
 }));
 
-export const candidatesTable = sqliteTable("candidates", {
+/**
+ * Comedic candidates table
+ */
+export const sillyCandidatesTable = sqliteTable("candidates", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   isMember: int({ mode: "boolean" }).notNull(),
   name: text().notNull(),
@@ -54,12 +63,15 @@ export const candidatesTable = sqliteTable("candidates", {
   say_something: text(),
 });
 
-export const candidateRelations = relations(candidatesTable, ({ many }) => ({
-  nominations: many(nominationsTable),
-  votePreferences: many(votePreferencesTable),
+export const sillyCandidateRelations = relations(sillyCandidatesTable, ({ many }) => ({
+  nominations: many(() => sillyNominationsTable),
+  votePreferences: many(() => sillyVotePreferencesTable),
 }));
 
-export const positionsTable = sqliteTable("positions", {
+/**
+ * Comedic positions table
+ */
+export const sillyPositionsTable = sqliteTable("positions", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   title: text().notNull(),
   description: text().notNull(),
@@ -67,19 +79,22 @@ export const positionsTable = sqliteTable("positions", {
   openings: int({ mode: "number" }).notNull().default(1),
 });
 
-export const positionRelations = relations(positionsTable, ({ many }) => ({
-  nominations: many(nominationsTable),
-  races: many(racesTable),
+export const sillyPositionRelations = relations(sillyPositionsTable, ({ many }) => ({
+  nominations: many(() => sillyNominationsTable),
+  races: many(() => sillyRacesTable),
 }));
 
-export const nominationsTable = sqliteTable(
+/**
+ * Comedic nominations table
+ */
+export const sillyNominationsTable = sqliteTable(
   "nominations",
   {
     candidate_id: int("candidate_id")
-      .references(() => candidatesTable.id, { onDelete: "cascade" })
+      .references(() => sillyCandidatesTable.id, { onDelete: "cascade" })
       .notNull(),
     position_id: int("position_id")
-      .references(() => positionsTable.id, { onDelete: "cascade" })
+      .references(() => sillyPositionsTable.id, { onDelete: "cascade" })
       .notNull(),
   },
   (table) => [
@@ -89,21 +104,24 @@ export const nominationsTable = sqliteTable(
   ]
 );
 
-export const nominationRelations = relations(nominationsTable, ({ one }) => ({
-  candidates: one(candidatesTable, {
-    fields: [nominationsTable.candidate_id],
-    references: [candidatesTable.id],
+export const sillyNominationRelations = relations(sillyNominationsTable, ({ one }) => ({
+  candidates: one(sillyCandidatesTable, {
+    fields: [sillyNominationsTable.candidate_id],
+    references: [sillyCandidatesTable.id],
   }),
-  positions: one(positionsTable, {
-    fields: [nominationsTable.position_id],
-    references: [positionsTable.id],
+  positions: one(sillyPositionsTable, {
+    fields: [sillyNominationsTable.position_id],
+    references: [sillyPositionsTable.id],
   }),
 }));
 
-export const racesTable = sqliteTable("race", {
+/**
+ * Comedic races table
+ */
+export const sillyRacesTable = sqliteTable("race", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   position_id: int("position_id")
-    .references(() => positionsTable.id, { onDelete: "cascade" })
+    .references(() => sillyPositionsTable.id, { onDelete: "cascade" })
     .notNull(),
   status: text({
     enum: ["closed", "open", "finished"],
@@ -111,21 +129,24 @@ export const racesTable = sqliteTable("race", {
   current: int({ mode: "boolean" }).default(false),
 });
 
-export const racesRelations = relations(racesTable, ({ one, many }) => ({
-  positions: one(positionsTable, {
-    fields: [racesTable.position_id],
-    references: [positionsTable.id],
+export const sillyRacesRelations = relations(sillyRacesTable, ({ one, many }) => ({
+  positions: one(sillyPositionsTable, {
+    fields: [sillyRacesTable.position_id],
+    references: [sillyPositionsTable.id],
   }),
-  votes: many(votesTable),
+  votes: many(() => sillyVotesTable),
 }));
 
-export const votesTable = sqliteTable("votes", {
+/**
+ * Comedic votes table
+ */
+export const sillyVotesTable = sqliteTable("votes", {
   id: int({ mode: "number" }).primaryKey({ autoIncrement: true }),
   user_id: text("user_id")
-    .references(() => usersTable.id)
+    .references(() => sillyUsersTable.id)
     .notNull(),
   race_id: int("race_id")
-    .references(() => racesTable.id)
+    .references(() => sillyRacesTable.id)
     .notNull(),
   created_at: int({ mode: "timestamp_ms" })
     .$default(() => new Date())
@@ -133,22 +154,25 @@ export const votesTable = sqliteTable("votes", {
   updated_at: int({ mode: "timestamp_ms" }).$onUpdate(() => new Date()),
 });
 
-export const votesRelations = relations(votesTable, ({ one, many }) => ({
-  races: one(racesTable, {
-    fields: [votesTable.race_id],
-    references: [racesTable.id],
+export const sillyVotesRelations = relations(sillyVotesTable, ({ one, many }) => ({
+  races: one(sillyRacesTable, {
+    fields: [sillyVotesTable.race_id],
+    references: [sillyRacesTable.id],
   }),
-  votePreferences: many(votePreferencesTable),
+  votePreferences: many(() => sillyVotePreferencesTable),
 }));
 
-export const votePreferencesTable = sqliteTable(
+/**
+ * Comedic vote preferences table
+ */
+export const sillyVotePreferencesTable = sqliteTable(
   "vote_preferences",
   {
     vote_id: int("vote_id")
-      .references(() => votesTable.id)
+      .references(() => sillyVotesTable.id)
       .notNull(),
     candidate_id: int("candidate_id")
-      .references(() => candidatesTable.id, { onDelete: "cascade" })
+      .references(() => sillyCandidatesTable.id, { onDelete: "cascade" })
       .notNull(),
     preference: int({ mode: "number" }).notNull(),
   },
@@ -156,32 +180,35 @@ export const votePreferencesTable = sqliteTable(
     primaryKey({
       columns: [t.candidate_id, t.vote_id],
     }),
-    check("preference_check", sql`${t.preference} >= 0`), // Votes start from 1 for first-preference
+    check("preference_check", sql`${t.preference} >= 0`),
   ]
 );
 
-export const votePreferencesRelations = relations(
-  votePreferencesTable,
+export const sillyVotePreferencesRelations = relations(
+  sillyVotePreferencesTable,
   ({ one }) => ({
-    votes: one(votesTable, {
-      fields: [votePreferencesTable.vote_id],
-      references: [votesTable.id],
+    votes: one(sillyVotesTable, {
+      fields: [sillyVotePreferencesTable.vote_id],
+      references: [sillyVotesTable.id],
     }),
-    candidate: one(candidatesTable, {
-      fields: [votePreferencesTable.vote_id],
-      references: [candidatesTable.id],
+    candidate: one(sillyCandidatesTable, {
+      fields: [sillyVotePreferencesTable.vote_id],
+      references: [sillyCandidatesTable.id],
     }),
   })
 );
 
-export const electedTable = sqliteTable(
+/**
+ * Comedic elected table
+ */
+export const sillyElectedTable = sqliteTable(
   "elected",
   {
     candidate_id: int("candidate_id")
-      .references(() => candidatesTable.id, { onDelete: "cascade" })
+      .references(() => sillyCandidatesTable.id, { onDelete: "cascade" })
       .notNull(),
     race_id: int("race_id")
-      .references(() => racesTable.id, { onDelete: "cascade" })
+      .references(() => sillyRacesTable.id, { onDelete: "cascade" })
       .notNull(),
   },
   (table) => [
@@ -191,13 +218,13 @@ export const electedTable = sqliteTable(
   ]
 );
 
-export const electedRelations = relations(electedTable, ({ one }) => ({
-  candidates: one(candidatesTable, {
-    fields: [electedTable.candidate_id],
-    references: [candidatesTable.id],
+export const sillyElectedRelations = relations(sillyElectedTable, ({ one }) => ({
+  candidates: one(sillyCandidatesTable, {
+    fields: [sillyElectedTable.candidate_id],
+    references: [sillyCandidatesTable.id],
   }),
-  races: one(racesTable, {
-    fields: [electedTable.race_id],
-    references: [racesTable.id],
+  races: one(sillyRacesTable, {
+    fields: [sillyElectedTable.race_id],
+    references: [sillyRacesTable.id],
   }),
 }));
