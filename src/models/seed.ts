@@ -15,12 +15,11 @@ import { BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import { randomInt } from "crypto";
 
 export async function devSeeds(db: DrizzleSqliteDODatabase<any>) {
-  // Seed Positions, Races and Candidates
-  const numPositions = await db.$count(positionsTable);
-  if (numPositions === 0) {
-    const positionIds = await seedPositions(db);
-    await seedRaces(db, positionIds);
-    await seedCandidate(db, positionIds);
+  // Seed Candidates
+  const positions = db.select().from(positionsTable).all();
+  const numCandidates = await db.$count(candidatesTable);
+  if (numCandidates === 0) {
+    await seedCandidates(db, positions.map(positions => ({ position_id: positions.id})), 4);
   }
 
   // Seed Users
@@ -109,11 +108,12 @@ export async function seedPositions(db: DrizzleSqliteDODatabase<any>) {
     });
 }
 
-export async function seedCandidate(
+export async function seedCandidates(
   db: DrizzleSqliteDODatabase<any>,
   values: {
     position_id: number;
-  }[]
+  }[],
+  number: number,
 ) {
   await seed(db as BaseSQLiteDatabase<any, any>, {
     candidates: candidatesTable,
@@ -133,9 +133,9 @@ export async function seedCandidate(
         past_clubs: f.loremIpsum({ sentencesCount: 1 }),
         say_something: f.loremIpsum({ sentencesCount: 1 }),
       },
-      count: 4,
+      count: number,
       with: {
-        nominations: 3,
+        nominations: 5,
       },
     },
     nominations: {
@@ -162,7 +162,7 @@ export function seedRaces(
 export function seedMasterSeat(env: DOEnv, db: DrizzleSqliteDODatabase<any>) {
   return db.insert(seatsTable).values([
     {
-      code: env.DEFAULT_SEAT,
+      code: env.INIT_SEAT,
     },
   ]);
 }

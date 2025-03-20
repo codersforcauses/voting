@@ -22,18 +22,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
 import { BASE_URL } from "@/lib/utils";
 import { useToken } from "@/lib/user";
-import { useCurrentRace, usePositions, useRaces } from "@/components/vote/queries";
+import {
+  useCurrentRace,
+  usePositions,
+  useRaces,
+} from "@/components/vote/queries";
 
 type STATUS = "closed" | "open" | "finished";
 
 const RaceCard = () => {
   const token = useToken();
 
-  const [races, refetchRaces] = useRaces()
-  const positions = usePositions()
+  const [races, refetchRaces] = useRaces();
+  const positions = usePositions();
 
   const [currentPositionID, setCurrentPosition] = React.useState("");
 
@@ -81,7 +84,9 @@ const RaceCard = () => {
 
   const onSelectionChange = (value: string) => {
     if (value) {
-      const selectedRace = races?.find(({ positions }) => positions.id === parseInt(value))
+      const selectedRace = races?.find(
+        ({ positions }) => positions.id === parseInt(value)
+      );
       if (selectedRace) {
         setCurrentPosition(value);
         raceMutation.mutateAsync({
@@ -96,7 +101,7 @@ const RaceCard = () => {
   };
 
   return (
-    <Card className="md:col-span-2">
+    <Card className="lg:col-span-3">
       <CardHeader className="flex-row items-center justify-between">
         <div className="flex flex-col gap-1.5">
           <CardTitle>Voting</CardTitle>

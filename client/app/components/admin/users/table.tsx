@@ -2,6 +2,7 @@ import * as React from "react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  type PaginationState,
   type SortingState,
   type VisibilityState,
   flexRender,
@@ -85,7 +86,7 @@ const columns: ColumnDef<User>[] = [
   {
     accessorKey: "student_num",
     enableSorting: false,
-    header: () => <div className="text-center">Student number</div>,
+    header: "Student number",
     cell: ({ row }) => (
       <div className="text-center">{row.getValue("student_num")}</div>
     ),
@@ -93,7 +94,8 @@ const columns: ColumnDef<User>[] = [
   {
     accessorKey: "role",
     enableSorting: false,
-    header: () => <div className="text-center">Role</div>,
+    enableGlobalFilter: false,
+    header: "Role",
     cell: ({ row }) => (
       <div className="lowercase text-center">{row.getValue("role")}</div>
     ),
@@ -102,6 +104,7 @@ const columns: ColumnDef<User>[] = [
     accessorKey: "code",
     enableSorting: false,
     enableHiding: false,
+    enableGlobalFilter: false,
     header: () => <div className="text-right">Code</div>,
     cell: ({ row }) => (
       <div className="font-medium text-right">{row.getValue("code")}</div>
@@ -114,26 +117,32 @@ const UserTable = ({ data, refetch, isRefetching }: UserTableProps) => {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 20,
+  });
+  const [globalFilter, setGlobalFilter] = React.useState("");
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
     data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
+      globalFilter,
+      pagination,
       columnFilters,
       columnVisibility,
-      rowSelection,
     },
   });
 
@@ -142,10 +151,8 @@ const UserTable = ({ data, refetch, isRefetching }: UserTableProps) => {
       <div className="flex flex-col items-center gap-2 pb-4 md:flex-row">
         <Input
           placeholder="Filter by email, name or preferred name"
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
-          }
+          value={globalFilter ?? ""}
+          onChange={(event) => setGlobalFilter(event.target.value)}
           className="order-2 max-w-sm md:order-1"
         />
         <div className="order-1 space-x-2 ml-auto md:order-2">
@@ -212,10 +219,7 @@ const UserTable = ({ data, refetch, isRefetching }: UserTableProps) => {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(

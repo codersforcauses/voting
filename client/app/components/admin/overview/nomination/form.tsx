@@ -64,6 +64,7 @@ const formSchema = z
     past_clubs: z.string().min(2, {
       message: "Club committee history is required",
     }),
+    isMember: z.boolean().default(false),
     attend: z.boolean(),
     say_something: z.string(),
   })
@@ -85,6 +86,7 @@ interface NominationFormProps {
   btnText: string;
   defaultValues: FormSchema;
   sendRequest: UseMutateAsyncFunction<Response, Error, FormSchema, unknown>;
+  close: () => void; // TODO: fix dialog not closing after edit
 }
 
 const NominationForm = (props: NominationFormProps) => {
@@ -94,7 +96,7 @@ const NominationForm = (props: NominationFormProps) => {
     defaultValues: props.defaultValues,
   });
 
-  const { data: positionsList } = useQuery<{ id: number, title: string }[]>({
+  const { data: positionsList } = useQuery<{ id: number; title: string }[]>({
     queryKey: ["positions"],
     queryFn: async () => {
       const res = await fetch(`${BASE_URL}/position`, {
@@ -104,6 +106,7 @@ const NominationForm = (props: NominationFormProps) => {
       });
       return res.json();
     },
+    staleTime: 0,
   });
 
   const isAttending = form.watch("attend");
@@ -115,6 +118,7 @@ const NominationForm = (props: NominationFormProps) => {
         say_something: isAttending ? "" : data.say_something,
       };
       await props.sendRequest(nominee);
+      props.close();
     } catch (error) {
       console.error(error);
     }
@@ -196,21 +200,44 @@ const NominationForm = (props: NominationFormProps) => {
               )}
             />
           </div>
-          <FormField
-            control={form.control}
-            name="attend"
-            render={({ field }) => (
-              <FormItem className="flex items-center space-x-3">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel>They are able to attend the AGM</FormLabel>
-              </FormItem>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="attend"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="pl-4">
+                    They are able to attend the AGM
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+            {props.title.toLocaleLowerCase().includes("edit") && (
+              <FormField
+                control={form.control}
+                name="isMember"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="pl-4">
+                      They are a CFC member
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
             )}
-          />
+          </div>
           <FormField
             control={form.control}
             name="positions"
@@ -227,7 +254,7 @@ const NominationForm = (props: NominationFormProps) => {
                         return (
                           <FormItem
                             key={item.id}
-                            className="flex flex-row items-start space-x-3 space-y-0"
+                            className="flex flex-row items-start gap-0 space-y-0"
                           >
                             <FormControl>
                               <Checkbox
@@ -243,7 +270,7 @@ const NominationForm = (props: NominationFormProps) => {
                                 }}
                               />
                             </FormControl>
-                            <FormLabel className="font-normal">
+                            <FormLabel className="font-normal pl-4">
                               {item.title}
                             </FormLabel>
                           </FormItem>
@@ -359,8 +386,17 @@ const NominationForm = (props: NominationFormProps) => {
         </form>
       </Form>
       <DialogFooter>
-        <Button form="nomination-form" type="submit">
+        <Button
+          disabled={form.formState.isSubmitting}
+          form="nomination-form"
+          type="submit"
+        >
           {props.btnText}
+          {form.formState.isSubmitting && (
+            <span className="material-symbols-sharp ml-2 animate-spin">
+              progress_activity
+            </span>
+          )}
         </Button>
       </DialogFooter>
     </DialogContent>

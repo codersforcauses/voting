@@ -17,6 +17,16 @@ export function getNominationsForPosition(
     .where(eq(nominationsTable.position_id, position_id));
 }
 
+export function getNominationsForCandidate(
+  this: VotingObject,
+  candidate_id: number
+) {
+  return this.db
+    .select()
+    .from(nominationsTable)
+    .where(eq(nominationsTable.candidate_id, candidate_id));
+}
+
 export function insertNomination(
   this: VotingObject,
   data: typeof nominationsTable.$inferInsert

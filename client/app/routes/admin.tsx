@@ -1,3 +1,4 @@
+import * as React from "react";
 import {
   SidebarInset,
   SidebarProvider,
@@ -17,6 +18,11 @@ import {
 } from "@/components/ui/breadcrumb";
 import Nominations from "@/components/admin/nominations";
 import OverView from "@/components/admin/overview";
+import { useToken } from "@/lib/user";
+import { useQuery } from "@tanstack/react-query";
+import { BASE_URL } from "@/lib/utils";
+import type { Position } from "@/lib/types";
+import Auth from "@/components/auth";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -27,26 +33,52 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Admin() {
   const { hash } = useLocation();
-  let currentPage: string;
+  const [token, setToken] = React.useState(useToken());
+  const { data: positions } = useQuery<Position[]>({
+    queryKey: ["positions"],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/position`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.json();
+    },
+    staleTime: 0,
+  });
+
+  const logout = React.useCallback(() => {
+    setToken("");
+    window.localStorage.removeItem("token");
+  }, []);
+
+  if (!token) return <Auth setToken={setToken} />;
+
+  let currentPage = "";
   let CurrentView = () => <> </>;
 
   if (!hash) {
     currentPage = "Overview";
     CurrentView = OverView;
+  } else if (hash.includes("users")) {
+    currentPage = "Users";
+    CurrentView = Users;
   } else {
-    currentPage = hash.split("#")[1];
-    CurrentView = Users ?? (() => <></>);
-    if (currentPage.includes("nomination") || currentPage.includes("result")) {
-      currentPage = currentPage.split("=").join(" - ");
-      CurrentView = currentPage.includes("nomination")
-        ? Nominations
-        : () => <> </>;
+    const title = decodeURI(hash.split("?")[1].split("=")[1]);
+
+    if (hash.includes("nomination")) {
+      currentPage = `Nomination - ${title}`;
+      CurrentView = Nominations;
+    } else if (hash.includes("result")) {
+      currentPage = `Result - ${title}`;
+      CurrentView = () => <> </>;
     }
   }
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar logout={logout} positions={positions ?? []} />
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">

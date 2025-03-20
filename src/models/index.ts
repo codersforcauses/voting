@@ -20,6 +20,7 @@ import {
 import {
   getAllNominations,
   getNominationsForPosition,
+  getNominationsForCandidate,
   insertNomination,
   deleteNomination,
 } from "./db/nomination";
@@ -61,8 +62,11 @@ import {
 import {
   seedMasterSeat,
   devSeeds,
+  seedPositions,
+  seedRaces,
 } from "./seed";
 import {
+  positionsTable,
   seatsTable,
 } from "./schema";
 import * as schema from "./schema";
@@ -70,9 +74,9 @@ import { eq } from "drizzle-orm";
 import { getAllElected, getElectedForRace, insertElected } from "./db/elected";
 
 export interface DOEnv {
-  ENVIRONMENT: "dev" | "production";
+  ENVIRONMENT: "dev" | "prod";
   VOTING_OBJECT: DurableObjectNamespace<VotingObject>;
-  DEFAULT_SEAT: string;
+  INIT_SEAT: string;
 }
 
 export class VotingObject extends DurableObject {
@@ -88,7 +92,7 @@ export class VotingObject extends DurableObject {
     this.connections = new Map();
     for (const ws of this.ctx.getWebSockets()) {
       const { connectionId } = ws.deserializeAttachment();
-      console.log("hydrated connection", connectionId)
+      console.log("hydrated connection", connectionId);
       this.connections.set(connectionId, ws);
     }
 
@@ -98,9 +102,16 @@ export class VotingObject extends DurableObject {
       const masterSeat = await this.db
         .select()
         .from(seatsTable)
-        .where(eq(seatsTable.code, env.DEFAULT_SEAT));
+        .where(eq(seatsTable.code, env.INIT_SEAT));
       if (masterSeat.length === 0) {
         await seedMasterSeat(env, this.db);
+      }
+
+      // Seed Positions, Races
+      const numPositions = await this.db.$count(positionsTable);
+      if (numPositions === 0) {
+        const positionIds = await seedPositions(this.db);
+        await seedRaces(this.db, positionIds);
       }
 
       if (env.ENVIRONMENT === "dev") {
@@ -119,11 +130,15 @@ export class VotingObject extends DurableObject {
     this.connections.set(connectionId, server);
     server.serializeAttachment({ connectionId });
 
-    console.log("New websocket connection", this.connections.size, "connections open");
+    console.log(
+      "New websocket connection",
+      this.connections.size,
+      "connections open"
+    );
 
     return new Response(null, {
       status: 101,
-      webSocket: client
+      webSocket: client,
     });
   }
 
@@ -210,6 +225,12 @@ export class VotingObject extends DurableObject {
     ...args: Parameters<typeof getNominationsForPosition>
   ) {
     return getNominationsForPosition.call(this, ...args);
+  }
+
+  getNominationsForCandidate(
+    ...args: Parameters<typeof getNominationsForCandidate>
+  ) {
+    return getNominationsForCandidate.call(this, ...args);
   }
 
   insertNomination(...args: Parameters<typeof insertNomination>) {
