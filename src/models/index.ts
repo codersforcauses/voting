@@ -20,6 +20,7 @@ import {
 import {
   getAllNominations,
   getNominationsForPosition,
+  getNominationsForCandidate,
   insertNomination,
   deleteNomination,
 } from "./db/nomination";
@@ -88,7 +89,7 @@ export class VotingObject extends DurableObject {
     this.connections = new Map();
     for (const ws of this.ctx.getWebSockets()) {
       const { connectionId } = ws.deserializeAttachment();
-      console.log("hydrated connection", connectionId)
+      console.log("hydrated connection", connectionId);
       this.connections.set(connectionId, ws);
     }
 
@@ -119,11 +120,15 @@ export class VotingObject extends DurableObject {
     this.connections.set(connectionId, server);
     server.serializeAttachment({ connectionId });
 
-    console.log("New websocket connection", this.connections.size, "connections open");
+    console.log(
+      "New websocket connection",
+      this.connections.size,
+      "connections open"
+    );
 
     return new Response(null, {
       status: 101,
-      webSocket: client
+      webSocket: client,
     });
   }
 
@@ -210,6 +215,12 @@ export class VotingObject extends DurableObject {
     ...args: Parameters<typeof getNominationsForPosition>
   ) {
     return getNominationsForPosition.call(this, ...args);
+  }
+
+  getNominationsForCandidate(
+    ...args: Parameters<typeof getNominationsForCandidate>
+  ) {
+    return getNominationsForCandidate.call(this, ...args);
   }
 
   insertNomination(...args: Parameters<typeof insertNomination>) {

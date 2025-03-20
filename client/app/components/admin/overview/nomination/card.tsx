@@ -3,27 +3,47 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import NominationAdd from "./add";
+import CandidateTable from "./table";
+import { useQuery } from "@tanstack/react-query";
+import { BASE_URL } from "@/lib/utils";
+import { useToken } from "@/lib/user";
 
 const NominationCard = () => {
+  const token = useToken();
+  const { data, refetch, isRefetching } = useQuery({
+    queryKey: ["nominees", "all"],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/candidate`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.json();
+    },
+  });
+
+  const refetchCandidates = () => {
+    refetch();
+  };
+
   return (
-    <Card>
+    <Card className="md:col-span-2 max-w-[calc(100vw---spacing(4))] h-full lg:col-span-4 gap-4">
       <CardHeader>
-        <CardTitle>Nominations</CardTitle>
-        <CardDescription>Card Description</CardDescription>
+        <CardTitle>Candidates</CardTitle>
+        <CardDescription></CardDescription>
       </CardHeader>
       <CardContent>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline">Add Nomination</Button>
-          </DialogTrigger>
-          <NominationAdd />
-        </Dialog>
+        {data && (
+          <CandidateTable
+            candidates={data}
+            refetch={refetchCandidates}
+            isRefetching={isRefetching}
+          />
+        )}
       </CardContent>
     </Card>
   );

@@ -15,15 +15,16 @@ const defaultValues: FormSchema = {
   other_clubs: "",
   past_clubs: "",
   attend: false,
+  isMember: false,
   say_something: "",
 };
 
-const NominationAdd = () => {
-  const token = useToken()
+const NominationAdd = ({ close }: { close: () => void }) => {
+  const token = useToken();
 
   const mutation = useMutation({
-    mutationFn: (data: FormSchema) => {
-      return fetch(`${BASE_URL}/candidate`, {
+    mutationFn: async ({ isMember, ...data }: FormSchema) => {
+      const response = await fetch(`${BASE_URL}/candidate`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -31,6 +32,8 @@ const NominationAdd = () => {
         method: "POST",
         body: JSON.stringify(data),
       });
+      const val = await response.json();
+      return val;
     },
   });
 
@@ -40,6 +43,7 @@ const NominationAdd = () => {
       btnText="Add nominee"
       defaultValues={defaultValues}
       sendRequest={mutation.mutateAsync}
+      close={close}
     />
   );
 };

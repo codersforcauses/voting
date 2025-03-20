@@ -8,7 +8,7 @@ type WSData = {
   status: "open" | "closed" | "finished";
 };
 
-type RaceStatus = "closed" | "open" | "finished"
+type RaceStatus = "closed" | "open" | "finished";
 
 interface Race {
   race: {
@@ -18,12 +18,12 @@ interface Race {
     current: boolean | null;
   };
   positions: {
-      id: number;
-      title: string;
-      description: string;
-      priority: number;
-      openings: number;
-  }
+    id: number;
+    title: string;
+    description: string;
+    priority: number;
+    openings: number;
+  };
 }
 
 interface Position {
@@ -111,7 +111,7 @@ export const usePositions = () => {
       });
       return response.json();
     },
-    staleTime: Infinity,
+    staleTime: 0,
   });
 
   return data;
@@ -123,39 +123,36 @@ export const useCurrentRace = () => {
   const { data: race, refetch } = useQuery<Race>({
     queryKey: ["currentRace"],
     queryFn: async () => {
-      const response = await fetch(
-        `${BASE_URL}/race/current`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BASE_URL}/race/current`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return response.json();
     },
   });
 
   return [race, refetch] as const;
-}
+};
 
 export const useRaces = () => {
   const token = useToken();
 
-    const { data: racesData, refetch } = useQuery<Race[]>({
-      queryKey: ["races"],
-      queryFn: async () => {
-        const res = await fetch(`${BASE_URL}/race`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        return res.json();
-      },
-    });
+  const { data: racesData, refetch } = useQuery<Race[]>({
+    queryKey: ["races"],
+    queryFn: async () => {
+      const res = await fetch(`${BASE_URL}/race`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return res.json();
+    },
+  });
 
-    return [racesData, refetch] as const;
-}
+  return [racesData, refetch] as const;
+};
 
 export const useCandidates = (position_id?: number | string) => {
   const token = useToken();
@@ -201,18 +198,18 @@ export const useCandidates = (position_id?: number | string) => {
 export const useResults = (race_id?: number | string) => {
   const token = useToken();
 
-    const { data: racesData, refetch } = useQuery<ElectedCandidate[]>({
-      enabled: false,
-      queryKey: ["results", race_id],
-      queryFn: async () => {
-        const res = await fetch(`${BASE_URL}/results/${race_id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        return res.json();
-      },
-    });
+  const { data: racesData, refetch } = useQuery<ElectedCandidate[]>({
+    enabled: false,
+    queryKey: ["results", race_id],
+    queryFn: async () => {
+      const res = await fetch(`${BASE_URL}/results/${race_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return res.json();
+    },
+  });
 
-    return [racesData, refetch] as const;
-}
+  return [racesData, refetch] as const;
+};

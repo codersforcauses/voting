@@ -18,7 +18,7 @@ export function NavExpanded({
   items: {
     title: string;
     icon?: string;
-    items?: {
+    items: {
       title: string;
       url: string;
     }[];
@@ -50,7 +50,7 @@ export function NavExpanded({
             </CollapsibleTrigger>
             <CollapsibleContent>
               <SidebarMenuSub>
-                {item.items?.map((subItem) => (
+                {item.items.map((subItem) => (
                   <SidebarMenuSubItem key={subItem.title}>
                     <SidebarMenuSubButton
                       asChild

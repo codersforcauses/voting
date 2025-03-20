@@ -28,29 +28,51 @@ export async function getAllCandidates(this: VotingObject) {
 }
 
 export function getAllCandidatesByPosition(this: VotingObject, id: number) {
-  const race = this.db.select().from(racesTable).where(eq(racesTable.position_id, id)).get()!
-  
+  const race = this.db
+    .select()
+    .from(racesTable)
+    .where(eq(racesTable.position_id, id))
+    .get()!;
+
   return this.db
     .select()
     .from(nominationsTable)
-    .where(and(
-      eq(nominationsTable.position_id, id),
-      notInArray(
-        nominationsTable.candidate_id,
-        this.db.select({ data: electedTable.candidate_id }).from(electedTable).where(ne(electedTable.race_id, race.id))
+    .where(
+      and(
+        eq(nominationsTable.position_id, id),
+        notInArray(
+          nominationsTable.candidate_id,
+          this.db
+            .select({ data: electedTable.candidate_id })
+            .from(electedTable)
+            .where(ne(electedTable.race_id, race.id))
+        )
       )
-    ))
+    )
     .leftJoin(
       candidatesTable,
       eq(nominationsTable.candidate_id, candidatesTable.id)
-    ).all();
+    )
+    .all();
 }
 
 export function getCandidate(this: VotingObject, id: number) {
-  return this.db
-    .select()
-    .from(candidatesTable)
-    .where(eq(candidatesTable.id, id));
+  return this.db.query.candidatesTable.findMany({
+    with: {
+      nominations: {
+        columns: {},
+        with: {
+          positions: {
+            columns: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+      },
+    },
+    where: (candidatesTable, { eq }) => eq(candidatesTable.id, id),
+  });
 }
 
 export function insertCandidate(

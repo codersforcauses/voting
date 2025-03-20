@@ -17,7 +17,7 @@ export type User = {
 const Users = () => {
   const token = useToken();
 
-  const { data, refetch, isRefetching } = useQuery<User[]>({
+  const { data, isLoading, refetch, isRefetching } = useQuery<User[]>({
     queryKey: ["users"],
     queryFn: () =>
       fetch(`${BASE_URL}/users`, {
@@ -32,9 +32,23 @@ const Users = () => {
     refetch();
   }, [refetch]);
 
-  return data ? (
-    <UserTable data={data} isRefetching={isRefetching} refetch={refetchData} />
-  ) : null;
+  if (isLoading) {
+    return (
+      <div className="grid h-full place-items-center">
+        <span className="material-symbols-sharp animate-spin text-9xl!">
+          progress_activity
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <UserTable
+      data={data ?? []}
+      isRefetching={isRefetching}
+      refetch={refetchData}
+    />
+  );
 };
 
 export default Users;
