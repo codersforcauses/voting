@@ -1,16 +1,14 @@
 import { factory } from "@/app";
+import { authenticate, requireAdmin } from "@/middleware/auth";
 import { UserData } from "@/types";
 import { createClerkClient } from "@clerk/backend";
 import { zValidator } from "@hono/zod-validator";
 import { env } from "hono/adapter";
-import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { sign } from "hono/jwt";
 import { z } from "zod";
 
 const app = factory.createApp();
-
-app.use(cors());
 
 app.post(
   "/",
@@ -30,13 +28,14 @@ app.post(
       throw new HTTPException(404, { message: "Code not found" });
     }
 
-    const { CLERK_SECRET_KEY, AUTH_SECRET_KEY } = env<{
+    const { CLERK_SECRET_KEY, AUTH_SECRET_KEY, INIT_SEAT } = env<{
       CLERK_SECRET_KEY: string;
       AUTH_SECRET_KEY: string;
+      INIT_SEAT: string;
     }>(c);
 
-    let role: "user" | "admin" = "user";
     let id: string;
+    let role: "user" | "admin" = code === INIT_SEAT ? "admin" : "user";
 
     const [user] = await c.var.STUB.getUserByEmail(email);
 
@@ -74,7 +73,6 @@ app.post(
       }
 
       id = userData.id;
-      role = ["committee", "admin"].includes(userData.role) ? "admin" : "user";
 
       try {
         await c.var.STUB.insertUser({
@@ -106,5 +104,9 @@ app.post(
     return c.json(token);
   }
 );
+
+app.get("/", authenticate, requireAdmin, async (c) => {
+  return c.json(true);
+});
 
 export default app;

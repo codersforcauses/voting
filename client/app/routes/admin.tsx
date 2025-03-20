@@ -7,7 +7,7 @@ import {
 import type { Route } from "./+types/admin";
 import { AppSidebar } from "@/components/admin/app-sidebar";
 import Users from "@/components/admin/users";
-import { useLocation } from "react-router";
+import { redirect, useLocation, useNavigate } from "react-router";
 import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
@@ -19,10 +19,11 @@ import {
 import Nominations from "@/components/admin/nominations";
 import OverView from "@/components/admin/overview";
 import { useToken } from "@/lib/user";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BASE_URL } from "@/lib/utils";
 import type { Position } from "@/lib/types";
 import Auth from "@/components/auth";
+import { Button } from "@/components/ui/button";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -33,7 +34,22 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Admin() {
   const { hash } = useLocation();
+  const navigate = useNavigate();
   const [token, setToken] = React.useState(useToken());
+  const queryClient = useQueryClient();
+  const { data: adminCheck } = useQuery({
+    enabled: !!token,
+    queryKey: ["admin"],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/auth`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.json();
+    },
+  });
   const { data: positions } = useQuery<Position[]>({
     queryKey: ["positions"],
     queryFn: async () => {
@@ -51,9 +67,26 @@ export default function Admin() {
   const logout = React.useCallback(() => {
     setToken("");
     window.localStorage.removeItem("token");
+    queryClient.invalidateQueries();
   }, []);
 
   if (!token) return <Auth setToken={setToken} />;
+  if (!adminCheck) {
+    return (
+      <main className="w-screen h-screen grid place-items-center">
+        <div className="flex flex-col items-center gap-4 p-20 border border-border">
+          You shall not pass
+          <Button
+            onClick={() => {
+              navigate("/");
+            }}
+          >
+            Go home
+          </Button>
+        </div>
+      </main>
+    );
+  }
 
   let currentPage = "";
   let CurrentView = () => <> </>;

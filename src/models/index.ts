@@ -35,6 +35,7 @@ import {
 } from "./db/race";
 import { getSeat, insertSeat, deleteSeat, getSeatByCode } from "./db/seat";
 import {
+  countUsers,
   getAllUsers,
   insertUser,
   updateUser,
@@ -51,6 +52,7 @@ import {
   getVotePreferencesForVote,
 } from "./db/vote-preference";
 import {
+  countVotesForRace,
   getAllVotesForRace,
   insertVote,
   updateVote,
@@ -59,16 +61,7 @@ import {
   deleteVote,
   getVoteAggregateForRace,
 } from "./db/vote";
-import {
-  seedMasterSeat,
-  devSeeds,
-  seedPositions,
-  seedRaces,
-} from "./seed";
-import {
-  positionsTable,
-  seatsTable,
-} from "./schema";
+import { seedMasterSeat, devSeeds, seedPositions, seedRaces } from "./seed";
 import * as schema from "./schema";
 import { eq } from "drizzle-orm";
 import { deleteElectedForRace, getAllElected, getElectedForRace, insertElected } from "./db/elected";
@@ -101,21 +94,21 @@ export class VotingObject extends DurableObject {
 
       const masterSeat = await this.db
         .select()
-        .from(seatsTable)
-        .where(eq(seatsTable.code, env.INIT_SEAT));
+        .from(schema.seatsTable)
+        .where(eq(schema.seatsTable.code, env.INIT_SEAT));
       if (masterSeat.length === 0) {
         await seedMasterSeat(env, this.db);
       }
 
       // Seed Positions, Races
-      const numPositions = await this.db.$count(positionsTable);
+      const numPositions = await this.db.$count(schema.positionsTable);
       if (numPositions === 0) {
         const positionIds = await seedPositions(this.db);
         await seedRaces(this.db, positionIds);
       }
 
       if (env.ENVIRONMENT === "dev") {
-        devSeeds(this.db)
+        devSeeds(this.db);
       }
     });
   }
@@ -242,6 +235,10 @@ export class VotingObject extends DurableObject {
   }
 
   // Races
+  countVotesForRace(...args: Parameters<typeof countVotesForRace>) {
+    return countVotesForRace.call(this, ...args);
+  }
+
   getAllRaces(...args: Parameters<typeof getAllRaces>) {
     return getAllRaces.call(this, ...args);
   }
@@ -288,6 +285,10 @@ export class VotingObject extends DurableObject {
   }
 
   // Users
+  countUsers(...args: Parameters<typeof countUsers>) {
+    return countUsers.call(this, ...args);
+  }
+
   getAllUsers(...args: Parameters<typeof getAllUsers>) {
     return getAllUsers.call(this, ...args);
   }

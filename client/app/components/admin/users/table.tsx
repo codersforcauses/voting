@@ -18,6 +18,8 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -30,6 +32,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { User } from ".";
+import {
+  useMutation,
+  useQueryClient,
+  type UseMutateAsyncFunction,
+} from "@tanstack/react-query";
+import { useToken } from "@/lib/user";
+import { BASE_URL } from "@/lib/utils";
 
 interface UserTableProps {
   data: User[];
@@ -37,7 +46,14 @@ interface UserTableProps {
   isRefetching: boolean;
 }
 
-const columns: ColumnDef<User>[] = [
+type UpdateRole = {
+  id: string;
+  role: "user" | "admin";
+};
+
+const columns = (
+  updateRole: UseMutateAsyncFunction<any, Error, UpdateRole, unknown>
+): ColumnDef<User>[] => [
   {
     accessorKey: "preferred_name",
     header: ({ column }) => {
@@ -110,9 +126,56 @@ const columns: ColumnDef<User>[] = [
       <div className="font-medium text-right">{row.getValue("code")}</div>
     ),
   },
+  {
+    id: "actions",
+    enableHiding: false,
+    cell: ({ row }) => {
+      const { id } = row.original;
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <span className="material-symbols-sharp text-base!">
+                more_horiz
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel className="text-muted-foreground">
+              Actions
+            </DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() =>
+                updateRole({
+                  id,
+                  role: "user",
+                })
+              }
+            >
+              Make user
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive-foreground"
+              onClick={() =>
+                updateRole({
+                  id,
+                  role: "admin",
+                })
+              }
+            >
+              Make admin
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
 ];
 
 const UserTable = ({ data, refetch, isRefetching }: UserTableProps) => {
+  const token = useToken();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -125,9 +188,27 @@ const UserTable = ({ data, refetch, isRefetching }: UserTableProps) => {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
 
+  const queryClient = useQueryClient();
+  const { mutateAsync } = useMutation({
+    mutationFn: async ({ id, role }: UpdateRole) => {
+      const response = await fetch(`${BASE_URL}/users/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ role }),
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+  });
+
   const table = useReactTable({
     data,
-    columns,
+    columns: columns(mutateAsync),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
