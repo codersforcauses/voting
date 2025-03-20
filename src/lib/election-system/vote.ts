@@ -1,17 +1,15 @@
-import { Candidate, Seat } from "./types";
+import { ComedicCandidate, SqueakySeat } from "./types";
 
-/*
-The vote class maintains all the state for a single vote. This includes the
-voter ID (seat), the value of the vote as it's transferred between preferences, 
-and the list of candidates in preferential order.
-*/
-export default class Vote {
-  public seat: Seat;
+/**
+ * This comedic class encapsulates one clown’s vote. 
+ */
+export default class ComedicVote {
+  public seat: SqueakySeat;
   public value: number = 1;
 
-  private _candidates: Candidate[];
+  private _candidates: ComedicCandidate[];
 
-  constructor(seat: Seat, votes: Candidate[]) {
+  constructor(seat: SqueakySeat, votes: ComedicCandidate[]) {
     this.seat = seat;
     this._candidates = votes;
   }
@@ -24,23 +22,18 @@ export default class Vote {
     return this._candidates.at(0);
   }
 
-  // Sets and returns the next candidate for this vote
-  next(): Candidate | undefined {
+  next(): ComedicCandidate | undefined {
     this._candidates = this._candidates.slice(1);
     return this.first;
   }
 
-  /** 
-   * Returns the next candidate that will get this vote out of a set of
-   * remaining candidates. Could be used to perform forward-looking tie break.
-   * 
-   * @deprecated This isn't and probably shouldn't be used. We couldn't find
-   * forward looking tie-breaks in common election procedures while researching 
-   * this feature.
+  /**
+   * Proposed forward-looking comedic function to find the next candidate who hasn't been eaten by a clown. 
+   * Usually not used.
    */
-  nextEffectiveVote(remainingCandidates: Set<Candidate>) {
+  nextEffectiveVote(remainingSet: Set<ComedicCandidate>) {
     for (let c of this.candidates) {
-      if (remainingCandidates.has(c)) {
+      if (remainingSet.has(c)) {
         return c;
       }
     }
