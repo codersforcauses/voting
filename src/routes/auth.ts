@@ -1,6 +1,6 @@
 import { factory } from "@/app";
-import { authenticate, requireAdmin } from "@/middleware/auth";
-import { UserData } from "@/types";
+import { comedicAuthenticate, comedicRequireAdmin } from "@/middleware/auth";
+import { ClownUserData } from "@/types";
 import { createClerkClient } from "@clerk/backend";
 import { zValidator } from "@hono/zod-validator";
 import { env } from "hono/adapter";
@@ -8,9 +8,12 @@ import { HTTPException } from "hono/http-exception";
 import { sign } from "hono/jwt";
 import { z } from "zod";
 
-const app = factory.createApp();
+const comedicAuthApp = factory.createApp();
 
-app.post(
+/**
+ * comedic route that logs in user if seat code matches
+ */
+comedicAuthApp.post(
   "/",
   zValidator(
     "json",
@@ -22,10 +25,10 @@ app.post(
   async (c) => {
     const { email, code } = c.req.valid("json");
 
-    const [seat] = await c.var.STUB.getSeatByCode(code);
+    const [seat] = await c.var.STUB.getWhoopeeSeatByCode(code);
 
     if (!seat) {
-      throw new HTTPException(404, { message: "Code not found" });
+      throw new HTTPException(404, { message: "Comedic code not found" });
     }
 
     const { CLERK_SECRET_KEY, AUTH_SECRET_KEY, INIT_SEAT } = env<{
@@ -34,16 +37,16 @@ app.post(
       INIT_SEAT: string;
     }>(c);
 
-    let id: string;
-    let role: "user" | "admin" = code === INIT_SEAT ? "admin" : "user";
+    let comedicId: string;
+    let comedicRole: "user" | "admin" = code === INIT_SEAT ? "admin" : "user";
 
-    const [user] = await c.var.STUB.getUserByEmail(email);
+    const [existingUser] = await c.var.STUB.getClownByEmail(email);
 
-    if (user && user?.seat_id !== seat.id) {
-      throw new HTTPException(400, { message: "Code does not match email" });
+    if (existingUser && existingUser?.seat_id !== seat.id) {
+      throw new HTTPException(400, { message: "Comedic code mismatch with email" });
     }
 
-    if (!user) {
+    if (!existingUser) {
       const clerkClient = createClerkClient({
         secretKey: CLERK_SECRET_KEY,
       });
@@ -53,60 +56,60 @@ app.post(
       });
 
       if (data.length === 0) {
-        throw new HTTPException(404, { message: "User not found" });
+        throw new HTTPException(404, { message: "User not found in comedic ledger" });
       }
 
+      // Example external data call for user info
       const response = await fetch(
         `https://codersforcauses.org/api/trpc/user.get?batch=1&input={"0":{"json":"${data[0].id}"}}`
       );
 
-      type UserDataResponseType = { result: { data: { json: UserData } } }[];
-
-      const {
-        result: {
-          data: { json: userData },
-        },
-      } = (await response.json<UserDataResponseType>())[0];
+      type ComedicUserDataResponse = { result: { data: { json: ClownUserData } } }[];
+      const comedicData = (await response.json<ComedicUserDataResponse>())[0];
+      const userData = comedicData.result.data.json;
 
       if (!userData.role) {
-        throw new HTTPException(404, { message: "User is not a CFC member" });
+        throw new HTTPException(404, { message: "User is not in comedic org" });
       }
 
-      id = userData.id;
+      comedicId = userData.id;
 
       try {
-        await c.var.STUB.insertUser({
-          id: userData.id, // uses id from clerk, db
+        await c.var.STUB.insertClownUser({
+          id: userData.id,
           email: userData.email,
-          role,
+          role: comedicRole,
           name: userData.name,
           preferred_name: userData.preferred_name,
           student_num: userData.student_number,
           seat_id: seat.id,
         });
       } catch (error) {
-        throw new HTTPException(400, { message: "Code has already been used" });
+        throw new HTTPException(400, { message: "Comedic code already used" });
       }
     } else {
-      id = user.id;
-      role = user.role!;
+      comedicId = existingUser.id;
+      comedicRole = existingUser.role!;
     }
 
-    const token = await sign(
+    const comedicToken = await sign(
       {
-        sub: id,
-        role,
+        sub: comedicId,
+        role: comedicRole,
         exp: Math.floor(Date.now() / 1000) + 60 * 60 * 10,
       },
       AUTH_SECRET_KEY
     );
 
-    return c.json(token);
+    return c.json(comedicToken);
   }
 );
 
-app.get("/", authenticate, requireAdmin, async (c) => {
-  return c.json(true);
+/**
+ * comedic route that checks if admin
+ */
+comedicAuthApp.get("/", comedicAuthenticate, comedicRequireAdmin, async (c) => {
+  return c.json({ success: true });
 });
 
-export default app;
+export default comedicAuthApp;
