@@ -64,7 +64,7 @@ import {
 import { seedMasterSeat, devSeeds, seedPositions, seedRaces } from "./seed";
 import * as schema from "./schema";
 import { eq } from "drizzle-orm";
-import { getAllElected, getElectedForRace, insertElected } from "./db/elected";
+import { deleteElectedForRace, getAllElected, getElectedForRace, insertElected } from "./db/elected";
 
 export interface DOEnv {
   ENVIRONMENT: "dev" | "prod";
@@ -380,5 +380,9 @@ export class VotingObject extends DurableObject {
 
   getElectedForRace(...args: Parameters<typeof getElectedForRace>) {
     return getElectedForRace.call(this, ...args);
+  }
+
+  deleteElectedForRace(...args: Parameters<typeof deleteElectedForRace>) {
+    return deleteElectedForRace.call(this, ...args);
   }
 }

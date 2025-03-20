@@ -14,8 +14,13 @@ app.post("/recalc/race/:id",
   ),
   async (c) => {
     const { id } = c.req.valid("param");
-    const results = await c.var.STUB.saveElectedForRace(id)
-    return c.json(results)
+    await c.var.STUB.deleteElectedForRace(id)
+    try {
+      const results = await c.var.STUB.saveElectedForRace(id)
+      return c.json(results)
+    } catch (err) {
+      throw new HTTPException(500, { message: `Could not recalculate race ${err}`})
+    }
   }
 )
 
@@ -30,7 +35,6 @@ async (c) => {
   const role = c.get("ROLE");
   const { id } = c.req.valid("param");
   const previouslyElected = await c.var.STUB.getElectedForRace(id)
-  if (previouslyElected.length === 0) throw new HTTPException(404, { message: "No results found for race" });
   
   if (role === "admin") {
     return c.json(previouslyElected);
