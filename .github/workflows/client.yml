@@ -16,7 +16,13 @@ jobs:
     name: Deploy
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - name: Install Dependencies
+        run: pnpm install
+      - name: Build
+        run: pnpm build
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+# Need to add API endpoint
