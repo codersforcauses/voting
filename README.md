@@ -45,3 +45,5 @@ Now go into your cloudflare dashboard and find the deployment. Add your secrets 
 Make sure to set the types as secret except `INIT_SEAT` if you need to refer to the initial seat code.
 
 The `CLERK_SECRET_KEY` needs to be the secret key for the cfc clerk account but `AUTH_SECRET_KEY` can be whatever cryptographically secure key you want. `openssl rand -base64 32` works well.
+
+Secrets need to be configured on the cloudflare dashboard unless using the CI/CD pipeline on github.
