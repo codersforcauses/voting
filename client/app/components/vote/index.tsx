@@ -17,8 +17,11 @@ import {
 import { Button } from "../ui/button";
 import { Logo } from "../ui/logo";
 import { Link } from "react-router";
+import { useTheme } from "../theme-provider";
 
 const Vote = ({ logout }: { logout: () => void }) => {
+  const { setTheme, theme } = useTheme();
+  const isDarkMode = theme === "dark";
   const { data: wsData, error } = useWS();
   const [currentRace, refetchCurrentRace] = useCurrentRace();
   const candidates = useCandidates(currentRace?.positions.id);
@@ -34,7 +37,9 @@ const Vote = ({ logout }: { logout: () => void }) => {
   return (
     <>
       <header className="flex justify-between py-1 px-4">
-        <Logo />
+        <button onClick={() => setTheme(isDarkMode ? "light" : "dark")}>
+          <Logo />
+        </button>
         <nav>
           <Button
             className="text-muted-foreground"
@@ -63,10 +68,13 @@ const Vote = ({ logout }: { logout: () => void }) => {
             <AccordionItem key={name} value={id.toString()}>
               <AccordionTrigger>
                 <div className="text-xl font-semibold flex gap-1">
-                  {elected?.find(({ candidates: { id: elected_id }}) => elected_id === id) && (
+                  {elected?.find(
+                    ({ candidates: { id: elected_id } }) => elected_id === id
+                  ) && (
                     <div>
                       {elected?.find(
-                        ({ candidates: { id: elected_id }}) => elected_id === id
+                        ({ candidates: { id: elected_id } }) =>
+                          elected_id === id
                       ) && <div>✰</div>}
                     </div>
                   )}
@@ -100,7 +108,7 @@ const Vote = ({ logout }: { logout: () => void }) => {
           candidates={candidates}
         />
       ) : (
-        <div className="fixed bottom-0 left-0 flex justify-center w-full p-2 cursor-pointer bg-zinc-950 border-t-1 border-t-zinc-800">
+        <div className="fixed bottom-0 left-0 flex justify-center w-full p-2 cursor-pointer bg-background border-t-1 border-t-border">
           {!currentRace
             ? "Voting not started"
             : candidates.length > 0 && "No candidates"}

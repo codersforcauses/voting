@@ -13,6 +13,7 @@ import { Link, useLocation } from "react-router";
 import { Logo } from "../../ui/logo";
 import type { Position } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/components/theme-provider";
 
 const items = [
   {
@@ -37,6 +38,8 @@ export function AppSidebar({
   positions: Position[];
 }) {
   const { hash } = useLocation();
+  const { setTheme, theme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   const data = {
     items,
@@ -72,7 +75,9 @@ export function AppSidebar({
   return (
     <Sidebar>
       <SidebarHeader className="flex-row items-center">
-        <Logo />
+        <button onClick={() => setTheme(isDarkMode ? "light" : "dark")}>
+          <Logo />
+        </button>
         <span className="ml-1 font-medium">Coders for Causes</span>
       </SidebarHeader>
       <SidebarContent>

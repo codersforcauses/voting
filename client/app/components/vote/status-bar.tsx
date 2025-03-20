@@ -17,10 +17,10 @@ import { useToken } from "@/lib/user";
 type Status = "open" | "closed" | "finished";
 
 const statusMap = {
-  "open": "Voting open - click here",
-  "closed": "Voting not started",
-  "finished": "Voting finished"
-}
+  open: "Voting open - click here",
+  closed: "Voting not started",
+  finished: "Voting finished",
+};
 
 const ReorderItem = ({
   candidate,
@@ -111,7 +111,7 @@ const StatusBar = ({
     return (
       <Drawer handleOnly open={drawerIsOpen} onOpenChange={setDrawerIsOpen}>
         <DrawerTrigger asChild>
-          <div className="fixed bottom-0 left-0 flex justify-between w-full p-2 cursor-pointer bg-zinc-950 border-t-1 border-t-zinc-800">
+          <div className="fixed bottom-0 left-0 flex justify-between w-full p-2 cursor-pointer bg-background border-t-1 border-t-border">
             <span className="material-symbols-sharp">how_to_vote</span>
             {position}: {statusMap[status]}
             <span className="material-symbols-sharp">unfold_more</span>
@@ -143,7 +143,7 @@ const StatusBar = ({
     );
   } else {
     return (
-      <div className="fixed bottom-0 left-0 flex justify-between w-full p-2 bg-zinc-950 border-t-1 border-t-zinc-800">
+      <div className="fixed bottom-0 left-0 flex justify-between w-full p-2 cursor-pointer bg-background border-t-1 border-t-border">
         <span className="material-symbols-sharp">lock</span>
         {position}: {statusMap[status]}
         <span></span> {/* Hack to maintain the spacing */}
