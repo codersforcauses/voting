@@ -74,7 +74,7 @@ export function saveElectedForRace(
     return acc
   }, {})
 
-  const res = autocount(formattedData, osition.openings)
+  const res = autocount(formattedData, position.openings)
   this.updateRace(id, {tally: JSON.stringify(res.tally)});
   
   return this.insertElected(res.candidates.map(candidate => ({

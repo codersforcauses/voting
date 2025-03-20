@@ -50,16 +50,16 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const ResultGraph = async () => {
+const ResultGraph = () => {
   // const positions = usePositions();
   const race = useRace() as Race[];
-  console.log("Race", race?.at(0));
+  // console.log("Race", race?.at(0));
   let tally;  
   
   tally = JSON.parse(race?.at(0)?.tally ?? "[]");
-  console.log("Successful parse", tally);
+  // console.log("Successful parse", tally);
   
-  console.log("Tally", tally);
+  // console.log("Tally", tally);
   const candidates = tally.at(0) ?? {};
   const lines: any[] = [];
   let key = 0;
@@ -134,8 +134,8 @@ export const useRace = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log(await response.json());
-      return await response.json();
+      // console.log(await response.json());
+      return response.json();
       
       // return {
       //   current: false,

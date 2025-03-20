@@ -18,6 +18,11 @@ app.get("/", every(authenticate, requireAdmin), async (c) => {
   }
 });
 
+app.get("/current", async (c) => {
+  const data = await c.var.STUB.getCurrentRace()
+  return c.json(data)
+})
+
 app.get("/:id", zValidator(
   "param",
   z.object({
@@ -34,11 +39,6 @@ app.get("/:id", zValidator(
     });
   }
 });
-
-app.get("/current", async (c) => {
-  const data = await c.var.STUB.getCurrentRace()
-  return c.json(data)
-})
 
 app.patch(
   "/:id",
