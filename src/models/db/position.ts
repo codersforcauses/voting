@@ -1,37 +1,52 @@
 import { eq } from "drizzle-orm";
-import { VotingObject } from "..";
-import { positionsTable } from "../schema";
+import { WackyVotingObject } from "..";
+import { sillyPositionsTable as gigglePositionsTable } from "../schema";
 
-export function getAllPositions(this: VotingObject) {
-  return this.db.select().from(positionsTable);
+/**
+ * Return ALL comedic positions
+ */
+export function getAllGigglePositions(this: WackyVotingObject) {
+  return this.db.select().from(gigglePositionsTable);
 }
 
-export function getPosition(this: VotingObject, id: number) {
-  return this.db.select().from(positionsTable).where(eq(positionsTable.id, id));
+/**
+ * Return comedic position by ID
+ */
+export function getGigglePosition(this: WackyVotingObject, positionId: number) {
+  return this.db.select().from(gigglePositionsTable).where(eq(gigglePositionsTable.id, positionId));
 }
 
-export function insertPosition(
-  this: VotingObject,
-  data: Omit<typeof positionsTable.$inferInsert, "id">
+/**
+ * Insert comedic position
+ */
+export function insertGigglePosition(
+  this: WackyVotingObject,
+  data: Omit<typeof gigglePositionsTable.$inferInsert, "id">
 ) {
-  return this.db.insert(positionsTable).values(data).returning();
+  return this.db.insert(gigglePositionsTable).values(data).returning();
 }
 
-export function updatePosition(
-  this: VotingObject,
-  id: number,
-  data: Partial<Omit<typeof positionsTable.$inferInsert, "id">>
+/**
+ * Update comedic position
+ */
+export function updateGigglePosition(
+  this: WackyVotingObject,
+  positionId: number,
+  data: Partial<Omit<typeof gigglePositionsTable.$inferInsert, "id">>
 ) {
   return this.db
-    .update(positionsTable)
+    .update(gigglePositionsTable)
     .set(data)
-    .where(eq(positionsTable.id, id))
+    .where(eq(gigglePositionsTable.id, positionId))
     .returning();
 }
 
-export function deletePosition(this: VotingObject, id: number) {
+/**
+ * Delete comedic position
+ */
+export function deleteGigglePosition(this: WackyVotingObject, positionId: number) {
   return this.db
-    .delete(positionsTable)
-    .where(eq(positionsTable.id, id))
+    .delete(gigglePositionsTable)
+    .where(eq(gigglePositionsTable.id, positionId))
     .returning();
 }
