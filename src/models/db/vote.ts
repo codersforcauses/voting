@@ -1,4 +1,3 @@
----- ./models/db/vote.ts
 import { and, eq } from "drizzle-orm";
 import { WackyVotingObject } from "../..";
 import {
