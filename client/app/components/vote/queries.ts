@@ -2,6 +2,7 @@ import * as React from "react";
 import { BASE_URL } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useToken } from "@/lib/user";
+import type { Position } from "@/lib/types";
 
 type WSData = {
   race_id: number;
@@ -17,21 +18,7 @@ interface Race {
     status: RaceStatus;
     current: boolean | null;
   };
-  positions: {
-    id: number;
-    title: string;
-    description: string;
-    priority: number;
-    openings: number;
-  };
-}
-
-interface Position {
-  id: number;
-  title: string;
-  description: string;
-  priority: number;
-  openings: number;
+  positions: Position;
 }
 
 interface BaseCandidate {
@@ -50,12 +37,6 @@ interface BaseCandidate {
 
 interface Candidate extends BaseCandidate {
   positions: number[];
-}
-interface ReturnedCandidate extends BaseCandidate {
-  nominations: {
-    candidate_id: number;
-    position_id: number;
-  }[];
 }
 
 interface ElectedCandidate {

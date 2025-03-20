@@ -20,20 +20,13 @@ import OverView from "@/components/admin/overview";
 import { useToken } from "@/lib/user";
 import { useQuery } from "@tanstack/react-query";
 import { BASE_URL } from "@/lib/utils";
+import type { Position } from "@/lib/types";
 
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Admin Page" },
     { name: "description", content: "ADMIN ADMIN ADMIN" },
   ];
-}
-
-interface Position {
-  id: number;
-  title: string;
-  description: string;
-  priority: number;
-  openings: number;
 }
 
 export default function Admin() {

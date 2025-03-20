@@ -10,11 +10,7 @@ import {
 import { NavExpanded } from "./nav-expanded";
 import { Link, useLocation } from "react-router";
 import { Logo } from "../../ui/logo";
-
-interface Position {
-  title: string;
-  id: number;
-}
+import type { Position } from "@/lib/types";
 
 const items = [
   {
