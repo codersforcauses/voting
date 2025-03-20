@@ -169,5 +169,8 @@ export default class Race {
 }
 
 function getRandomInt(max: number) {
-  return Math.floor(Math.random() * max);
+  const arr = new Uint32Array(1);
+  crypto.getRandomValues(arr);
+  return arr[0] % max;
 }
+
