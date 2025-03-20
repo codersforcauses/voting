@@ -40,8 +40,15 @@ interface Candidate extends BaseCandidate {
 }
 
 interface ElectedCandidate {
-  id: number;
-  name: string;
+  elected: {
+    candidate_id: number;
+    race_id: number;
+  };
+  candidates: {
+    id: number;
+    isMember: boolean;
+    name: string;
+  }
 }
 
 export const useWS = () => {
@@ -180,7 +187,7 @@ export const useResults = (race_id?: number | string) => {
   const token = useToken();
 
   const { data: racesData, refetch } = useQuery<ElectedCandidate[]>({
-    enabled: false,
+    enabled: !!race_id,
     queryKey: ["results", race_id],
     queryFn: async () => {
       const res = await fetch(`${BASE_URL}/results/${race_id}`, {

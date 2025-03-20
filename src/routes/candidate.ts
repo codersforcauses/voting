@@ -11,7 +11,7 @@ import { z } from "zod";
 
 const app = factory.createApp();
 
-app.get("/", authenticate, async (c) => {
+app.get("/", async (c) => {
   const role = c.get("ROLE");
   const DBData = await c.var.STUB.getAllCandidates();
 
@@ -42,7 +42,6 @@ app.get(
       id: z.number({ coerce: true }),
     })
   ),
-  authenticate,
   requireAdmin,
   async (c) => {
     const { id } = c.req.valid("param");
@@ -60,7 +59,6 @@ app.get(
       id: z.number({ coerce: true }),
     })
   ),
-  authenticate,
   async (c) => {
     try {
       const { id } = c.req.valid("param");
@@ -101,7 +99,6 @@ const insertSchema = createInsertSchema(candidatesTable)
 
 app.post(
   "/",
-  authenticate,
   requireAdmin,
   zValidator("json", insertSchema),
   async (c) => {
@@ -175,7 +172,6 @@ app.patch(
       positions: z.array(z.number()),
     })
   ),
-  authenticate,
   requireAdmin,
   async (c) => {
     try {
@@ -219,7 +215,6 @@ app.delete(
       id: z.number({ coerce: true }),
     })
   ),
-  authenticate,
   requireAdmin,
   async (c) => {
     const { id } = c.req.valid("param");

@@ -17,7 +17,6 @@ const insertedSchema = createInsertSchema(positionsTable);
 
 app.post(
   "/",
-  authenticate,
   requireAdmin,
   zValidator("json", insertedSchema),
   async (c) => {
@@ -41,7 +40,6 @@ app.patch(
       })
     )
   ),
-  authenticate,
   requireAdmin,
   async (c) => {
     const validated = c.req.valid("json");

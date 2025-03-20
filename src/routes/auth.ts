@@ -105,7 +105,7 @@ app.post(
   }
 );
 
-app.get("/", authenticate, requireAdmin, async (c) => {
+app.get("/", requireAdmin, async (c) => {
   return c.json(true);
 });
 

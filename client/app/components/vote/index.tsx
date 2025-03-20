@@ -63,10 +63,10 @@ const Vote = ({ logout }: { logout: () => void }) => {
             <AccordionItem key={name} value={id.toString()}>
               <AccordionTrigger>
                 <div className="text-xl font-semibold flex gap-1">
-                  {elected?.find(({ id: elected_id }) => elected_id === id) && (
+                  {elected?.find(({ candidates: { id: elected_id }}) => elected_id === id) && (
                     <div>
                       {elected?.find(
-                        ({ id: elected_id }) => elected_id === id
+                        ({ candidates: { id: elected_id }}) => elected_id === id
                       ) && <div>✰</div>}
                     </div>
                   )}
