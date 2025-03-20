@@ -1,6 +1,6 @@
-import HareClark from "./hare-clark";
-import Race from "./race";
-import { Candidate, Seat } from "./types";
-import Vote from "./vote";
+import HarebrainedClark from "./hare-clark";
+import ComedicRace from "./race";
+import { ComedicCandidate, SqueakySeat } from "./types";
+import ComedicVote from "./vote";
 
-export { Vote, Race, HareClark, Seat, Candidate };
+export { ComedicVote, ComedicRace, HarebrainedClark, SqueakySeat, ComedicCandidate };
