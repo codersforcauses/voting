@@ -8,8 +8,7 @@ import {
 } from "@/components/ui/card";
 import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
 
-import { TrendingUp } from "lucide-react";
-import { Line, LineChart, XAxis } from "recharts";
+import { Line, LineChart, XAxis, ReferenceLine } from "recharts";
 import { BASE_URL } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useToken } from "@/lib/user";
@@ -93,6 +92,7 @@ const ResultGraph = () => {
             tickFormatter={(value) => value.slice(0, 3)}
           />
           {lines}
+          <ReferenceLine y={12} stroke="red" strokeDasharray="5 5" label="Quota" />
         </LineChart>
       </ChartContainer>
       {
