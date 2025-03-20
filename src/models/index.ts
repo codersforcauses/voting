@@ -1,114 +1,116 @@
 import { DurableObject } from "cloudflare:workers";
 import { drizzle, DrizzleSqliteDODatabase } from "drizzle-orm/durable-sqlite";
 import { migrate } from "drizzle-orm/durable-sqlite/migrator";
-import migrations from "../../drizzle/migrations";
+import wackyMigrations from "../../drizzle/migrations";
 import {
-  getAllPositions,
-  insertPosition,
-  updatePosition,
-  getPosition,
-  deletePosition,
+  getAllGigglePositions,
+  insertGigglePosition,
+  updateGigglePosition,
+  getGigglePosition,
+  deleteGigglePosition,
 } from "./db/position";
 import {
-  getAllCandidates,
-  getAllCandidatesByPosition,
-  insertCandidate,
-  updateCandidate,
-  getCandidate,
-  deleteCandidate,
+  getAllSillyCandidates,
+  getAllSillyCandidatesByPosition,
+  insertSillyCandidate,
+  updateSillyCandidate,
+  getSillyCandidate,
+  deleteSillyCandidate,
 } from "./db/candidate";
 import {
-  getAllNominations,
-  getNominationsForPosition,
-  getNominationsForCandidate,
-  insertNomination,
-  deleteNomination,
+  getAllClownNominations,
+  getNominationsForSillyPosition,
+  getNominationsForSillyCandidate,
+  insertSillyNomination,
+  deleteSillyNomination,
 } from "./db/nomination";
 import {
-  getRace,
-  getAllRaces,
-  insertRace,
-  updateRace,
-  deleteRace,
-  getCurrentRace,
-  saveElectedForRace,
+  getBananaRace,
+  getAllBananaRaces,
+  insertBananaRace,
+  updateBananaRace,
+  deleteBananaRace,
+  getCurrentBananaRace,
+  saveClownVictorsForRace,
 } from "./db/race";
-import { getSeat, insertSeat, deleteSeat, getSeatByCode } from "./db/seat";
+import { getWhoopeeSeat, insertWhoopeeSeat, deleteWhoopeeSeat, getWhoopeeSeatByCode } from "./db/seat";
 import {
-  countUsers,
-  getAllUsers,
-  insertUser,
-  updateUser,
-  getUser,
-  getUserByEmail,
-  deleteUser,
+  countClowns,
+  getAllClowns,
+  insertClownUser,
+  updateClownUser,
+  getClown,
+  getClownByEmail,
+  deleteClownUser,
 } from "./db/user";
 import {
-  getAllVotePreferences,
-  insertVotePreference,
-  updateVotePreference,
-  getVotePreference,
-  deleteVotePreference,
-  getVotePreferencesForVote,
+  getAllGiggleVotePrefs,
+  insertGiggleVotePref,
+  updateGiggleVotePref,
+  getGiggleVotePref,
+  deleteGiggleVotePref,
+  getGiggleVotePrefsForVote,
 } from "./db/vote-preference";
 import {
-  countVotesForRace,
-  getAllVotesForRace,
-  insertVote,
-  updateVote,
-  getAllVotesByUser,
-  getVoteByUserAndRace,
-  deleteVote,
-  getVoteAggregateForRace,
+  gatherBananaCountForRace,
+  fetchAllJesterVotesForRace,
+  insertClownVote,
+  updateClownVote,
+  fetchAllSillyVotesByUser,
+  fetchSingleGoofVote,
+  deleteClownVote,
+  fetchVoteAggregateForSillyRace,
 } from "./db/vote";
-import { seedMasterSeat, devSeeds, seedPositions, seedRaces } from "./seed";
-import * as schema from "./schema";
+import { sproutRoyalPotty, conjureClownSeeds, sproutPositions, sproutRaces } from "./seed";
+import * as sillySchema from "./schema";
 import { eq } from "drizzle-orm";
-import { getAllElected, getElectedForRace, insertElected } from "./db/elected";
+import { getAllClownElected, getClownVictorsForRace, insertClownElected } from "./db/elected";
 
-export interface DOEnv {
+export interface DillyDOEnv {
   ENVIRONMENT: "dev" | "prod";
-  VOTING_OBJECT: DurableObjectNamespace<VotingObject>;
+  VOTING_OBJECT: DurableObjectNamespace<WackyVotingObject>;
   INIT_SEAT: string;
 }
 
-export class VotingObject extends DurableObject {
+/**
+ * Our comedic DO, the WackyVotingObject, storing silly data in a Drizzle DB.
+ */
+export class WackyVotingObject extends DurableObject {
   storage: DurableObjectStorage;
-  db: DrizzleSqliteDODatabase<typeof schema>;
+  db: DrizzleSqliteDODatabase<typeof sillySchema>;
   connections: Map<string, WebSocket>;
 
-  constructor(ctx: DurableObjectState, env: DOEnv) {
+  constructor(ctx: DurableObjectState, env: DillyDOEnv) {
     super(ctx, env);
     this.storage = this.ctx.storage;
-    this.db = drizzle(this.storage, { logger: true, schema });
+    this.db = drizzle(this.storage, { logger: true, schema: sillySchema });
 
     this.connections = new Map();
     for (const ws of this.ctx.getWebSockets()) {
       const { connectionId } = ws.deserializeAttachment();
-      console.log("hydrated connection", connectionId);
+      console.log("Re-hydrated comedic socket connection", connectionId);
       this.connections.set(connectionId, ws);
     }
 
     ctx.blockConcurrencyWhile(async () => {
-      await this._migrate();
+      await this._runMigrations();
 
-      const masterSeat = await this.db
+      const comedicMasterSeat = await this.db
         .select()
-        .from(schema.seatsTable)
-        .where(eq(schema.seatsTable.code, env.INIT_SEAT));
-      if (masterSeat.length === 0) {
-        await seedMasterSeat(env, this.db);
+        .from(sillySchema.sillySeatsTable)
+        .where(eq(sillySchema.sillySeatsTable.code, env.INIT_SEAT));
+      if (comedicMasterSeat.length === 0) {
+        await sproutRoyalPotty(env, this.db);
       }
 
-      // Seed Positions, Races
-      const numPositions = await this.db.$count(schema.positionsTable);
-      if (numPositions === 0) {
-        const positionIds = await seedPositions(this.db);
-        await seedRaces(this.db, positionIds);
+      const existingPositions = await this.db.$count(sillySchema.sillyPositionsTable);
+      if (existingPositions === 0) {
+        const positionIds = await sproutPositions(this.db);
+        await sproutRaces(this.db, positionIds);
       }
 
       if (env.ENVIRONMENT === "dev") {
-        devSeeds(this.db);
+        conjureClownSeeds(this.db);
       }
     });
   }
@@ -124,7 +126,7 @@ export class VotingObject extends DurableObject {
     server.serializeAttachment({ connectionId });
 
     console.log(
-      "New websocket connection",
+      "New comedic websocket connection",
       this.connections.size,
       "connections open"
     );
@@ -135,14 +137,14 @@ export class VotingObject extends DurableObject {
     });
   }
 
-  async _migrate() {
-    migrate(this.db, migrations);
+  async _runMigrations() {
+    migrate(this.db, wackyMigrations);
   }
 
   webSocketError(ws: WebSocket, error: unknown) {
-    console.error("webSocketError", error);
+    console.error("comedic socket error", error);
     this.connections.delete(ws.deserializeAttachment().connectionId);
-    console.log(this.connections.size, "connections open");
+    console.log(this.connections.size, "connections remain. Keep laughing!");
   }
 
   webSocketClose(
@@ -152,233 +154,231 @@ export class VotingObject extends DurableObject {
     _wasClean: boolean
   ) {
     this.connections.delete(ws.deserializeAttachment().connectionId);
-    console.log("webSocketClose,", this.connections.size, "connections open");
+    console.log("comedic socket closed,", this.connections.size, "connections remain");
   }
 
   broadcast(message: string) {
-    for (const connection of this.connections) {
-      connection[1].send(message);
+    for (const conn of this.connections) {
+      conn[1].send(message);
     }
   }
 
   // Positions
-  getAllPositions(...args: Parameters<typeof getAllPositions>) {
-    return getAllPositions.call(this, ...args);
+  getAllGigglePositions(...args: Parameters<typeof getAllGigglePositions>) {
+    return getAllGigglePositions.call(this, ...args);
   }
 
-  getPosition(...args: Parameters<typeof getPosition>) {
-    return getPosition.call(this, ...args);
+  getGigglePosition(...args: Parameters<typeof getGigglePosition>) {
+    return getGigglePosition.call(this, ...args);
   }
 
-  insertPosition(...args: Parameters<typeof insertPosition>) {
-    return insertPosition.call(this, ...args);
+  insertGigglePosition(...args: Parameters<typeof insertGigglePosition>) {
+    return insertGigglePosition.call(this, ...args);
   }
 
-  updatePosition(...args: Parameters<typeof updatePosition>) {
-    return updatePosition.call(this, ...args);
+  updateGigglePosition(...args: Parameters<typeof updateGigglePosition>) {
+    return updateGigglePosition.call(this, ...args);
   }
 
-  deletePosition(...args: Parameters<typeof deletePosition>) {
-    return deletePosition.call(this, ...args);
+  deleteGigglePosition(...args: Parameters<typeof deleteGigglePosition>) {
+    return deleteGigglePosition.call(this, ...args);
   }
 
   // Candidates
-  getAllCandidates(...args: Parameters<typeof getAllCandidates>) {
-    return getAllCandidates.call(this, ...args);
+  getAllSillyCandidates(...args: Parameters<typeof getAllSillyCandidates>) {
+    return getAllSillyCandidates.call(this, ...args);
   }
 
-  getAllCandidatesByPosition(
-    ...args: Parameters<typeof getAllCandidatesByPosition>
+  getAllSillyCandidatesByPosition(
+    ...args: Parameters<typeof getAllSillyCandidatesByPosition>
   ) {
-    return getAllCandidatesByPosition.call(this, ...args);
+    return getAllSillyCandidatesByPosition.call(this, ...args);
   }
 
-  getCandidate(...args: Parameters<typeof getCandidate>) {
-    return getCandidate.call(this, ...args);
+  getSillyCandidate(...args: Parameters<typeof getSillyCandidate>) {
+    return getSillyCandidate.call(this, ...args);
   }
 
-  insertCandidate(...args: Parameters<typeof insertCandidate>) {
-    return insertCandidate.call(this, ...args);
+  insertSillyCandidate(...args: Parameters<typeof insertSillyCandidate>) {
+    return insertSillyCandidate.call(this, ...args);
   }
 
-  updateCandidate(...args: Parameters<typeof updateCandidate>) {
-    return updateCandidate.call(this, ...args);
+  updateSillyCandidate(...args: Parameters<typeof updateSillyCandidate>) {
+    return updateSillyCandidate.call(this, ...args);
   }
 
-  deleteCandidate(...args: Parameters<typeof deleteCandidate>) {
-    return deleteCandidate.call(this, ...args);
+  deleteSillyCandidate(...args: Parameters<typeof deleteSillyCandidate>) {
+    return deleteSillyCandidate.call(this, ...args);
   }
 
   // Nominations
-  getAllNominations(...args: Parameters<typeof getAllNominations>) {
-    return getAllNominations.call(this, ...args);
+  getAllClownNominations(...args: Parameters<typeof getAllClownNominations>) {
+    return getAllClownNominations.call(this, ...args);
   }
 
-  getNominationsForPosition(
-    ...args: Parameters<typeof getNominationsForPosition>
+  getNominationsForSillyPosition(
+    ...args: Parameters<typeof getNominationsForSillyPosition>
   ) {
-    return getNominationsForPosition.call(this, ...args);
+    return getNominationsForSillyPosition.call(this, ...args);
   }
 
-  getNominationsForCandidate(
-    ...args: Parameters<typeof getNominationsForCandidate>
+  getNominationsForSillyCandidate(
+    ...args: Parameters<typeof getNominationsForSillyCandidate>
   ) {
-    return getNominationsForCandidate.call(this, ...args);
+    return getNominationsForSillyCandidate.call(this, ...args);
   }
 
-  insertNomination(...args: Parameters<typeof insertNomination>) {
-    return insertNomination.call(this, ...args);
+  insertSillyNomination(...args: Parameters<typeof insertSillyNomination>) {
+    return insertSillyNomination.call(this, ...args);
   }
 
-  deleteNomination(...args: Parameters<typeof deleteNomination>) {
-    return deleteNomination.call(this, ...args);
+  deleteSillyNomination(...args: Parameters<typeof deleteSillyNomination>) {
+    return deleteSillyNomination.call(this, ...args);
   }
 
   // Races
-  countVotesForRace(...args: Parameters<typeof countVotesForRace>) {
-    return countVotesForRace.call(this, ...args);
+  gatherBananaCountForRace(...args: Parameters<typeof gatherBananaCountForRace>) {
+    return gatherBananaCountForRace.call(this, ...args);
   }
 
-  getAllRaces(...args: Parameters<typeof getAllRaces>) {
-    return getAllRaces.call(this, ...args);
+  getAllBananaRaces(...args: Parameters<typeof getAllBananaRaces>) {
+    return getAllBananaRaces.call(this, ...args);
   }
 
-  getCurrentRace(...args: Parameters<typeof getCurrentRace>) {
-    return getCurrentRace.call(this, ...args);
+  getCurrentBananaRace(...args: Parameters<typeof getCurrentBananaRace>) {
+    return getCurrentBananaRace.call(this, ...args);
   }
 
-  getRace(...args: Parameters<typeof getRace>) {
-    return getRace.call(this, ...args);
+  getBananaRace(...args: Parameters<typeof getBananaRace>) {
+    return getBananaRace.call(this, ...args);
   }
 
-  insertRace(...args: Parameters<typeof insertRace>) {
-    return insertRace.call(this, ...args);
+  insertBananaRace(...args: Parameters<typeof insertBananaRace>) {
+    return insertBananaRace.call(this, ...args);
   }
 
-  updateRace(...args: Parameters<typeof updateRace>) {
-    return updateRace.call(this, ...args);
+  updateBananaRace(...args: Parameters<typeof updateBananaRace>) {
+    return updateBananaRace.call(this, ...args);
   }
 
-  deleteRace(...args: Parameters<typeof deleteRace>) {
-    return deleteRace.call(this, ...args);
+  deleteBananaRace(...args: Parameters<typeof deleteBananaRace>) {
+    return deleteBananaRace.call(this, ...args);
   }
 
-  saveElectedForRace(...args: Parameters<typeof saveElectedForRace>) {
-    return saveElectedForRace.call(this, ...args);
+  saveClownVictorsForRace(...args: Parameters<typeof saveClownVictorsForRace>) {
+    return saveClownVictorsForRace.call(this, ...args);
   }
 
   // Seats
-  getSeat(...args: Parameters<typeof getSeat>) {
-    return getSeat.call(this, ...args);
+  getWhoopeeSeat(...args: Parameters<typeof getWhoopeeSeat>) {
+    return getWhoopeeSeat.call(this, ...args);
   }
 
-  getSeatByCode(...args: Parameters<typeof getSeatByCode>) {
-    return getSeatByCode.call(this, ...args);
+  getWhoopeeSeatByCode(...args: Parameters<typeof getWhoopeeSeatByCode>) {
+    return getWhoopeeSeatByCode.call(this, ...args);
   }
 
-  insertSeat(...args: Parameters<typeof insertSeat>) {
-    return insertSeat.call(this, ...args);
+  insertWhoopeeSeat(...args: Parameters<typeof insertWhoopeeSeat>) {
+    return insertWhoopeeSeat.call(this, ...args);
   }
 
-  deleteSeat(...args: Parameters<typeof deleteSeat>) {
-    return deleteSeat.call(this, ...args);
+  deleteWhoopeeSeat(...args: Parameters<typeof deleteWhoopeeSeat>) {
+    return deleteWhoopeeSeat.call(this, ...args);
   }
 
   // Users
-  countUsers(...args: Parameters<typeof countUsers>) {
-    return countUsers.call(this, ...args);
+  countClowns(...args: Parameters<typeof countClowns>) {
+    return countClowns.call(this, ...args);
   }
 
-  getAllUsers(...args: Parameters<typeof getAllUsers>) {
-    return getAllUsers.call(this, ...args);
+  getAllClowns(...args: Parameters<typeof getAllClowns>) {
+    return getAllClowns.call(this, ...args);
   }
 
-  getUser(...args: Parameters<typeof getUser>) {
-    return getUser.call(this, ...args);
+  getClown(...args: Parameters<typeof getClown>) {
+    return getClown.call(this, ...args);
   }
 
-  getUserByEmail(...args: Parameters<typeof getUser>) {
-    return getUserByEmail.call(this, ...args);
+  getClownByEmail(...args: Parameters<typeof getClownByEmail>) {
+    return getClownByEmail.call(this, ...args);
   }
 
-  insertUser(...args: Parameters<typeof insertUser>) {
-    return insertUser.call(this, ...args);
+  insertClownUser(...args: Parameters<typeof insertClownUser>) {
+    return insertClownUser.call(this, ...args);
   }
 
-  updateUser(...args: Parameters<typeof updateUser>) {
-    return updateUser.call(this, ...args);
+  updateClownUser(...args: Parameters<typeof updateClownUser>) {
+    return updateClownUser.call(this, ...args);
   }
 
-  deleteUser(...args: Parameters<typeof deleteUser>) {
-    return deleteUser.call(this, ...args);
+  deleteClownUser(...args: Parameters<typeof deleteClownUser>) {
+    return deleteClownUser.call(this, ...args);
   }
 
   // Vote Preferences
-  getAllVotePreferences(...args: Parameters<typeof getAllVotePreferences>) {
-    return getAllVotePreferences.call(this, ...args);
+  getAllGiggleVotePrefs(...args: Parameters<typeof getAllGiggleVotePrefs>) {
+    return getAllGiggleVotePrefs.call(this, ...args);
   }
 
-  getVotePreference(...args: Parameters<typeof getVotePreference>) {
-    return getVotePreference.call(this, ...args);
+  getGiggleVotePref(...args: Parameters<typeof getGiggleVotePref>) {
+    return getGiggleVotePref.call(this, ...args);
   }
 
-  getVotePreferencesForVote(
-    ...args: Parameters<typeof getVotePreferencesForVote>
-  ) {
-    return getVotePreferencesForVote.call(this, ...args);
+  getGiggleVotePrefsForVote(...args: Parameters<typeof getGiggleVotePrefsForVote>) {
+    return getGiggleVotePrefsForVote.call(this, ...args);
   }
 
-  insertVotePreference(...args: Parameters<typeof insertVotePreference>) {
-    return insertVotePreference.call(this, ...args);
+  insertGiggleVotePref(...args: Parameters<typeof insertGiggleVotePref>) {
+    return insertGiggleVotePref.call(this, ...args);
   }
 
-  updateVotePreference(...args: Parameters<typeof updateVotePreference>) {
-    return updateVotePreference.call(this, ...args);
+  updateGiggleVotePref(...args: Parameters<typeof updateGiggleVotePref>) {
+    return updateGiggleVotePref.call(this, ...args);
   }
 
-  deleteVotePreference(...args: Parameters<typeof deleteVotePreference>) {
-    return deleteVotePreference.call(this, ...args);
+  deleteGiggleVotePref(...args: Parameters<typeof deleteGiggleVotePref>) {
+    return deleteGiggleVotePref.call(this, ...args);
   }
 
   // Votes
-  getAllVotesForRace(...args: Parameters<typeof getAllVotesForRace>) {
-    return getAllVotesForRace.call(this, ...args);
+  fetchAllJesterVotesForRace(...args: Parameters<typeof fetchAllJesterVotesForRace>) {
+    return fetchAllJesterVotesForRace.call(this, ...args);
   }
 
-  getAllVotesByUser(...args: Parameters<typeof getAllVotesByUser>) {
-    return getAllVotesByUser.call(this, ...args);
+  fetchAllSillyVotesByUser(...args: Parameters<typeof fetchAllSillyVotesByUser>) {
+    return fetchAllSillyVotesByUser.call(this, ...args);
   }
 
-  getVoteByUserAndRace(...args: Parameters<typeof getVoteByUserAndRace>) {
-    return getVoteByUserAndRace.call(this, ...args);
+  fetchSingleGoofVote(...args: Parameters<typeof fetchSingleGoofVote>) {
+    return fetchSingleGoofVote.call(this, ...args);
   }
 
-  insertVote(...args: Parameters<typeof insertVote>) {
-    return insertVote.call(this, ...args);
+  insertClownVote(...args: Parameters<typeof insertClownVote>) {
+    return insertClownVote.call(this, ...args);
   }
 
-  updateVote(...args: Parameters<typeof updateVote>) {
-    return updateVote.call(this, ...args);
+  updateClownVote(...args: Parameters<typeof updateClownVote>) {
+    return updateClownVote.call(this, ...args);
   }
 
-  deleteVote(...args: Parameters<typeof deleteVote>) {
-    return deleteVote.call(this, ...args);
+  deleteClownVote(...args: Parameters<typeof deleteClownVote>) {
+    return deleteClownVote.call(this, ...args);
   }
 
-  getVoteAggregateForRace(...args: Parameters<typeof getVoteAggregateForRace>) {
-    return getVoteAggregateForRace.call(this, ...args);
+  fetchVoteAggregateForSillyRace(...args: Parameters<typeof fetchVoteAggregateForSillyRace>) {
+    return fetchVoteAggregateForSillyRace.call(this, ...args);
   }
 
   // Elected
-  insertElected(...args: Parameters<typeof insertElected>) {
-    return insertElected.call(this, ...args);
+  insertClownElected(...args: Parameters<typeof insertClownElected>) {
+    return insertClownElected.call(this, ...args);
   }
 
-  getAllElected(...args: Parameters<typeof getAllElected>) {
-    return getAllElected.call(this, ...args);
+  getAllClownElected(...args: Parameters<typeof getAllClownElected>) {
+    return getAllClownElected.call(this, ...args);
   }
 
-  getElectedForRace(...args: Parameters<typeof getElectedForRace>) {
-    return getElectedForRace.call(this, ...args);
+  getClownVictorsForRace(...args: Parameters<typeof getClownVictorsForRace>) {
+    return getClownVictorsForRace.call(this, ...args);
   }
 }
