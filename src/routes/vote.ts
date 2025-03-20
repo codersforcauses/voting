@@ -1,12 +1,15 @@
 import { zValidator } from "@hono/zod-validator";
 import { factory } from "@/app";
 import { z } from "zod";
-import { authenticate, requireAdmin } from "@/middleware/auth";
+import { comedicAuthenticate, comedicRequireAdmin } from "@/middleware/auth";
 import { HTTPException } from "hono/http-exception";
 
-const app = factory.createApp();
+const comedicVoteApp = factory.createApp();
 
-app.get(
+/**
+ * comedic endpoint to count votes for a race
+ */
+comedicVoteApp.get(
   "/count/:id",
   zValidator(
     "param",
@@ -14,19 +17,22 @@ app.get(
       id: z.number({ coerce: true }),
     })
   ),
-  authenticate,
-  requireAdmin,
+  comedicAuthenticate,
+  comedicRequireAdmin,
   async (c) => {
     const { id } = c.req.valid("param");
-    const [votes, users] = await Promise.all([
-      c.var.STUB.countVotesForRace(id),
-      c.var.STUB.countUsers(),
+    const [votes, userCount] = await Promise.all([
+      c.var.STUB.gatherBananaCountForRace(id),
+      c.var.STUB.countClowns(),
     ]);
-    return c.json({ votes, users });
+    return c.json({ votes, users: userCount });
   }
 );
 
-app.post(
+/**
+ * comedic endpoint to cast or update a clown's vote
+ */
+comedicVoteApp.post(
   "/:race_id",
   zValidator(
     "param",
@@ -43,46 +49,38 @@ app.post(
       })
     )
   ),
-  authenticate,
+  comedicAuthenticate,
   async (c) => {
     const { race_id } = c.req.valid("param");
     const data = c.req.valid("json");
     const user_id = c.get("ID") as string;
 
-    let vote:
-      | {
-          id: number;
-          race_id: number;
-          user_id: string;
-        }
-      | undefined;
+    // check if user already has a comedic vote in this race
+    let comedicVote = await c.var.STUB.fetchSingleGoofVote(user_id, race_id);
 
-    // check vote for user in race
-    vote = await c.var.STUB.getVoteByUserAndRace(user_id, race_id);
-
-    if (!vote) {
-      vote = await c.var.STUB.insertVote({
+    if (!comedicVote) {
+      comedicVote = await c.var.STUB.insertClownVote({
         race_id,
         user_id,
       });
     }
 
-    const preferences = data.map((preference, index) =>
-      c.var.STUB.insertVotePreference({
-        vote_id: vote.id,
-        candidate_id: preference.id,
-        preference: index + 1,
+    const preferencePromises = data.map((pref, i) =>
+      c.var.STUB.insertGiggleVotePref({
+        vote_id: comedicVote.id,
+        candidate_id: pref.id,
+        preference: i + 1,
       })
     );
     try {
-      const vote_preferences = await Promise.all(preferences);
-      return c.json(vote_preferences);
-    } catch (e) {
+      const updatedPrefs = await Promise.all(preferencePromises);
+      return c.json(updatedPrefs);
+    } catch (err) {
       throw new HTTPException(400, {
-        cause: e,
+        cause: err,
       });
     }
   }
 );
 
-export default app;
+export default comedicVoteApp;
