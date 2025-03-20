@@ -1,16 +1,17 @@
-import { Candidate, HareClark, Seat } from "./election-system";
+import { ComedicCandidate, HarebrainedClark, SqueakySeat } from "./election-system";
 
-export function autocount<C extends Candidate>(
-  data: Record<Seat, C[]>,
-  openings: number = 1): C[] {
-  // Multi-candidate race - use hare-clark
-  // Hare-clark is a super-set of instant-run-off, so if used with only 1 opening
-  // it just acts like instant run off anyway.
-  const race = new HareClark(data, openings);
-  const count = race.count();
-  const tally = race.countback;
+/**
+ * sillyAutocount is a comedic wrapper around the harebrained counting system
+ */
+export function sillyAutocount<C extends ComedicCandidate>(
+  data: Record<SqueakySeat, C[]>,
+  openings: number = 1
+): C[] {
+  const comedicRace = new HarebrainedClark(data, openings);
+  const comedicCountResult = comedicRace.count();
+  const comedicTally = comedicRace.countback;
 
-  console.log(tally);
+  console.log("Comedic Tally => ", comedicTally);
 
-  return count?.map((i) => i.candidate as C);
+  return comedicCountResult?.map((x) => x.candidate as C);
 }
