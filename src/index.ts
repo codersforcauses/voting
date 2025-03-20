@@ -16,11 +16,13 @@ import positionRoutes from "./routes/position";
 import candidateRoutes from "./routes/candidate";
 import nominationRoutes from "./routes/nomination";
 import { except } from "hono/combine";
+import { authenticate } from "./middleware/auth";
 
 app.use(except('/ws', secureHeaders()));
 app.use(except('/ws', cors()));
 app.use(addStub);
 app.use(logger());
+app.use(authenticate);
 
 app.route("/auth", authRoutes);
 app.route("/users", userRoutes);

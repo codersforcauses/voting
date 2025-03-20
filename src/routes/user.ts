@@ -6,7 +6,7 @@ import { z } from "zod";
 
 const app = factory.createApp();
 
-app.get("/", authenticate, requireAdmin, async (c) => {
+app.get("/", requireAdmin, async (c) => {
   const data = await c.var.STUB.getAllUsers();
 
   const users = data.map(({ users: { seat_id, ...users }, seats }) => ({
@@ -31,7 +31,6 @@ app.patch(
       role: z.enum(["admin", "user"]),
     })
   ),
-  authenticate,
   requireAdmin,
   async (c) => {
     const { user_id } = c.req.valid("param");

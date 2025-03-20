@@ -42,7 +42,6 @@ app.get("/:id", zValidator(
 
 app.patch(
   "/:id",
-  authenticate,
   requireAdmin,
   zValidator(
     "json",

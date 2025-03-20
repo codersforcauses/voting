@@ -14,8 +14,6 @@ app.get(
       id: z.number({ coerce: true }),
     })
   ),
-  authenticate,
-  requireAdmin,
   async (c) => {
     const { id } = c.req.valid("param");
     const [votes, users] = await Promise.all([
@@ -43,7 +41,6 @@ app.post(
       })
     )
   ),
-  authenticate,
   async (c) => {
     const { race_id } = c.req.valid("param");
     const data = c.req.valid("json");
