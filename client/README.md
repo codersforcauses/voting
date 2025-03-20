@@ -44,4 +44,4 @@ npm run build
 
 ## Deployment
 
-run the ci
+run the ci.
