@@ -2,9 +2,12 @@ import { factory } from "@/app";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 
-const app = factory.createApp();
+const comedicNominationApp = factory.createApp();
 
-app.get(
+/**
+ * comedic route to fetch nominations for a specific position
+ */
+comedicNominationApp.get(
   "/position/:id",
   zValidator(
     "param",
@@ -14,9 +17,9 @@ app.get(
   ),
   async (c) => {
     const { id } = c.req.valid("param")
-    const data = await c.var.STUB.getNominationsForPosition(id);
+    const data = await c.var.STUB.getNominationsForSillyPosition(id);
     return c.json(data);
   }
 );
 
-export default app;
+export default comedicNominationApp;
