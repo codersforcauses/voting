@@ -55,7 +55,7 @@ export async function updateRace(
 
   if (data.status === "finished") {
     const elected = this.getElectedForRace(id)
-    if (elected.length === 0) this.saveElectedForRace(updatedRace.id).all()
+    if (elected.length === 0) this.saveElectedForRace(updatedRace.id)
   }
 
   return updatedRace
@@ -68,6 +68,10 @@ export function saveElectedForRace(
   const race = this.db.select().from(racesTable).where(eq(racesTable.id, id)).get()!
   const position = this.db.select().from(positionsTable).where(eq(positionsTable.id, race.position_id)).get()!
   const raceData = this.getVoteAggregateForRace(id)
+  if (Object.keys(raceData).length === 0) {
+    // No voting data, do not calculate elected
+    return []
+  }
   const formattedData = Object.keys(raceData).reduce<Record<string, number[]>>((acc, curr) => {
     if (!acc[curr]) acc[curr] = []
     if (raceData[curr]) acc[curr] = raceData[curr].preferences.sort((a, b) => a.preference - b.preference).map(pref => pref.candidate_id)
@@ -80,7 +84,7 @@ export function saveElectedForRace(
   return this.insertElected(res.candidates.map(candidate => ({
     candidate_id: candidate,
     race_id: id
-  })))
+  }))).all()
 }
 
 export function deleteRace(this: VotingObject, id: number) {

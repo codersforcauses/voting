@@ -37,3 +37,10 @@ export function insertElected(
 ) {
     return this.db.insert(electedTable).values(data).returning()
 }
+
+export function deleteElectedForRace(
+    this: VotingObject,
+    id: number
+) {
+    return this.db.delete(electedTable).where(eq(electedTable.race_id, id)).returning()
+}

@@ -87,14 +87,12 @@ export default class Race {
   votes: Map<Seat, Vote> = new Map();
   countback: Map<Candidate, number>[] = [];
 
-  protected constructor(votes: Map<Seat, Candidate[]> | Record<Seat, Candidate[]>) {
+  protected constructor(votes: Record<Seat, Candidate[]>) {
     // Convert the type if we get a record instead of a map
     // This is used for the testing procedures since records are easier to create
-    if (!(votes instanceof Map)) {
-      votes = new Map<Seat, Candidate[]>(Object.entries(votes));
-    }
+    const mapVotes = new Map<Seat, Candidate[]>(Object.entries(votes));
 
-    for (const [key, value] of votes) {
+    for (const [key, value] of mapVotes) {
       let vote = new Vote(key, value);
       this.votes.set(key, vote);
 
