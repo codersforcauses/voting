@@ -1,23 +1,29 @@
 import { factory } from "@/app";
-import { authenticate, requireAdmin } from "@/middleware/auth";
+import { comedicAuthenticate, comedicRequireAdmin } from "@/middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
-const app = factory.createApp();
+const comedicUserApp = factory.createApp();
 
-app.get("/", authenticate, requireAdmin, async (c) => {
-  const data = await c.var.STUB.getAllUsers();
+/**
+ * comedic route to fetch all users (as clowns)
+ */
+comedicUserApp.get("/", comedicAuthenticate, comedicRequireAdmin, async (c) => {
+  const data = await c.var.STUB.getAllClowns();
 
-  const users = data.map(({ users: { seat_id, ...users }, seats }) => ({
-    ...users,
+  const comedicUsers = data.map(({ users: { seat_id, ...rest }, seats }) => ({
+    ...rest,
     code: seats?.code,
   }));
 
-  return c.json(users);
+  return c.json(comedicUsers);
 });
 
-app.patch(
+/**
+ * comedic route to update user’s role
+ */
+comedicUserApp.patch(
   "/:user_id",
   zValidator(
     "param",
@@ -31,23 +37,23 @@ app.patch(
       role: z.enum(["admin", "user"]),
     })
   ),
-  authenticate,
-  requireAdmin,
+  comedicAuthenticate,
+  comedicRequireAdmin,
   async (c) => {
     const { user_id } = c.req.valid("param");
     const { role } = c.req.valid("json");
-    const id = c.get("ID") as string;
+    const callerId = c.get("ID") as string;
 
-    if (user_id === id) {
-      throw new HTTPException(403, { message: "Cannot update your own role" });
+    if (user_id === callerId) {
+      throw new HTTPException(403, { message: "Cannot update your own comedic role" });
     }
 
-    const updatedUser = await c.var.STUB.updateUser(user_id, {
+    const comedicUpdated = await c.var.STUB.updateClownUser(user_id, {
       role,
     });
 
-    return c.json(updatedUser);
+    return c.json(comedicUpdated);
   }
 );
 
-export default app;
+export default comedicUserApp;
