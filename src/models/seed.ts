@@ -19,7 +19,11 @@ export async function devSeeds(db: DrizzleSqliteDODatabase<any>) {
   const positions = db.select().from(positionsTable).all();
   const numCandidates = await db.$count(candidatesTable);
   if (numCandidates === 0) {
-    await seedCandidates(db, positions.map(positions => ({ position_id: positions.id})), 4);
+    await seedCandidates(
+      db,
+      positions.map((positions) => ({ position_id: positions.id })),
+      4
+    );
   }
 
   // Seed Users
@@ -113,7 +117,7 @@ export async function seedCandidates(
   values: {
     position_id: number;
   }[],
-  number: number,
+  number: number
 ) {
   await seed(db as BaseSQLiteDatabase<any, any>, {
     candidates: candidatesTable,
@@ -197,6 +201,10 @@ export async function seedUsers(
         seat_id: f.valuesFromArray({
           values: seats.map((seat) => seat.seat_id),
         }),
+        role: f.valuesFromArray({
+          values: ["user", "admin"],
+        }),
+        name: f.fullName(),
       },
       count: number,
     },

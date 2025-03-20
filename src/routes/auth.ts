@@ -28,13 +28,14 @@ app.post(
       throw new HTTPException(404, { message: "Code not found" });
     }
 
-    const { CLERK_SECRET_KEY, AUTH_SECRET_KEY } = env<{
+    const { CLERK_SECRET_KEY, AUTH_SECRET_KEY, INIT_SEAT } = env<{
       CLERK_SECRET_KEY: string;
       AUTH_SECRET_KEY: string;
+      INIT_SEAT: string;
     }>(c);
 
-    let role: "user" | "admin" = "user";
     let id: string;
+    let role: "user" | "admin" = code === INIT_SEAT ? "admin" : "user";
 
     const [user] = await c.var.STUB.getUserByEmail(email);
 
@@ -72,7 +73,6 @@ app.post(
       }
 
       id = userData.id;
-      role = ["committee", "admin"].includes(userData.role) ? "admin" : "user";
 
       try {
         await c.var.STUB.insertUser({
