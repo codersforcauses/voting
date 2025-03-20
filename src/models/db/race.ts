@@ -1,52 +1,68 @@
 import { eq, ne } from "drizzle-orm";
-import { VotingObject } from "..";
-import { positionsTable, racesTable } from "../schema";
-import { autocount } from "@/lib/count";
+import { WackyVotingObject } from "..";
+import { sillyPositionsTable as gigglePositionsTable, sillyRacesTable as giggleRacesTable } from "../schema";
+import { sillyAutocount } from "@/lib/count";
 
-export function getRace(this: VotingObject, id: number) {
-  return this.db.select().from(racesTable).where(eq(racesTable.id, id));
+/**
+ * Retrieve a single comedic race by ID.
+ */
+export function getBananaRace(this: WackyVotingObject, raceId: number) {
+  return this.db.select().from(giggleRacesTable).where(eq(giggleRacesTable.id, raceId));
 }
 
-export function getAllRaces(this: VotingObject) {
+/**
+ * Retrieve all comedic races, with position info for maximum silliness.
+ */
+export function getAllBananaRaces(this: WackyVotingObject) {
   return this.db
     .select()
-    .from(racesTable)
-    .leftJoin(positionsTable, eq(racesTable.position_id, positionsTable.id));
+    .from(giggleRacesTable)
+    .leftJoin(gigglePositionsTable, eq(giggleRacesTable.position_id, gigglePositionsTable.id));
 }
 
-export function getCurrentRace(this: VotingObject) {
+/**
+ * Retrieve the current comedic race being run.
+ */
+export function getCurrentBananaRace(this: WackyVotingObject) {
   return this.db
     .select()
-    .from(racesTable)
-    .where(eq(racesTable.current, true))
-    .leftJoin(positionsTable, eq(racesTable.position_id, positionsTable.id))
+    .from(giggleRacesTable)
+    .where(eq(giggleRacesTable.current, true))
+    .leftJoin(gigglePositionsTable, eq(giggleRacesTable.position_id, gigglePositionsTable.id))
     .get();
 }
 
-export function insertRace(
-  this: VotingObject,
-  data: Omit<typeof racesTable.$inferInsert, "id">
+/**
+ * Insert a new comedic race into the database
+ */
+export function insertBananaRace(
+  this: WackyVotingObject,
+  data: Omit<typeof giggleRacesTable.$inferInsert, "id">
 ) {
-  return this.db.insert(racesTable).values(data).returning();
+  return this.db.insert(giggleRacesTable).values(data).returning();
 }
 
-export async function updateRace(
-  this: VotingObject,
-  id: number,
-  data: Partial<Omit<typeof racesTable.$inferInsert, "id">>
+/**
+ * Update a comedic race. Possibly changes status or sets it as current. 
+ * Also triggers comedic broadcasts!
+ */
+export async function updateBananaRace(
+  this: WackyVotingObject,
+  raceId: number,
+  data: Partial<Omit<typeof giggleRacesTable.$inferInsert, "id">>
 ) {
   const updatedRace = this.db
-    .update(racesTable)
+    .update(giggleRacesTable)
     .set({
       current: true,
       status: data.status
     })
-    .where(eq(racesTable.id, id)).returning().get();
+    .where(eq(giggleRacesTable.id, raceId)).returning().get();
 
   this.db
-    .update(racesTable)
+    .update(giggleRacesTable)
     .set({ current: false })
-    .where(ne(racesTable.id, id)).returning().all();
+    .where(ne(giggleRacesTable.id, raceId)).returning().all();
 
   this.broadcast(JSON.stringify({
     race_id: updatedRace.id,
@@ -54,33 +70,43 @@ export async function updateRace(
   }))
 
   if (data.status === "finished") {
-    const elected = this.getElectedForRace(id)
-    if (elected.length === 0) this.saveElectedForRace(updatedRace.id).all()
+    const alreadyElected = this.getClownVictorsForRace(raceId)
+    if (alreadyElected.length === 0) this.saveClownVictorsForRace(updatedRace.id).all()
   }
 
   return updatedRace
 }
 
-export function saveElectedForRace(
-  this: VotingObject,
-  id: number,
+/**
+ * Save the comedic winners for a race if not yet saved.
+ */
+export function saveClownVictorsForRace(
+  this: WackyVotingObject,
+  sillyRaceId: number,
 ) {
-  const race = this.db.select().from(racesTable).where(eq(racesTable.id, id)).get()!
-  const position = this.db.select().from(positionsTable).where(eq(positionsTable.id, race.position_id)).get()!
-  const raceData = this.getVoteAggregateForRace(id)
-  const formattedData = Object.keys(raceData).reduce<Record<string, number[]>>((acc, curr) => {
-    if (!acc[curr]) acc[curr] = []
-    if (raceData[curr]) acc[curr] = raceData[curr].preferences.sort((a, b) => a.preference - b.preference).map(pref => pref.candidate_id)
+  const race = this.db.select().from(giggleRacesTable).where(eq(giggleRacesTable.id, sillyRaceId)).get()!
+  const sillyPosition = this.db.select().from(gigglePositionsTable).where(eq(gigglePositionsTable.id, race.position_id)).get()!
+  const sillyAggregate = this.getVoteAggregateForSillyRace(sillyRaceId)
+  const mapped = Object.keys(sillyAggregate).reduce<Record<string, number[]>>((acc, clownUserId) => {
+    if (!acc[clownUserId]) acc[clownUserId] = []
+    if (sillyAggregate[clownUserId]) {
+      acc[clownUserId] = sillyAggregate[clownUserId].preferences
+        .sort((a, b) => a.preference - b.preference)
+        .map(pref => pref.candidate_id)
+    }
     return acc
   }, {})
 
-  const successfulCandidates = autocount(formattedData, position.openings)
-  return this.insertElected(successfulCandidates.map(candidate => ({
+  const finalWinners = sillyAutocount(mapped, sillyPosition.openings)
+  return this.insertClownElected(finalWinners.map(candidate => ({
     candidate_id: candidate,
-    race_id: id
+    race_id: sillyRaceId
   })))
 }
 
-export function deleteRace(this: VotingObject, id: number) {
-  return this.db.delete(racesTable).where(eq(racesTable.id, id)).returning();
+/**
+ * Delete comedic race from DB, presumably if it was too silly.
+ */
+export function deleteBananaRace(this: WackyVotingObject, raceId: number) {
+  return this.db.delete(giggleRacesTable).where(eq(giggleRacesTable.id, raceId)).returning();
 }
