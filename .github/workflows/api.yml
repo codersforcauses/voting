@@ -14,10 +14,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+      - name: Install Dependencies
+        run: pnpm install
+      - name: Create migrations
+        run: pnpm db:generate
       - uses: cloudflare/wrangler-action@v3
         with:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy --env prod
           secrets: |
             CLERK_SECRET_KEY
             AUTH_SECRET_KEY
