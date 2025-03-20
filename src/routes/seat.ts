@@ -1,4 +1,3 @@
----- ./routes/seat.ts
 import { factory } from "@/app";
 import { randomInt } from "crypto";
 import { HTTPException } from "hono/http-exception";
