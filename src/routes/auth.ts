@@ -40,7 +40,7 @@ app.post(
 
     const [user] = await c.var.STUB.getUserByEmail(email);
 
-    if (user?.seat_id !== seat.id) {
+    if (user && user?.seat_id !== seat.id) {
       throw new HTTPException(400, { message: "Code does not match email" });
     }
 

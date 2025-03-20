@@ -1,4 +1,5 @@
 import type { Route } from "./+types/results";
+import ResultGraph from "../components/result-graph";
 
 export function meta({ }: Route.MetaArgs) {
     return [
@@ -7,10 +8,12 @@ export function meta({ }: Route.MetaArgs) {
     ];
 }
 
+
 export default function Results() {
     return (
         <main>
             results
+            <ResultGraph></ResultGraph>
         </main>
     );
 }
