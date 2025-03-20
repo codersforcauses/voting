@@ -14,7 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Select,
   SelectContent,
@@ -29,6 +29,7 @@ import {
   usePositions,
   useRaces,
 } from "@/components/vote/queries";
+import { SlidingNumber } from "@/components/ui/sliding-number";
 
 type STATUS = "closed" | "open" | "finished";
 
@@ -37,16 +38,49 @@ const RaceCard = () => {
 
   const [races, refetchRaces] = useRaces();
   const positions = usePositions();
-
+  const [mount, setMounted] = React.useState(false);
+  const [completedRaces, setCompletedRaces] = React.useState<string[]>([]);
   const [currentPositionID, setCurrentPosition] = React.useState("");
 
   const currentRace = races?.find(
     ({ positions }) => positions.id === parseInt(currentPositionID)
   );
 
-  const [raceStatus, setRaceStatus] = React.useState(
-    currentRace?.race?.status ?? "closed"
-  );
+  const [raceStatus, setRaceStatus] = React.useState("closed");
+
+  React.useEffect(() => {
+    // using mount to prevent changing state after first render
+    if (!mount && races && races.length > 0) {
+      const getRaceValues = races?.map(({ race }) => race);
+      const current = getRaceValues.find(({ current }) => current);
+      setCurrentPosition((current?.position_id ?? "").toString());
+      setCompletedRaces(
+        getRaceValues
+          .filter(({ status }) => status === "finished")
+          .map(({ position_id }) => position_id.toString())
+      );
+      setRaceStatus(current?.status ?? "closed");
+      setMounted(true);
+    }
+  }, [races, mount]);
+
+  const { data: count } = useQuery({
+    enabled: !!currentRace?.race.id,
+    queryKey: ["count", currentRace?.race.id],
+    queryFn: async () => {
+      const res = await fetch(
+        `${BASE_URL}/vote/count/${currentRace?.race.id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return res.json();
+    },
+    refetchInterval: 2000,
+  });
 
   const raceMutation = useMutation({
     mutationKey: ["race", currentRace?.race.id],
@@ -78,6 +112,9 @@ const RaceCard = () => {
         id: currentRace.race.id,
         current: value !== "finished",
       });
+      if (value === "finished") {
+        setCompletedRaces((prev) => [...prev, currentPositionID]);
+      }
       refetchRaces();
     }
   };
@@ -144,7 +181,18 @@ const RaceCard = () => {
         </TooltipProvider>
       </CardHeader>
       <CardContent className="flex flex-col flex-1 gap-4">
-        <div className="h-full">hello</div>
+        <div className="h-full">
+          {count && (
+            <div>
+              <div className="tracking-tight text-2xl font-semibold tabular-nums flex">
+                <SlidingNumber value={count.votes.toString()} />/{count.users}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Votes Submitted
+              </div>
+            </div>
+          )}
+        </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Select
             disabled={raceStatus === "open"}
@@ -156,7 +204,15 @@ const RaceCard = () => {
             </SelectTrigger>
             <SelectContent>
               {positions?.map((position) => (
-                <SelectItem key={position.id} value={position.id.toString()}>
+                <SelectItem
+                  key={position.id}
+                  value={position.id.toString()}
+                  className={
+                    completedRaces.includes(position.id.toString())
+                      ? "line-through decoration-2"
+                      : undefined
+                  }
+                >
                   {position.title}
                 </SelectItem>
               ))}

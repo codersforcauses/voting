@@ -7,6 +7,10 @@ import {
   positionsTable,
 } from "../schema";
 
+export function countVotesForRace(this: VotingObject, race: number) {
+  return this.db.$count(votesTable, eq(votesTable.race_id, race));
+}
+
 export function getAllVotesForRace(this: VotingObject, race: number) {
   return this.db.select().from(votesTable).where(eq(racesTable.id, race));
 }
@@ -28,7 +32,8 @@ export function getVoteByUserAndRace(
     .from(votesTable)
     .where(
       and(eq(votesTable.user_id, user_id), eq(votesTable.race_id, race_id))
-    ).get();
+    )
+    .get();
 }
 
 export function insertVote(
