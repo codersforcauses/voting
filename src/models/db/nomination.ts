@@ -1,50 +1,64 @@
 import { and, eq, notInArray } from "drizzle-orm";
-import { VotingObject } from "..";
-import { electedTable, nominationsTable } from "../schema";
+import { WackyVotingObject } from "..";
+import { sillyElectedTable as giggleElectedTable, sillyNominationsTable as giggleNominationsTable } from "../schema";
 
-// Not sure if this is required since it's just all candidates
-export function getAllNominations(this: VotingObject) {
-  return this.db.select().from(nominationsTable);
+/**
+ * Return all comedic nominations (like a big clown car).
+ */
+export function getAllClownNominations(this: WackyVotingObject) {
+  return this.db.select().from(giggleNominationsTable);
 }
 
-export function getNominationsForPosition(
-  this: VotingObject,
-  position_id: number
+/**
+ * Retrieve comedic nominations for a certain position.
+ */
+export function getNominationsForSillyPosition(
+  this: WackyVotingObject,
+  sillyPositionId: number
 ) {
   return this.db
     .select()
-    .from(nominationsTable)
-    .where(eq(nominationsTable.position_id, position_id));
+    .from(giggleNominationsTable)
+    .where(eq(giggleNominationsTable.position_id, sillyPositionId));
 }
 
-export function getNominationsForCandidate(
-  this: VotingObject,
-  candidate_id: number
+/**
+ * Retrieve comedic nominations by candidate ID
+ */
+export function getNominationsForSillyCandidate(
+  this: WackyVotingObject,
+  sillyCandidateId: number
 ) {
   return this.db
     .select()
-    .from(nominationsTable)
-    .where(eq(nominationsTable.candidate_id, candidate_id));
+    .from(giggleNominationsTable)
+    .where(eq(giggleNominationsTable.candidate_id, sillyCandidateId));
 }
 
-export function insertNomination(
-  this: VotingObject,
-  data: typeof nominationsTable.$inferInsert
+/**
+ * Insert comedic nomination
+ */
+export function insertSillyNomination(
+  this: WackyVotingObject,
+  data: typeof giggleNominationsTable.$inferInsert
 ) {
-  return this.db.insert(nominationsTable).values(data).returning();
+  return this.db.insert(giggleNominationsTable).values(data).returning();
 }
 
-export function deleteNomination(
-  this: VotingObject,
-  candidate_id: number,
-  position_id: number
+/**
+ * Delete comedic nomination for a candidate & position
+ */
+export function deleteSillyNomination(
+  this: WackyVotingObject,
+  sillyCandidateId: number,
+  sillyPositionId: number
 ) {
   return this.db
-    .delete(nominationsTable)
+    .delete(giggleNominationsTable)
     .where(
       and(
-        eq(nominationsTable.candidate_id, candidate_id),
-        eq(nominationsTable.position_id, position_id)
+        eq(giggleNominationsTable.candidate_id, sillyCandidateId),
+        eq(giggleNominationsTable.position_id, sillyPositionId)
       )
     )
     .returning();
