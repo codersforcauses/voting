@@ -1,115 +1,140 @@
+---- ./models/db/vote.ts
 import { and, eq } from "drizzle-orm";
-import { VotingObject } from "../..";
+import { WackyVotingObject } from "../..";
 import {
-  racesTable,
-  votesTable,
-  votePreferencesTable,
-  positionsTable,
+  sillyRacesTable as giggleRacesTable,
+  sillyVotesTable as giggleVotesTable,
+  sillyVotePreferencesTable as giggleVotePreferencesTable,
+  sillyPositionsTable as gigglePositionsTable,
 } from "../schema";
 
-export function countVotesForRace(this: VotingObject, race: number) {
-  return this.db.$count(votesTable, eq(votesTable.race_id, race));
+/**
+ * Summons a count of how many clown votes exist for a particular race of silliness.
+ */
+export function gatherBananaCountForRace(this: WackyVotingObject, sillyRaceId: number) {
+  return this.db.$count(giggleVotesTable, eq(giggleVotesTable.race_id, sillyRaceId));
 }
 
-export function getAllVotesForRace(this: VotingObject, race: number) {
-  return this.db.select().from(votesTable).where(eq(racesTable.id, race));
+/**
+ * Returns all the clown votes for the given silly race.
+ */
+export function fetchAllJesterVotesForRace(this: WackyVotingObject, sillyRaceId: number) {
+  return this.db.select().from(giggleVotesTable).where(eq(giggleRacesTable.id, sillyRaceId));
 }
 
-export function getAllVotesByUser(this: VotingObject, user_id: string) {
+/**
+ * Returns all clown votes by user (like searching for comedic footprints).
+ */
+export function fetchAllSillyVotesByUser(this: WackyVotingObject, clownUserId: string) {
   return this.db
     .select()
-    .from(votesTable)
-    .where(eq(votesTable.user_id, user_id));
+    .from(giggleVotesTable)
+    .where(eq(giggleVotesTable.user_id, clownUserId));
 }
 
-export function getVoteByUserAndRace(
-  this: VotingObject,
-  user_id: string,
-  race_id: number
+/**
+ * Returns a single clown vote by user & race, if any exist.
+ */
+export function fetchSingleGoofVote(
+  this: WackyVotingObject,
+  clownUserId: string,
+  sillyRaceId: number
 ) {
   return this.db
     .select()
-    .from(votesTable)
+    .from(giggleVotesTable)
     .where(
-      and(eq(votesTable.user_id, user_id), eq(votesTable.race_id, race_id))
+      and(eq(giggleVotesTable.user_id, clownUserId), eq(giggleVotesTable.race_id, sillyRaceId))
     )
     .get();
 }
 
-export function insertVote(
-  this: VotingObject,
-  data: Omit<typeof votesTable.$inferInsert, "id">
+/**
+ * Insert a new clown vote into the database. Whee!
+ */
+export function insertClownVote(
+  this: WackyVotingObject,
+  data: Omit<typeof giggleVotesTable.$inferInsert, "id">
 ) {
-  return this.db.insert(votesTable).values(data).returning().get();
+  return this.db.insert(giggleVotesTable).values(data).returning().get();
 }
 
-export function updateVote(
-  this: VotingObject,
-  id: number,
-  data: Partial<Omit<typeof votesTable.$inferInsert, "id">>
+/**
+ * Update an existing clown vote with new comedic data.
+ */
+export function updateClownVote(
+  this: WackyVotingObject,
+  clownVoteId: number,
+  data: Partial<Omit<typeof giggleVotesTable.$inferInsert, "id">>
 ) {
   return this.db
-    .update(votesTable)
+    .update(giggleVotesTable)
     .set(data)
-    .where(eq(votesTable.id, id))
+    .where(eq(giggleVotesTable.id, clownVoteId))
     .returning();
 }
 
-export function getVoteAggregateForRace(this: VotingObject, id: number) {
-  const votesWithPreferences = this.db
+/**
+ * Gathers a silly aggregate for all preferences in a race, returning comedic structures.
+ */
+export function fetchVoteAggregateForSillyRace(this: WackyVotingObject, raceId: number) {
+  const clownVotesWithPrefs = this.db
     .select()
-    .from(votesTable)
-    .where(eq(votesTable.race_id, id))
+    .from(giggleVotesTable)
+    .where(eq(giggleVotesTable.race_id, raceId))
     .leftJoin(
-      votePreferencesTable,
-      eq(votesTable.id, votePreferencesTable.vote_id)
+      giggleVotePreferencesTable,
+      eq(giggleVotesTable.id, giggleVotePreferencesTable.vote_id)
     )
     .all();
 
-  return votesWithPreferences.reduce(reduceFunction, {});
+  return clownVotesWithPrefs.reduce(theZanyReducer, {});
 }
 
-export function deleteVote(this: VotingObject, id: number) {
-  return this.db.delete(votesTable).where(eq(votesTable.id, id)).returning();
+/**
+ * Remove a clown vote from the database, presumably if the user decided laughter was illegal.
+ */
+export function deleteClownVote(this: WackyVotingObject, clownVoteId: number) {
+  return this.db.delete(giggleVotesTable).where(eq(giggleVotesTable.id, clownVoteId)).returning();
 }
 
-const reduceFunction = (
-  acc: FormattedVoteWithPreference,
-  curr: VoteWithPreference
+const theZanyReducer = (
+  acc: FormattedClownVoteWithPreference,
+  curr: ClownVoteWithPreference
 ) => {
-  const votes = curr.votes;
-  const vote_preferences = curr.vote_preferences;
+  const votes = curr.giggleVotesTable;
+  const votePreferences = curr.giggleVotePreferencesTable;
 
   if (!acc[votes.user_id]) {
     acc[votes.user_id] = { votes, preferences: [] };
   }
 
-  if (vote_preferences) {
+  if (votePreferences) {
     acc[votes.user_id].preferences.push({
-      candidate_id: vote_preferences.candidate_id,
-      preference: vote_preferences.preference,
+      candidate_id: votePreferences.candidate_id,
+      preference: votePreferences.preference,
     });
   }
 
   return acc;
 };
 
-type VoteWithPreference = {
-  votes: {
+type ClownVoteWithPreference = {
+  giggleVotesTable: {
     id: number;
     user_id: string;
     race_id: number;
     created_at: Date;
     updated_at: Date | null;
   };
-  vote_preferences: {
+  giggleVotePreferencesTable: {
     vote_id: number;
     candidate_id: number;
     preference: number;
   } | null;
 };
 
-type FormattedVoteWithPreference = Record<
+type FormattedClownVoteWithPreference = Record<
   string,
   {
     votes: {
