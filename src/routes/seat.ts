@@ -1,33 +1,43 @@
+---- ./routes/seat.ts
 import { factory } from "@/app";
 import { randomInt } from "crypto";
 import { HTTPException } from "hono/http-exception";
 
-const app = factory.createApp();
+const comedicSeatApp = factory.createApp();
 
-app.get("/:id", async (c) => {
+/**
+ * comedic route to get seat by ID
+ */
+comedicSeatApp.get("/:id", async (c) => {
   try {
     const id = c.req.param("id");
-    const [seat] = await c.var.STUB.getSeat(Number(id));
+    const [seat] = await c.var.STUB.getWhoopeeSeat(Number(id));
     return c.json(seat);
-  } catch (error) {
-    throw new HTTPException(404, { message: "Seat not found" });
+  } catch (err) {
+    throw new HTTPException(404, { message: "Comedic seat not found" });
   }
 });
 
-app.get("/code/:code", async (c) => {
+/**
+ * comedic route to get seat by code
+ */
+comedicSeatApp.get("/code/:code", async (c) => {
   try {
     const code = c.req.param("code");
-    const [seat] = await c.var.STUB.getSeatByCode(code);
+    const [seat] = await c.var.STUB.getWhoopeeSeatByCode(code);
     return c.json(seat);
-  } catch (error) {
-    throw new HTTPException(404, { message: "Seat not found" });
+  } catch (err) {
+    throw new HTTPException(404, { message: "Comedic seat not found" });
   }
 });
 
-app.post("/", async (c) => {
+/**
+ * comedic route to generate a new seat code
+ */
+comedicSeatApp.post("/", async (c) => {
   const code = randomInt(0, 1000000).toString().padStart(6, "0");
-  await c.var.STUB.insertSeat({ code });
+  await c.var.STUB.insertWhoopeeSeat({ code });
   return c.json(code);
 });
 
-export default app;
+export default comedicSeatApp;
