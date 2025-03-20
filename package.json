@@ -3,7 +3,7 @@
   "scripts": {
     "db:generate": "drizzle-kit generate",
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy --minify",
+    "deploy": "wrangler deploy --minify --env prod --keep-vars",
     "test": "playwright test"
   },
   "dependencies": {

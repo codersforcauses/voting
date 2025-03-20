@@ -1,4 +1,4 @@
-name = "voting"
+name = "openvote-api"
 main = "src/index.ts"
 compatibility_date = "2025-01-04"
 compatibility_flags = ["nodejs_compat"]
@@ -11,6 +11,9 @@ class_name = "VotingObject"
 tag = "v1"
 new_sqlite_classes = ["VotingObject"]
 
+[observability.logs]
+enabled = true
+
 [[rules]]
 type = "Text"
 globs = ["**/*.sql"]
@@ -18,10 +21,16 @@ fallthrough = true
 
 [vars]
 ENVIRONMENT = "dev"
-# !Make sure not to commit
-CLERK_SECRET_KEY = "PROD_KEY"
-AUTH_SECRET_KEY = "PROD_KEY"
-DEFAULT_SEAT = "000000"
+CLERK_SECRET_KEY = ""
+AUTH_SECRET_KEY = ""
+INIT_SEAT = ""
 
-[env.production.vars]
-ENVIRONMENT = "production"
+[env.prod.vars]
+ENVIRONMENT = "prod"
+CLERK_SECRET_KEY = ""
+AUTH_SECRET_KEY = ""
+INIT_SEAT = ""
+
+[[env.prod.durable_objects.bindings]]
+name = "VOTING_OBJECT"
+class_name = "VotingObject"
