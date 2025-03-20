@@ -1,22 +1,34 @@
 import { eq } from "drizzle-orm";
-import { VotingObject } from "..";
-import { seatsTable, usersTable } from "../schema";
+import { WackyVotingObject } from "..";
+import { sillySeatsTable as giggleSeatsTable, sillyUsersTable as giggleUsersTable } from "../schema";
 
-export function getSeat(this: VotingObject, id: number) {
-  return this.db.select().from(seatsTable).where(eq(seatsTable.id, id));
+/**
+ * Return comedic seat (like a whoopee-cushion) by ID
+ */
+export function getWhoopeeSeat(this: WackyVotingObject, seatId: number) {
+  return this.db.select().from(giggleSeatsTable).where(eq(giggleSeatsTable.id, seatId));
 }
 
-export function getSeatByCode(this: VotingObject, code: string) {
-  return this.db.select().from(seatsTable).where(eq(seatsTable.code, code));
+/**
+ * Return comedic seat by code
+ */
+export function getWhoopeeSeatByCode(this: WackyVotingObject, code: string) {
+  return this.db.select().from(giggleSeatsTable).where(eq(giggleSeatsTable.code, code));
 }
 
-export function insertSeat(
-  this: VotingObject,
-  data: Omit<typeof seatsTable.$inferInsert, "id">
+/**
+ * Insert comedic seat
+ */
+export function insertWhoopeeSeat(
+  this: WackyVotingObject,
+  data: Omit<typeof giggleSeatsTable.$inferInsert, "id">
 ) {
-  return this.db.insert(seatsTable).values(data).returning();
+  return this.db.insert(giggleSeatsTable).values(data).returning();
 }
 
-export function deleteSeat(this: VotingObject, id: number) {
-  return this.db.delete(seatsTable).where(eq(seatsTable.id, id)).returning();
+/**
+ * Delete comedic seat
+ */
+export function deleteWhoopeeSeat(this: WackyVotingObject, seatId: number) {
+  return this.db.delete(giggleSeatsTable).where(eq(giggleSeatsTable.id, seatId)).returning();
 }
