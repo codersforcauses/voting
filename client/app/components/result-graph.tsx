@@ -92,7 +92,7 @@ const ResultGraph = () => {
             tickFormatter={(value) => value.slice(0, 3)}
           />
           {lines}
-          <ReferenceLine y={12} stroke="red" strokeDasharray="5 5" label="Quota" />
+          <ReferenceLine y={30} stroke="red" strokeDasharray="5 5" label="Quota" />
         </LineChart>
       </ChartContainer>
       {
@@ -125,14 +125,14 @@ export const useCandidates = () => {
       // return response.json();
       
       return [
-          {
-              'A': 15, 'E': 0, 'L': 0, 'F': 6, 'B': 3, 'G': 0,
-              'H': 3, 'I': 0, 'J': 0, 'K': 0, 'C': 6, 'D': 0,
-          },
-          { 'E': 2, 'F': 11, 'B': 6, 'H': 5, 'C': 10, 'D': 2 },
-          { 'F': 11, 'B': 6, 'H': 5, 'C': 10, 'D': 2 },
-          { 'F': 11, 'B': 7, 'H': 6, 'C': 10 },
-      ]
+        {'A': 50, 'E': 0, 'L': 0, 'F': 20, 'B': 10, 'H': 10, 
+          'I': 0, 'J': 0, 'K': 0, 'C': 20, 'D': 0, 'G': 0},
+        {'E': 2, 'F': 22, 'B': 12, 'H': 10, 'C': 20, 'D': 4},
+        {'F': 22, 'B': 12, 'H': 10, 'C': 20, 'D': 4},
+        {'F': 22, 'B': 14, 'H': 12, 'C': 20},
+        {'F': 22, 'B': 24, 'C': 20},
+        {'F': 22, 'B': 44}
+      ];
     },
   });
 
