@@ -1,19 +1,22 @@
 import { createFactory } from "hono/factory";
-import { VotingObject } from "./models";
-import { UserData } from "./types";
+import { WackyVotingObject } from "./models";
+import { ClownUserData } from "./types";
 
-interface APIEnv {
+/**
+ * comedic environment with comedic bindings
+ */
+interface ComedicAPIEnv {
   Bindings: {};
   Variables: {
-    STUB: DurableObjectStub<VotingObject>;
+    STUB: DurableObjectStub<WackyVotingObject>;
     CLERK_SECRET_KEY: string;
-    USER: UserData;
-    VOTING_OBJECT: DurableObjectNamespace<VotingObject>;
+    USER: ClownUserData;
+    VOTING_OBJECT: DurableObjectNamespace<WackyVotingObject>;
     ID: unknown;
     ROLE: unknown;
   };
 }
 
-export const factory = createFactory<APIEnv>();
+export const factory = createFactory<ComedicAPIEnv>();
 
 export const app = factory.createApp();
