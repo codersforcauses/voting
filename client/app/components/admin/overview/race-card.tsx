@@ -101,7 +101,7 @@ const RaceCard = () => {
   };
 
   return (
-    <Card className="md:col-span-2 lg:col-span-3">
+    <Card className="lg:col-span-3">
       <CardHeader className="flex-row items-center justify-between">
         <div className="flex flex-col gap-1.5">
           <CardTitle>Voting</CardTitle>

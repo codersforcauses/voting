@@ -1,3 +1,4 @@
+import * as React from "react";
 import {
   SidebarInset,
   SidebarProvider,
@@ -21,6 +22,7 @@ import { useToken } from "@/lib/user";
 import { useQuery } from "@tanstack/react-query";
 import { BASE_URL } from "@/lib/utils";
 import type { Position } from "@/lib/types";
+import Auth from "@/components/auth";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -31,7 +33,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Admin() {
   const { hash } = useLocation();
-  const token = useToken();
+  const [token, setToken] = React.useState(useToken());
   const { data: positions } = useQuery<Position[]>({
     queryKey: ["positions"],
     queryFn: async () => {
@@ -45,6 +47,13 @@ export default function Admin() {
     },
     staleTime: 0,
   });
+
+  const logout = React.useCallback(() => {
+    setToken("");
+    window.localStorage.removeItem("token");
+  }, []);
+
+  if (!token) return <Auth setToken={setToken} />;
 
   let currentPage = "";
   let CurrentView = () => <> </>;
@@ -69,7 +78,7 @@ export default function Admin() {
 
   return (
     <SidebarProvider>
-      <AppSidebar positions={positions ?? []} />
+      <AppSidebar logout={logout} positions={positions ?? []} />
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">

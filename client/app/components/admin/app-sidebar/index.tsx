@@ -1,6 +1,7 @@
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarHeader,
   SidebarMenu,
@@ -11,6 +12,7 @@ import { NavExpanded } from "./nav-expanded";
 import { Link, useLocation } from "react-router";
 import { Logo } from "../../ui/logo";
 import type { Position } from "@/lib/types";
+import { Button } from "@/components/ui/button";
 
 const items = [
   {
@@ -27,7 +29,13 @@ const items = [
   },
 ];
 
-export function AppSidebar({ positions }: { positions: Position[] }) {
+export function AppSidebar({
+  logout,
+  positions,
+}: {
+  logout: () => void;
+  positions: Position[];
+}) {
   const { hash } = useLocation();
 
   const data = {
@@ -88,6 +96,11 @@ export function AppSidebar({ positions }: { positions: Position[] }) {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <Button className="w-full" variant="secondary" onClick={logout}>
+          Logout
+        </Button>
+      </SidebarFooter>
     </Sidebar>
   );
 }
