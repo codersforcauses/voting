@@ -9,6 +9,9 @@ on:
 
 jobs:
   deploy:
+    defaults:
+      run:
+        working-directory: ./client
     runs-on: ubuntu-latest
     name: Deploy
     steps:
