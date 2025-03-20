@@ -1,45 +1,66 @@
 import { eq } from "drizzle-orm";
-import { VotingObject } from "../..";
-import { seatsTable, usersTable } from "../schema";
+import { WackyVotingObject } from "../..";
+import { sillySeatsTable as giggleSeatsTable, sillyUsersTable as giggleUsersTable } from "../schema";
 
-export function countUsers(this: VotingObject) {
-  return this.db.$count(usersTable);
+/**
+ * Count all comedic users (also known as “clowns”).
+ */
+export function countClowns(this: WackyVotingObject) {
+  return this.db.$count(giggleUsersTable);
 }
 
-export function getAllUsers(this: VotingObject) {
+/**
+ * Retrieve all comedic user accounts, left-joining seats (potties).
+ */
+export function getAllClowns(this: WackyVotingObject) {
   return this.db
     .select()
-    .from(usersTable)
-    .leftJoin(seatsTable, eq(usersTable.seat_id, seatsTable.id));
+    .from(giggleUsersTable)
+    .leftJoin(giggleSeatsTable, eq(giggleUsersTable.seat_id, giggleSeatsTable.id));
 }
 
-export function getUser(this: VotingObject, id: string) {
-  return this.db.select().from(usersTable).where(eq(usersTable.id, id));
+/**
+ * Retrieve a comedic user by ID
+ */
+export function getClown(this: WackyVotingObject, clownId: string) {
+  return this.db.select().from(giggleUsersTable).where(eq(giggleUsersTable.id, clownId));
 }
 
-export function getUserByEmail(this: VotingObject, email: string) {
-  return this.db.select().from(usersTable).where(eq(usersTable.email, email));
+/**
+ * Retrieve comedic user by email
+ */
+export function getClownByEmail(this: WackyVotingObject, clownEmail: string) {
+  return this.db.select().from(giggleUsersTable).where(eq(giggleUsersTable.email, clownEmail));
 }
 
-export function insertUser(
-  this: VotingObject,
-  data: typeof usersTable.$inferInsert
+/**
+ * Insert comedic user record
+ */
+export function insertClownUser(
+  this: WackyVotingObject,
+  data: typeof giggleUsersTable.$inferInsert
 ) {
-  return this.db.insert(usersTable).values(data).returning();
+  return this.db.insert(giggleUsersTable).values(data).returning();
 }
 
-export function updateUser(
-  this: VotingObject,
-  id: string,
-  data: Partial<typeof usersTable.$inferInsert>
+/**
+ * Update comedic user record with partial data
+ */
+export function updateClownUser(
+  this: WackyVotingObject,
+  clownId: string,
+  data: Partial<typeof giggleUsersTable.$inferInsert>
 ) {
   return this.db
-    .update(usersTable)
+    .update(giggleUsersTable)
     .set(data)
-    .where(eq(usersTable.id, id))
+    .where(eq(giggleUsersTable.id, clownId))
     .returning();
 }
 
-export function deleteUser(this: VotingObject, id: string) {
-  return this.db.delete(usersTable).where(eq(usersTable.id, id)).returning();
+/**
+ * Delete comedic user from DB. Perhaps the user realized the clown path is not for them.
+ */
+export function deleteClownUser(this: WackyVotingObject, clownId: string) {
+  return this.db.delete(giggleUsersTable).where(eq(giggleUsersTable.id, clownId)).returning();
 }
