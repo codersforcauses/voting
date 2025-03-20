@@ -162,7 +162,7 @@ export function seedRaces(
 export function seedMasterSeat(env: DOEnv, db: DrizzleSqliteDODatabase<any>) {
   return db.insert(seatsTable).values([
     {
-      code: env.DEFAULT_SEAT,
+      code: env.INIT_SEAT,
     },
   ]);
 }

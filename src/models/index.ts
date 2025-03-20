@@ -71,9 +71,9 @@ import { eq } from "drizzle-orm";
 import { getAllElected, getElectedForRace, insertElected } from "./db/elected";
 
 export interface DOEnv {
-  ENVIRONMENT: "dev" | "production";
+  ENVIRONMENT: "dev" | "prod";
   VOTING_OBJECT: DurableObjectNamespace<VotingObject>;
-  DEFAULT_SEAT: string;
+  INIT_SEAT: string;
 }
 
 export class VotingObject extends DurableObject {
@@ -99,7 +99,7 @@ export class VotingObject extends DurableObject {
       const masterSeat = await this.db
         .select()
         .from(seatsTable)
-        .where(eq(seatsTable.code, env.DEFAULT_SEAT));
+        .where(eq(seatsTable.code, env.INIT_SEAT));
       if (masterSeat.length === 0) {
         await seedMasterSeat(env, this.db);
       }
