@@ -35,6 +35,11 @@ app.get("/:id", zValidator(
   }
 });
 
+app.get("/current", async (c) => {
+  const data = await c.var.STUB.getCurrentRace()
+  return c.json(data)
+})
+
 app.patch(
   "/:id",
   authenticate,
@@ -60,33 +65,12 @@ app.patch(
 
       return c.json(data);
     } catch (err) {
+      console.error(err)
       throw new HTTPException(500, {
         message: "Error updating race",
       });
     }
   }
 );
-
-// app.post(
-//   "/",
-//   zValidator(
-//     "json",
-//     z.object({
-//       title: z.string(),
-//       description: z.string(),
-//       priority: z.number(),
-//       openings: z.number(),
-//     })
-//   ),
-//   async (c) => {
-//     const validated = c.req.valid("json");
-//     try {
-//       await c.var.STUB.insertPosition(validated);
-//     } catch (err) {
-//       console.log("weeee");
-//     }
-//     return c.json({ message: "Created successfully" });
-//   }
-// );
 
 export default app;

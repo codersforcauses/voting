@@ -25,33 +25,20 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { BASE_URL } from "@/lib/utils";
 import { useToken } from "@/lib/user";
+import { useCurrentRace, usePositions, useRaces } from "@/components/vote/queries";
 
 type STATUS = "closed" | "open" | "finished";
 
 const RaceCard = () => {
   const token = useToken();
 
-  const { data: racesData, refetch } = useQuery({
-    queryKey: ["races"],
-    queryFn: async () => {
-      const res = await fetch(`${BASE_URL}/race`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return res.json();
-    },
-  });
-
-  const positions = racesData?.map(({ positions }) => ({
-    id: positions.id,
-    value: positions.title,
-  }));
+  const [races, refetchRaces] = useRaces()
+  const positions = usePositions()
 
   const [currentPositionID, setCurrentPosition] = React.useState("");
 
-  const currentRace = racesData?.find(
-    ({ positions }) => positions.id === currentPositionID
+  const currentRace = races?.find(
+    ({ positions }) => positions.id === parseInt(currentPositionID)
   );
 
   const [raceStatus, setRaceStatus] = React.useState(
@@ -64,7 +51,7 @@ const RaceCard = () => {
       id,
       ...data
     }: {
-      id: number | string;
+      id: number;
       status: STATUS;
       current: boolean;
     }) => {
@@ -81,27 +68,30 @@ const RaceCard = () => {
   });
 
   const onToggleValChange = (value: STATUS) => {
-    if (value) {
+    if (currentRace && value) {
       setRaceStatus(value);
       raceMutation.mutateAsync({
         status: value as STATUS,
-        id: currentRace?.race.id,
+        id: currentRace.race.id,
         current: value !== "finished",
       });
-      refetch();
+      refetchRaces();
     }
   };
 
   const onSelectionChange = (value: string) => {
     if (value) {
-      setCurrentPosition(value);
-      raceMutation.mutateAsync({
-        id: racesData?.find(({ positions }) => positions.id === value).race.id,
-        status: "closed",
-        current: true,
-      });
-      setRaceStatus("closed");
-      refetch();
+      const selectedRace = races?.find(({ positions }) => positions.id === parseInt(value))
+      if (selectedRace) {
+        setCurrentPosition(value);
+        raceMutation.mutateAsync({
+          id: selectedRace.race.id,
+          status: selectedRace.race.status,
+          current: true,
+        });
+        setRaceStatus(selectedRace.race.status);
+        refetchRaces();
+      }
     }
   };
 
@@ -161,8 +151,8 @@ const RaceCard = () => {
             </SelectTrigger>
             <SelectContent>
               {positions?.map((position) => (
-                <SelectItem key={position.id} value={position.id}>
-                  {position.value}
+                <SelectItem key={position.id} value={position.id.toString()}>
+                  {position.title}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -170,7 +160,7 @@ const RaceCard = () => {
           <ToggleGroup
             type="single"
             variant="outline"
-            disabled={currentPositionID === ""}
+            disabled={!currentPositionID}
             value={raceStatus}
             onValueChange={onToggleValChange}
             className="w-full sm:w-fit"

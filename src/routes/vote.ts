@@ -33,16 +33,16 @@ app.post(
       id: number;
       race_id: number;
       user_id: string;
-    };
+    } | undefined;
 
     // check vote for user in race
-    vote = (await c.var.STUB.getVoteByUserAndRace(user_id, race_id))?.[0];
+    vote = await c.var.STUB.getVoteByUserAndRace(user_id, race_id);
 
     if (!vote) {
       vote = await c.var.STUB.insertVote({
         race_id,
         user_id,
-      })[0];
+      });
     }
 
     const preferences = data.map((preference, index) =>

@@ -28,14 +28,14 @@ export function getVoteByUserAndRace(
     .from(votesTable)
     .where(
       and(eq(votesTable.user_id, user_id), eq(votesTable.race_id, race_id))
-    );
+    ).get();
 }
 
 export function insertVote(
   this: VotingObject,
   data: Omit<typeof votesTable.$inferInsert, "id">
 ) {
-  return this.db.insert(votesTable).values(data).returning();
+  return this.db.insert(votesTable).values(data).returning().get();
 }
 
 export function updateVote(

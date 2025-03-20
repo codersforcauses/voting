@@ -59,21 +59,11 @@ import {
   getVoteAggregateForRace,
 } from "./db/vote";
 import {
-  seedCandidate,
-  seedVote,
-  seedUsers,
-  seedPositions,
-  seedRaces,
   seedMasterSeat,
-  seedSeats,
+  devSeeds,
 } from "./seed";
 import {
-  candidatesTable,
-  racesTable,
-  votesTable,
-  positionsTable,
   seatsTable,
-  usersTable,
 } from "./schema";
 import * as schema from "./schema";
 import { eq } from "drizzle-orm";
@@ -88,11 +78,19 @@ export interface DOEnv {
 export class VotingObject extends DurableObject {
   storage: DurableObjectStorage;
   db: DrizzleSqliteDODatabase<typeof schema>;
+  connections: Map<string, WebSocket>;
 
   constructor(ctx: DurableObjectState, env: DOEnv) {
     super(ctx, env);
     this.storage = this.ctx.storage;
     this.db = drizzle(this.storage, { logger: true, schema });
+
+    this.connections = new Map();
+    for (const ws of this.ctx.getWebSockets()) {
+      const { connectionId } = ws.deserializeAttachment();
+      console.log("hydrated connection", connectionId)
+      this.connections.set(connectionId, ws);
+    }
 
     ctx.blockConcurrencyWhile(async () => {
       await this._migrate();
@@ -106,46 +104,53 @@ export class VotingObject extends DurableObject {
       }
 
       if (env.ENVIRONMENT === "dev") {
-        // Seed Positions, Races and Candidates
-        const numPositions = await this.db.$count(positionsTable);
-        if (numPositions === 0) {
-          const positionIds = await seedPositions(this.db);
-          await seedRaces(this.db, positionIds);
-          await seedCandidate(this.db, positionIds);
-        }
-
-        // Seed Users
-        const numUsers = await this.db.$count(usersTable);
-        if (numUsers === 0) {
-          const seatIds = await seedSeats(this.db, 10);
-          await seedUsers(this.db, 10, seatIds);
-        }
-
-        // Seed Votes
-        const numVotes = await this.db.$count(votesTable);
-        if (numVotes === 0) {
-          const races = await this.db.select().from(racesTable);
-          const raceIds = races.map((race) => ({
-            race_id: race.id,
-          }));
-          const candidates = await this.db.select().from(candidatesTable);
-          const candidateIds = candidates.map((candidate) => ({
-            candidate_id: candidate.id,
-          }));
-          const users = await this.db.select().from(usersTable);
-          const user_ids = users.map((user) => ({
-            id: user.id,
-          }));
-          if (users.length > 0) {
-            await seedVote(this.db, candidateIds, raceIds, user_ids);
-          }
-        }
+        devSeeds(this.db)
       }
+    });
+  }
+
+  fetch(request?: Request): Response | Promise<Response> {
+    const webSocketPair = new WebSocketPair();
+    const [client, server] = Object.values(webSocketPair);
+
+    const connectionId = crypto.randomUUID();
+
+    this.ctx.acceptWebSocket(server);
+    this.connections.set(connectionId, server);
+    server.serializeAttachment({ connectionId });
+
+    console.log("New websocket connection", this.connections.size, "connections open");
+
+    return new Response(null, {
+      status: 101,
+      webSocket: client
     });
   }
 
   async _migrate() {
     migrate(this.db, migrations);
+  }
+
+  webSocketError(ws: WebSocket, error: unknown) {
+    console.error("webSocketError", error);
+    this.connections.delete(ws.deserializeAttachment().connectionId);
+    console.log(this.connections.size, "connections open");
+  }
+
+  webSocketClose(
+    ws: WebSocket,
+    _code: number,
+    _reason: string,
+    _wasClean: boolean
+  ) {
+    this.connections.delete(ws.deserializeAttachment().connectionId);
+    console.log("webSocketClose,", this.connections.size, "connections open");
+  }
+
+  broadcast(message: string) {
+    for (const connection of this.connections) {
+      connection[1].send(message);
+    }
   }
 
   // Positions

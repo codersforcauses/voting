@@ -1,7 +1,6 @@
 import { secureHeaders } from "hono/secure-headers";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { streamSSE } from "hono/streaming";
 
 import { app } from "./app";
 import { VotingObject } from "./models";
@@ -16,9 +15,10 @@ import voteRoutes from "./routes/vote";
 import positionRoutes from "./routes/position";
 import candidateRoutes from "./routes/candidate";
 import nominationRoutes from "./routes/nomination";
+import { except } from "hono/combine";
 
-app.use(secureHeaders());
-app.use(cors()); // Need to reconfigure since this breaks web sockets
+app.use(except('/ws', secureHeaders()));
+app.use(except('/ws', cors()));
 app.use(addStub);
 app.use(logger());
 
@@ -32,33 +32,12 @@ app.route("/results", resultsRoutes);
 app.route("/vote", voteRoutes);
 app.route("/nomination", nominationRoutes);
 
-app.get("/sse", async (c) => {
-  c.header("Content-Encoding", "Identity");
+app.get("/ws", async (c) => {
+  if (c.req.header("upgrade") !== "websocket") {
+    return c.text("Expected Upgrade: websocket", 426);
+  }
 
-  return streamSSE(
-    c,
-    async (stream) => {
-      while (true) {
-        const [currentRace] = await c.var.STUB.getCurrentRace();
-
-        if (currentRace) {
-          await stream.writeSSE({
-            data: JSON.stringify({
-              race_id: currentRace.race.id,
-              status: currentRace.race.status,
-              position_id: currentRace?.positions?.id,
-              title: currentRace?.positions?.title,
-            }),
-          });
-        }
-
-        await stream.sleep(5000);
-      }
-    },
-    async (err, stream) => {
-      console.log(err, stream);
-    }
-  );
+  return c.var.STUB.fetch(c.req.raw)
 });
 
 export default app;

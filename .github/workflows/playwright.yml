@@ -13,12 +13,22 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
+
     - name: Install dependencies
       run: npm install -g pnpm && pnpm install
-    - name: Install Playwright Browsers
-      run: pnpm exec playwright install --with-deps
+
+    - name: Init Database
+      run: pnpm db:generate
+
+    - name: Run dev API
+      run: pnpm dev &
+
     - name: Run Playwright tests
       run: pnpm exec playwright test
+
+    - name: Stop dev server
+      run: pkill -f "pnpm dev"
+
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:

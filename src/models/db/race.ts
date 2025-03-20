@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, ne } from "drizzle-orm";
 import { VotingObject } from "..";
 import { positionsTable, racesTable } from "../schema";
 import { autocount } from "@/lib/count";
@@ -19,7 +19,8 @@ export function getCurrentRace(this: VotingObject) {
     .select()
     .from(racesTable)
     .where(eq(racesTable.current, true))
-    .leftJoin(positionsTable, eq(racesTable.position_id, positionsTable.id));
+    .leftJoin(positionsTable, eq(racesTable.position_id, positionsTable.id))
+    .get();
 }
 
 export function insertRace(
@@ -34,23 +35,38 @@ export async function updateRace(
   id: number,
   data: Partial<Omit<typeof racesTable.$inferInsert, "id">>
 ) {
-  const race = await this.db
+  const updatedRace = this.db
     .update(racesTable)
-    .set(data)
-    .where(eq(racesTable.id, id))
-    .returning();
+    .set({
+      current: true,
+      status: data.status
+    })
+    .where(eq(racesTable.id, id)).returning().get();
+
+  this.db
+    .update(racesTable)
+    .set({ current: false })
+    .where(ne(racesTable.id, id)).returning().all();
+
+  this.broadcast(JSON.stringify({
+    race_id: updatedRace.id,
+    status: updatedRace.status
+  }))
 
   if (data.status === "finished") {
-    
+    const elected = this.getElectedForRace(id)
+    if (elected.length === 0) this.saveElectedForRace(updatedRace.id).all()
   }
 
-  return race
+  return updatedRace
 }
 
 export function saveElectedForRace(
   this: VotingObject,
   id: number,
 ) {
+  const race = this.db.select().from(racesTable).where(eq(racesTable.id, id)).get()!
+  const position = this.db.select().from(positionsTable).where(eq(positionsTable.id, race.position_id)).get()!
   const raceData = this.getVoteAggregateForRace(id)
   const formattedData = Object.keys(raceData).reduce<Record<string, number[]>>((acc, curr) => {
     if (!acc[curr]) acc[curr] = []
@@ -58,7 +74,7 @@ export function saveElectedForRace(
     return acc
   }, {})
 
-  const res = autocount(formattedData, 2)
+  const res = autocount(formattedData, osition.openings)
   this.updateRace(id, {tally: JSON.stringify(res.tally)});
   
   return this.insertElected(res.candidates.map(candidate => ({

@@ -1,0 +1,3 @@
+CLERK_SECRET_KEY = "clerk_key"
+AUTH_SECRET_KEY = "auth_key"
+DEFAULT_SEAT = "000000"

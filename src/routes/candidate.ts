@@ -47,11 +47,8 @@ app.get(
       const role = c.get("ROLE");
       const DBData = await c.var.STUB.getAllCandidatesByPosition(id);
 
-      console.log(JSON.stringify(DBData, null, 2));
-
       if (role === "admin") {
         const data = DBData.map(({ candidates }) => candidates);
-        console.log(JSON.stringify(data, null, 2));
 
         return c.json(data);
       } else {

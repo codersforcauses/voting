@@ -14,6 +14,43 @@ import { seed } from "drizzle-seed";
 import { BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import { randomInt } from "crypto";
 
+export async function devSeeds(db: DrizzleSqliteDODatabase<any>) {
+  // Seed Positions, Races and Candidates
+  const numPositions = await db.$count(positionsTable);
+  if (numPositions === 0) {
+    const positionIds = await seedPositions(db);
+    await seedRaces(db, positionIds);
+    await seedCandidate(db, positionIds);
+  }
+
+  // Seed Users
+  const numUsers = await db.$count(usersTable);
+  if (numUsers === 0) {
+    const seatIds = await seedSeats(db, 10);
+    await seedUsers(db, 10, seatIds);
+  }
+
+  // Seed Votes
+  const numVotes = await db.$count(votesTable);
+  if (numVotes === 0) {
+    const races = await db.select().from(racesTable);
+    const raceIds = races.map((race) => ({
+      race_id: race.id,
+    }));
+    const candidates = await db.select().from(candidatesTable);
+    const candidateIds = candidates.map((candidate) => ({
+      candidate_id: candidate.id,
+    }));
+    const users = await db.select().from(usersTable);
+    const user_ids = users.map((user) => ({
+      id: user.id,
+    }));
+    if (users.length > 0) {
+      // await seedVote(db, candidateIds, raceIds, user_ids);
+    }
+  }
+}
+
 export async function seedPositions(db: DrizzleSqliteDODatabase<any>) {
   return db
     .insert(positionsTable)
@@ -114,12 +151,12 @@ export async function seedCandidate(
 export function seedRaces(
   db: DrizzleSqliteDODatabase<any>,
   values: {
-    position_id: number
+    position_id: number;
   }[]
 ) {
   return db.insert(racesTable).values(values).returning({
-    race_id: racesTable.id
-  })
+    race_id: racesTable.id,
+  });
 }
 
 export function seedMasterSeat(env: DOEnv, db: DrizzleSqliteDODatabase<any>) {
@@ -128,24 +165,28 @@ export function seedMasterSeat(env: DOEnv, db: DrizzleSqliteDODatabase<any>) {
       code: env.DEFAULT_SEAT,
     },
   ]);
-
 }
 
 export function seedSeats(db: DrizzleSqliteDODatabase<any>, number: number) {
-  return db.insert(seatsTable).values(Array.from({ length: number }).map(() => {
-    return {
-      code: randomInt(0, 1000000).toString().padStart(6, "0")
-    }
-  })).returning({
-    seat_id: seatsTable.id
-  });
+  return db
+    .insert(seatsTable)
+    .values(
+      Array.from({ length: number }).map(() => {
+        return {
+          code: randomInt(0, 1000000).toString().padStart(6, "0"),
+        };
+      })
+    )
+    .returning({
+      seat_id: seatsTable.id,
+    });
 }
 
 export async function seedUsers(
   db: DrizzleSqliteDODatabase<any>,
   number: number,
   seats: {
-    seat_id: number
+    seat_id: number;
   }[]
 ) {
   await seed(db as BaseSQLiteDatabase<any, any>, {
@@ -155,41 +196,48 @@ export async function seedUsers(
       columns: {
         seat_id: f.valuesFromArray({
           values: seats.map((seat) => seat.seat_id),
-        })
+        }),
       },
-      count: number
-    }
+      count: number,
+    },
   }));
 }
 
 export async function seedVote(
   db: DrizzleSqliteDODatabase<any>,
   candidates: {
-    candidate_id: number
+    candidate_id: number;
   }[],
   races: {
     race_id: number;
   }[],
   users: {
     id: string;
-  }[],
+  }[]
 ) {
   for (const { race_id } of races) {
     for (const { id: user_id } of users) {
-      const randomOrderCandidates = [...candidates].sort(() => Math.floor(3 * Math.random()) - 2)
-      const [{ vote_id }] = await db.insert(votesTable).values([{
-        race_id,
-        user_id,
-       }]).returning({
-        vote_id: votesTable.id
-       })
-        await db.insert(votePreferencesTable).values(
-          randomOrderCandidates.map(({ candidate_id }, i) => ({
-            vote_id,
-            candidate_id,
-            preference: i + 1
-          }))
-        )
+      const randomOrderCandidates = [...candidates].sort(
+        () => Math.floor(3 * Math.random()) - 2
+      );
+      const [{ vote_id }] = await db
+        .insert(votesTable)
+        .values([
+          {
+            race_id,
+            user_id,
+          },
+        ])
+        .returning({
+          vote_id: votesTable.id,
+        });
+      await db.insert(votePreferencesTable).values(
+        randomOrderCandidates.map(({ candidate_id }, i) => ({
+          vote_id,
+          candidate_id,
+          preference: i + 1,
+        }))
+      );
     }
   }
 }

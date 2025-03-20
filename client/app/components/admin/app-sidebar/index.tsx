@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { NavExpanded } from "./nav-expanded";
 import { Link, useLocation } from "react-router";
+import { Logo } from "../../ui/logo";
 
 const data = {
   items: [
@@ -115,9 +116,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="flex-row items-center">
-        <div className="grid font-mono font-medium text-white bg-black size-10 place-items-center dark:text-black aspect-square dark:bg-white">
-          cfc
-        </div>
+        <Logo></Logo>
         <span className="ml-1 font-medium">Coders for Causes</span>
       </SidebarHeader>
       <SidebarContent>

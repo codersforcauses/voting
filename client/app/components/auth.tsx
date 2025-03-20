@@ -78,7 +78,7 @@ const Auth = ({
       }
     } else {
       const token = await response.json();
-      window.sessionStorage.setItem("token", token);
+      window.localStorage.setItem("token", token);
       setToken(token);
     }
   };
