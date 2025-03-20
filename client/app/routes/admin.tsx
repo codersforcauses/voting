@@ -7,7 +7,7 @@ import {
 import type { Route } from "./+types/admin";
 import { AppSidebar } from "@/components/admin/app-sidebar";
 import Users from "@/components/admin/users";
-import { useLocation } from "react-router";
+import { redirect, useLocation } from "react-router";
 import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
@@ -34,6 +34,19 @@ export function meta({}: Route.MetaArgs) {
 export default function Admin() {
   const { hash } = useLocation();
   const [token, setToken] = React.useState(useToken());
+  const { data: adminCheck } = useQuery({
+    enabled: !!token,
+    queryKey: ["admin"],
+    queryFn: async () => {
+      const response = await fetch(`${BASE_URL}/auth`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.json();
+    },
+  });
   const { data: positions } = useQuery<Position[]>({
     queryKey: ["positions"],
     queryFn: async () => {
@@ -54,6 +67,7 @@ export default function Admin() {
   }, []);
 
   if (!token) return <Auth setToken={setToken} />;
+  if (!adminCheck) redirect("/");
 
   let currentPage = "";
   let CurrentView = () => <> </>;

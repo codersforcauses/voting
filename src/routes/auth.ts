@@ -1,16 +1,14 @@
 import { factory } from "@/app";
+import { authenticate, requireAdmin } from "@/middleware/auth";
 import { UserData } from "@/types";
 import { createClerkClient } from "@clerk/backend";
 import { zValidator } from "@hono/zod-validator";
 import { env } from "hono/adapter";
-import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { sign } from "hono/jwt";
 import { z } from "zod";
 
 const app = factory.createApp();
-
-app.use(cors());
 
 app.post(
   "/",
@@ -106,5 +104,9 @@ app.post(
     return c.json(token);
   }
 );
+
+app.get("/", authenticate, requireAdmin, async (c) => {
+  return c.json(true);
+});
 
 export default app;
