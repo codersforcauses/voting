@@ -45,39 +45,41 @@ const chartConfig = {
 
 const ResultGraph = () => {
   // const positions = usePositions();
-  const candidates = useCandidates();
+  const tally = useCandidates();
 
-  console.log(candidates);
-
-  const chartData = [
-    {
-      month: "jan",
-      desktop: 10,
-    },
-    {
-      month: "feb",
-      desktop: 20,
-    },
-    {
-      month: "mar",
-      desktop: 25,
-    },
-    {
-      month: "apr",
-      desktop: 50,
-    },
-  ];
+  console.log(tally);
+  
+  const candidates = tally[0] ?? [];
+  const lines: any[] = [];
+  let key = 0;
+  
+  const colors = [
+    "#2E86AB", "#F18F01", "#A4036F", "#16DB93", "#AF6978",
+    "#6A0572", "#F9C22E", "#8D99AE", "#D81159", "#218380", 
+    "#E84855", "#4AABAF", "#4F6D7A", "#FFB400", "#3A506B"
+  ];  
+  
+  for (let [c, _] of Object.entries(candidates)) {
+    lines.push(<Line
+      dataKey={c}
+      type="linear"
+      stroke={colors[key]}
+      strokeWidth={2}
+      dot={true}
+      key={key++}
+    />)
+  }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Line Chart - Linear</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>President Race</CardTitle>
+        <CardDescription>6 Candidates: 1 Position</CardDescription>
       </CardHeader>
       <ChartContainer config={chartConfig}>
         <LineChart
           accessibilityLayer
-          data={chartData}
+          data={tally}
           margin={{
             left: 12,
             right: 12,
@@ -90,13 +92,7 @@ const ResultGraph = () => {
             tickMargin={8}
             tickFormatter={(value) => value.slice(0, 3)}
           />
-          <Line
-            dataKey="desktop"
-            type="linear"
-            stroke="var(--color-desktop)"
-            strokeWidth={2}
-            dot={false}
-          />
+          {lines}
         </LineChart>
       </ChartContainer>
       {
@@ -117,7 +113,7 @@ export const useCandidates = () => {
   const token = useToken();
 
   // get all candidates
-  const { data: results } = useQuery<Candidate[]>({
+  const { data: results } = useQuery<any[]>({
     queryKey: ["results", "all"],
     queryFn: async () => {
       const response = await fetch(`${BASE_URL}/results/2`, {
@@ -126,7 +122,17 @@ export const useCandidates = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      return response.json();
+      // return response.json();
+      
+      return [
+          {
+              'A': 15, 'E': 0, 'L': 0, 'F': 6, 'B': 3, 'G': 0,
+              'H': 3, 'I': 0, 'J': 0, 'K': 0, 'C': 6, 'D': 0,
+          },
+          { 'E': 2, 'F': 11, 'B': 6, 'H': 5, 'C': 10, 'D': 2 },
+          { 'F': 11, 'B': 6, 'H': 5, 'C': 10, 'D': 2 },
+          { 'F': 11, 'B': 7, 'H': 6, 'C': 10 },
+      ]
     },
   });
 

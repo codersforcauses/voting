@@ -109,6 +109,7 @@ export const racesTable = sqliteTable("race", {
     enum: ["closed", "open", "finished"],
   }).default("closed"),
   current: int({ mode: "boolean" }).default(false),
+  tally: text(),
 });
 
 export const racesRelations = relations(racesTable, ({ one, many }) => ({
