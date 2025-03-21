@@ -6,7 +6,6 @@ import {
   primaryKey,
   sqliteTable,
   text,
-  unique,
 } from "drizzle-orm/sqlite-core";
 
 export const seatsTable = sqliteTable("seats", {

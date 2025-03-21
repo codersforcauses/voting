@@ -64,7 +64,7 @@ const Vote = ({ logout }: { logout: () => void }) => {
         </div>
         <h2 className="text-md">Nominated Candidates</h2>
         <Accordion type="multiple" className="pb-10">
-          {candidates.map(({ name, id, ...data }) => (
+          {candidates.map(({ name, id, nominations = [], ...data }) => (
             <AccordionItem key={name} value={id.toString()}>
               <AccordionTrigger>
                 <div className="text-xl font-semibold flex gap-1">
@@ -82,6 +82,13 @@ const Vote = ({ logout }: { logout: () => void }) => {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="gap-4 flex flex-col">
+                <div className="flex gap-2 text-xs">
+                  {nominations.map(({ positions }) => (
+                    <div className="bg-accent text-accent-foreground py-1 px-2">
+                      {positions.title}
+                    </div>
+                  ))}
+                </div>
                 {Object.entries(data)
                   .filter(([key]) => QUESTIONS.find((q) => q.id === key))
                   .map(([key, value]) => (
