@@ -11,7 +11,7 @@ type WSData = {
 
 type RaceStatus = "closed" | "open" | "finished";
 
-interface Race {
+export interface Race {
   race: {
     id: number;
     position_id: number;
@@ -21,7 +21,7 @@ interface Race {
   positions: Position;
 }
 
-interface BaseCandidate {
+export interface Candidate {
   id: number;
   name: string;
   position_id: number;
@@ -33,27 +33,22 @@ interface BaseCandidate {
   past_clubs: string;
   say_something: string;
   student_num: string | number;
+  nominations: Nomination[]
 }
 
-interface Candidate extends BaseCandidate {
-  nominations: {
-    positions: {
-      id: number;
-      title: string;
-    };
-  }[];
+export interface Nomination {
+  positions: {
+    id: number;
+    title: string;
+  };
 }
 
-interface ElectedCandidate {
+export interface ElectedCandidate {
   elected: {
     candidate_id: number;
     race_id: number;
   };
-  candidates: {
-    id: number;
-    isMember: boolean;
-    name: string;
-  };
+  candidates: Candidate
 }
 
 export const useWS = () => {
@@ -151,7 +146,7 @@ export const useCandidates = (position_id?: number | string) => {
   const token = useToken();
 
   // get by position id
-  const { data: candidatesByPosition } = useQuery<BaseCandidate[]>({
+  const { data: candidatesByPosition } = useQuery<Candidate[]>({
     enabled: !!position_id,
     refetchInterval: 3000,
     queryKey: ["nominees", position_id],

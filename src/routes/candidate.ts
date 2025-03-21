@@ -70,7 +70,7 @@ app.get(
 
         return c.json(data);
       } else {
-        const data = DBData.map(({ candidates }) => ({
+        const data = DBData.map(({ candidates, nominations }) => ({
           id: candidates?.id,
           name: candidates?.name,
           join_reason: candidates?.join_reason,
@@ -80,6 +80,7 @@ app.get(
           past_clubs: candidates?.past_clubs,
           attend: candidates?.attend,
           say_something: candidates?.say_something,
+          nominations
         }));
         return c.json(data);
       }
@@ -149,6 +150,7 @@ app.post("/", requireAdmin, zValidator("json", insertSchema), async (c) => {
     );
     return c.json({ message: "Created successfully" });
   } catch (err) {
+    console.error(err)
     throw new HTTPException(400, { message: "Failed to create candidate" });
   }
 });

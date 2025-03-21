@@ -22,6 +22,20 @@ export function getVotePreference(
     );
 }
 
+export function getVotePreferenceForCandidate(
+  this: VotingObject,
+  candidate_id: number
+) {
+  return this.db
+    .select()
+    .from(votePreferencesTable)
+    .where(
+      and(
+        eq(votePreferencesTable.candidate_id, candidate_id)
+      )
+    );
+}
+
 export function getVotePreferencesForVote(this: VotingObject, vote_id: number) {
   return this.db
     .select()

@@ -4,6 +4,23 @@ import NominationCard from "./card";
 import { BASE_URL } from "@/lib/utils";
 import { useToken } from "@/lib/user";
 
+interface Candidate {
+  id: number;
+  name: string;
+  isMember: boolean;
+  email: string;
+  graduation: string;
+  position_id: number;
+  attend: boolean;
+  club_benefit: string;
+  initiative: string;
+  join_reason: string;
+  other_clubs: string;
+  past_clubs: string;
+  say_something: string;
+  student_num: string | number;
+}
+
 const Nominations = () => {
   const { hash } = useLocation();
   const token = useToken();
@@ -36,7 +53,7 @@ const Nominations = () => {
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      {candidates?.map((data) => (
+      {candidates?.map((data: Candidate) => (
         <NominationCard key={data.name} {...data} />
       ))}
     </div>

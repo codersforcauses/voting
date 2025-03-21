@@ -25,6 +25,7 @@ import type { Position } from "@/lib/types";
 import Auth from "@/components/auth";
 import { Button } from "@/components/ui/button";
 import Seats from "@/components/admin/seat";
+import Results from "@/components/admin/results";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -109,7 +110,7 @@ export default function Admin() {
       CurrentView = Nominations;
     } else if (hash.includes("result")) {
       currentPage = `Result - ${title}`;
-      CurrentView = () => <> </>;
+      CurrentView = Results;
     }
   }
 

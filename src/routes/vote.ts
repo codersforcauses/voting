@@ -8,6 +8,7 @@ const app = factory.createApp();
 
 app.get(
   "/count/:id",
+  requireAdmin,
   zValidator(
     "param",
     z.object({
@@ -21,6 +22,31 @@ app.get(
       c.var.STUB.countUsers(),
     ]);
     return c.json({ votes, users });
+  }
+);
+
+app.get(
+  "/winningvotes/:id",
+  requireAdmin,
+  zValidator(
+    "param",
+    z.object({
+      id: z.number({ coerce: true }),
+    })
+  ),
+  async (c) => {
+    const { id } = c.req.valid("param");
+    const winners = await c.var.STUB.getElectedForRace(id)
+    const elected_preferences = (await Promise.all(winners.map(winner => {
+      return c.var.STUB.getVotePreferenceForCandidate(winner.elected.candidate_id)
+    }))).map(preferences => {
+      return preferences.reduce<{ [key: number]: number }>((acc, curr) => {
+        if (!acc[curr.preference]) acc[curr.preference] = 0
+        acc[curr.preference] += 1
+        return acc
+      }, {})
+    })
+    return c.json(elected_preferences);
   }
 );
 

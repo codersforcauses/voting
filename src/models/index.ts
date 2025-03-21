@@ -8,7 +8,7 @@ import { getAllNominations, getNominationsForPosition, getNominationsForCandidat
 import { getRace, getAllRaces, insertRace, updateRace, deleteRace, getCurrentRace, saveElectedForRace } from "./db/race";
 import { getSeat, insertSeat, deleteSeat, getSeatByCode } from "./db/seat";
 import { countUsers, getAllUsers, insertUser, updateUser, getUser, getUserByEmail, deleteUser } from "./db/user";
-import { getAllVotePreferences, insertVotePreference, updateVotePreference, getVotePreference, deleteVotePreference, getVotePreferencesForVote } from "./db/vote-preference";
+import { getAllVotePreferences, insertVotePreference, updateVotePreference, getVotePreference, deleteVotePreference, getVotePreferencesForVote, getVotePreferenceForCandidate } from "./db/vote-preference";
 import { countVotesForRace, getAllVotesForRace, insertVote, updateVote, getAllVotesByUser, getVoteByUserAndRace, deleteVote, getVoteAggregateForRace } from "./db/vote";
 import { seedMasterSeat, devSeeds, seedPositions, seedRaces } from "./seed";
 import * as schema from "./schema";
@@ -275,6 +275,12 @@ export class VotingObject extends DurableObject {
     ...args: Parameters<typeof getVotePreferencesForVote>
   ) {
     return getVotePreferencesForVote.call(this, ...args);
+  }
+  
+  getVotePreferenceForCandidate(
+    ...args: Parameters<typeof getVotePreferenceForCandidate>
+  ) {
+    return getVotePreferenceForCandidate.call(this, ...args);
   }
 
   insertVotePreference(...args: Parameters<typeof insertVotePreference>) {
