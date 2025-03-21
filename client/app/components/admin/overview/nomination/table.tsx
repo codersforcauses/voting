@@ -76,7 +76,7 @@ export const columns = (
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const candidate = row.original;
+      const { id } = row.original;
 
       return (
         <DropdownMenu>
@@ -92,12 +92,12 @@ export const columns = (
             <DropdownMenuLabel className="text-muted-foreground">
               Actions
             </DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => editCandidate(candidate.id)}>
+            <DropdownMenuItem onClick={() => editCandidate(id)}>
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-destructive-foreground"
-              onClick={() => deleteCandidate(candidate.id)}
+              onClick={() => deleteCandidate(id)}
             >
               Delete
             </DropdownMenuItem>
@@ -274,7 +274,11 @@ const CandidateTable = ({
         </div>
       </div>
       <Dialog open={editCandidateID !== -1} onOpenChange={closeEditDialog}>
-        <NominationEdit id={editCandidateID} close={closeEditDialog} />
+        <NominationEdit
+          key={editCandidateID}
+          id={editCandidateID}
+          close={closeEditDialog}
+        />
       </Dialog>
     </div>
   );

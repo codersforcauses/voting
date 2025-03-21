@@ -31,7 +31,7 @@ const NominationCard = () => {
   };
 
   return (
-    <Card className="md:col-span-2 max-w-[calc(100vw---spacing(4))] h-full lg:col-span-4 gap-4">
+    <Card className="max-w-[calc(100vw---spacing(4))] h-full gap-4">
       <CardHeader>
         <CardTitle>Candidates</CardTitle>
         <CardDescription></CardDescription>

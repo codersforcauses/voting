@@ -100,7 +100,7 @@ const PositionCard = ({ positions }: { positions: Position[] }) => {
   };
 
   return (
-    <Collapsible className="md:col-span-2 lg:col-span-4 gap-4">
+    <Collapsible className="gap-4">
       <Card>
         <CardHeader className="flex flex-row justify-between items-center">
           <div>

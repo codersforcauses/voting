@@ -36,7 +36,12 @@ interface BaseCandidate {
 }
 
 interface Candidate extends BaseCandidate {
-  positions: number[];
+  nominations: {
+    positions: {
+      id: number;
+      title: string;
+    };
+  }[];
 }
 
 interface ElectedCandidate {
@@ -48,7 +53,7 @@ interface ElectedCandidate {
     id: number;
     isMember: boolean;
     name: string;
-  }
+  };
 }
 
 export const useWS = () => {
@@ -146,7 +151,7 @@ export const useCandidates = (position_id?: number | string) => {
   const token = useToken();
 
   // get by position id
-  const { data: candidatesByPosition } = useQuery<Candidate[]>({
+  const { data: candidatesByPosition } = useQuery<BaseCandidate[]>({
     enabled: !!position_id,
     queryKey: ["nominees", position_id],
     queryFn: async () => {

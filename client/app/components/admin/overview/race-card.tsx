@@ -138,7 +138,7 @@ const RaceCard = () => {
   };
 
   return (
-    <Card className="lg:col-span-3">
+    <Card>
       <CardHeader className="flex-row items-center justify-between">
         <div className="flex flex-col gap-1.5">
           <CardTitle>Voting</CardTitle>
@@ -180,9 +180,9 @@ const RaceCard = () => {
           </Tooltip>
         </TooltipProvider>
       </CardHeader>
-      <CardContent className="flex flex-col flex-1 gap-4">
+      <CardContent className="flex flex-col gap-4">
         <div className="h-full">
-          {count && (
+          {count ? (
             <div>
               <div className="tracking-tight text-2xl font-semibold tabular-nums flex">
                 <SlidingNumber value={count.votes.toString()} />/{count.users}
@@ -190,6 +190,11 @@ const RaceCard = () => {
               <div className="text-sm text-muted-foreground">
                 Votes Submitted
               </div>
+            </div>
+          ) : (
+            <div className="text-muted-foreground text-sm">
+              Voting has not yet started and voters can see every candidate.
+              Select a position below to start the voting process.
             </div>
           )}
         </div>

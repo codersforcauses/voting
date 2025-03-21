@@ -7,7 +7,7 @@ import {
 import type { Route } from "./+types/admin";
 import { AppSidebar } from "@/components/admin/app-sidebar";
 import Users from "@/components/admin/users";
-import { redirect, useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb,
@@ -24,6 +24,7 @@ import { BASE_URL } from "@/lib/utils";
 import type { Position } from "@/lib/types";
 import Auth from "@/components/auth";
 import { Button } from "@/components/ui/button";
+import Seats from "@/components/admin/seat";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -97,6 +98,9 @@ export default function Admin() {
   } else if (hash.includes("users")) {
     currentPage = "Users";
     CurrentView = Users;
+  } else if (hash.includes("seats")) {
+    currentPage = "Seats";
+    CurrentView = Seats;
   } else {
     const title = decodeURI(hash.split("?")[1].split("=")[1]);
 

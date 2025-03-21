@@ -86,7 +86,6 @@ interface NominationFormProps {
   btnText: string;
   defaultValues: FormSchema;
   sendRequest: UseMutateAsyncFunction<Response, Error, FormSchema, unknown>;
-  close: () => void; // TODO: fix dialog not closing after edit
 }
 
 const NominationForm = (props: NominationFormProps) => {
@@ -118,7 +117,6 @@ const NominationForm = (props: NominationFormProps) => {
         say_something: isAttending ? "" : data.say_something,
       };
       await props.sendRequest(nominee);
-      props.close();
     } catch (error) {
       console.error(error);
     }

@@ -8,7 +8,7 @@ interface EditForm {
   close: () => void;
 }
 
-const NominationEdit = ({ id }: EditForm) => {
+const NominationEdit = ({ id, close }: EditForm) => {
   const token = useToken();
   const queryClient = useQueryClient();
   const { data } = useQuery({
@@ -41,6 +41,7 @@ const NominationEdit = ({ id }: EditForm) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["nominees", "all"] });
+      close();
     },
   });
 
@@ -61,7 +62,6 @@ const NominationEdit = ({ id }: EditForm) => {
         btnText="Finish"
         defaultValues={defaultValues}
         sendRequest={mutation.mutateAsync}
-        close={close}
       />
     )
   );

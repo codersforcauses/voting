@@ -97,66 +97,61 @@ const insertSchema = createInsertSchema(candidatesTable)
   })
   .omit({ isMember: true, id: true });
 
-app.post(
-  "/",
-  requireAdmin,
-  zValidator("json", insertSchema),
-  async (c) => {
-    const validated = c.req.valid("json");
-    const { CLERK_SECRET_KEY } = env<{
-      CLERK_SECRET_KEY: string;
-    }>(c);
+app.post("/", requireAdmin, zValidator("json", insertSchema), async (c) => {
+  const validated = c.req.valid("json");
+  const { CLERK_SECRET_KEY } = env<{
+    CLERK_SECRET_KEY: string;
+  }>(c);
 
-    let isMember;
+  let isMember;
 
-    try {
-      const clerkClient = createClerkClient({
-        secretKey: CLERK_SECRET_KEY,
-      });
+  try {
+    const clerkClient = createClerkClient({
+      secretKey: CLERK_SECRET_KEY,
+    });
 
-      const { data: clerkUsers } = await clerkClient.users.getUserList({
-        emailAddress: [validated.email],
-        query: validated.name,
-      });
-      if (clerkUsers.length === 0) {
-        isMember = false;
-      } else if (clerkUsers.length === 1) {
-        const response = await fetch(
-          `https://codersforcauses.org/api/trpc/user.get?batch=1&input={"0":{"json":"${clerkUsers[0].id}"}}`
-        );
-
-        const [
-          {
-            result: {
-              data: { json: userData },
-            },
-          },
-        ] = await response.json<UserDataResponseType>();
-        isMember = !!userData.role;
-      } else {
-        throw new HTTPException(500, {
-          message: "Found too many results matching the candidate",
-        });
-      }
-
-      const [{ id }] = await c.var.STUB.insertCandidate({
-        ...validated,
-        isMember,
-      });
-      await Promise.all(
-        validated.positions.map((positionId) => {
-          return c.var.STUB.insertNomination({
-            candidate_id: id,
-            position_id: positionId,
-          });
-        })
+    const { data: clerkUsers } = await clerkClient.users.getUserList({
+      emailAddress: [validated.email],
+      query: validated.name,
+    });
+    if (clerkUsers.length === 0) {
+      isMember = false;
+    } else if (clerkUsers.length === 1) {
+      const response = await fetch(
+        `https://codersforcauses.org/api/trpc/user.get?batch=1&input={"0":{"json":"${clerkUsers[0].id}"}}`
       );
-      return c.json({ message: "Created successfully" });
-    } catch (err) {
-      throw new HTTPException(400, { message: "Failed to create candidate" });
+
+      const [
+        {
+          result: {
+            data: { json: userData },
+          },
+        },
+      ] = await response.json<UserDataResponseType>();
+      isMember = !!userData.role;
+    } else {
+      throw new HTTPException(500, {
+        message: "Found too many results matching the candidate",
+      });
     }
+
+    const [{ id }] = await c.var.STUB.insertCandidate({
+      ...validated,
+      isMember,
+    });
+    await Promise.all(
+      validated.positions.map((positionId) => {
+        return c.var.STUB.insertNomination({
+          candidate_id: id,
+          position_id: positionId,
+        });
+      })
+    );
+    return c.json({ message: "Created successfully" });
+  } catch (err) {
+    throw new HTTPException(400, { message: "Failed to create candidate" });
   }
-);
+});
 
 app.patch(
   "/:id",

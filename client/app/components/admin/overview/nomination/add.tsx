@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import NominationForm, { type FormSchema } from "./form";
 import { BASE_URL } from "@/lib/utils";
 import { useToken } from "@/lib/user";
@@ -21,7 +21,7 @@ const defaultValues: FormSchema = {
 
 const NominationAdd = ({ close }: { close: () => void }) => {
   const token = useToken();
-
+  const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: async ({ isMember, ...data }: FormSchema) => {
       const response = await fetch(`${BASE_URL}/candidate`, {
@@ -35,6 +35,10 @@ const NominationAdd = ({ close }: { close: () => void }) => {
       const val = await response.json();
       return val;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["nominees", "all"] });
+      close();
+    },
   });
 
   return (
@@ -43,7 +47,6 @@ const NominationAdd = ({ close }: { close: () => void }) => {
       btnText="Add nominee"
       defaultValues={defaultValues}
       sendRequest={mutation.mutateAsync}
-      close={close}
     />
   );
 };
