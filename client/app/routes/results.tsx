@@ -50,37 +50,43 @@ export default function Results() {
 
 
   return (
-    <main className="flex flex-col gap-10 justify-center items-center h-screen">
-      <div className="text-4xl">{currentRace?.positions.title}</div>
-
+    <main className="flex flex-col gap-3 justify-center items-center h-screen">
       {currentRace?.race.status === "closed" && (
-          <div className="flex gap-4 box-content">
+        <>
+          <div className="text-2xl">Nominees</div>
+          <div className="text-5xl  mb-10">{currentRace?.positions.title}</div>
+          <div className="flex gap-4">
           {candidates.map((candidate) => (
-            <div key={candidate.id} className="flex justify-center items-center w-72 h-72 text-background bg-foreground text-5xl font-mono">
+            <div key={candidate.id} className="flex justify-center items-center w-50 h-50 text-background bg-foreground text-4xl font-mono">
               {candidate.name}
             </div>
-          )
-        )}
-      </div>
+          ))}
+        </div>
+      </>
       )}
       {currentRace?.race.status === "open" && (
         <>
-       <div className="text-6xl text-foreground font-mono">Commence Voting</div>
-       {count && (
-          <div className="text-2xl">{count.votes.toString()}/{count.users}</div>
-        )
-       }</>
+          <div className="text-5xl  mb-10">{currentRace?.positions.title}</div>
+          <div className="text-6xl text-foreground font-mono">Commence Voting</div>
+          {count && (
+            <div className="text-2xl">{count.votes.toString()}/{count.users}</div>
+          )}
+        </>
       )}
 
       {currentRace?.race.status === "finished" && (
-          <div className="flex gap-4 box-content">
-          {elected && elected.map((candidate) => (
-            <div key={candidate.candidates.id} className="flex text-center justify-center items-center w-72 h-72 text-background bg-foreground text-5xl font-mono">
-              {candidate.candidates.name}
-            </div>
-          )
-        )}
-      </div>
+        <>
+          <div className="text-2xl">Winner{elected && elected.length > 1 && 's'}</div>
+          <div className="text-5xl  mb-10">{currentRace?.positions.title}</div>
+            <div className="flex gap-4">
+            {elected && elected.map((candidate) => (
+              <div key={candidate.candidates.id} className="flex text-center justify-center items-center w-50 h-50 text-background bg-foreground text-4xl font-mono">
+                {candidate.candidates.name}
+              </div>
+            )
+          )}
+        </div>
+      </>
       )}  
       
       {/* <ResultGraph></ResultGraph> */}
