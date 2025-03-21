@@ -90,7 +90,10 @@ const Vote = ({ logout }: { logout: () => void }) => {
                   ))}
                 </div>
                 {Object.entries(data)
-                  .filter(([key]) => QUESTIONS.find((q) => q.id === key))
+                  .filter(
+                    ([key, value]) =>
+                      value && QUESTIONS.find((q) => q.id === key)
+                  )
                   .map(([key, value]) => (
                     <div key={key}>
                       <div className="text-muted-foreground">
