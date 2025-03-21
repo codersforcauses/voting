@@ -51,7 +51,11 @@ export default function Results() {
   return (
     <main className="flex flex-col gap-3 justify-center items-center h-screen">
       {!currentRace && (
-        <img src="/qr-code.png" alt="Voting website QR code"></img>
+        <img
+          src="/qr-code.png"
+          alt="Voting website QR code"
+          className="w-3/12 aspect-square"
+        />
       )}
       {currentRace?.race.status === "closed" && (
         <>
