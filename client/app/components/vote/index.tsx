@@ -42,7 +42,8 @@ const Vote = ({ logout }: { logout: () => void }) => {
     if (wsData?.status === "finished") refetchElected();
   }, [wsData?.status]);
 
-  randomize(candidates);
+  const randomizeCandidates = [...candidates];
+  randomize(randomizeCandidates);
 
   return (
     <>
@@ -125,7 +126,7 @@ const Vote = ({ logout }: { logout: () => void }) => {
           race_id={currentRace.race.id}
           status={currentRace.race.status}
           position={currentRace?.positions?.title!}
-          candidates={candidates}
+          candidates={randomizeCandidates}
         />
       ) : (
         <div className="fixed bottom-0 left-0 flex justify-center w-full p-2 cursor-pointer bg-background border-t-1 border-t-border">
