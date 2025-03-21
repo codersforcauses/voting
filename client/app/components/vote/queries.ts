@@ -153,6 +153,7 @@ export const useCandidates = (position_id?: number | string) => {
   // get by position id
   const { data: candidatesByPosition } = useQuery<BaseCandidate[]>({
     enabled: !!position_id,
+    refetchInterval: 3000,
     queryKey: ["nominees", position_id],
     queryFn: async () => {
       const response = await fetch(
@@ -171,6 +172,7 @@ export const useCandidates = (position_id?: number | string) => {
   // get all candidates
   const { data: candidatesList } = useQuery<Candidate[]>({
     enabled: !position_id,
+    refetchInterval: 3000,
     queryKey: ["nominees", "all"],
     queryFn: async () => {
       const response = await fetch(`${BASE_URL}/candidate`, {
