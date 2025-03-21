@@ -129,7 +129,7 @@ app.post("/", requireAdmin, zValidator("json", insertSchema), async (c) => {
           },
         },
       ] = await response.json<UserDataResponseType>();
-      isMember = !!userData.role;
+      isMember = !!userData?.role;
     } else {
       throw new HTTPException(500, {
         message: "Found too many results matching the candidate",
