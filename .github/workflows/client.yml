@@ -32,4 +32,4 @@ jobs:
           workingDirectory: './client'
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          environment: ${{ DEPLOYMENT_ENV }}
+          environment: ${{ env.DEPLOYMENT_ENV }}
