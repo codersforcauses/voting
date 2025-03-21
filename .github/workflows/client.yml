@@ -25,7 +25,7 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          VITE_API_URL: https://openvote-api-prod.drub.workers.dev
+          VITE_API_URL: https://openvote-api-${{ env.DEPLOYMENT_ENV }}.drub.workers.dev
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
