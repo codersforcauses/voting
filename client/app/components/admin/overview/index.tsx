@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import SeatGeneratorCard from "./seat-card";
 import NominationCard from "./nomination/card";
 import PositionCard from "./position-card";
 import RaceCard from "./race-card";
@@ -24,9 +23,8 @@ const OverView = () => {
   });
 
   return (
-    <div className="grid h-full gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="flex flex-col h-full gap-4">
       <RaceCard />
-      <SeatGeneratorCard />
       <NominationCard />
       {data && <PositionCard positions={data} />}
     </div>

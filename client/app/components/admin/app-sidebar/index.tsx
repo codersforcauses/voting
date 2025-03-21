@@ -28,6 +28,12 @@ const items = [
     hash: "#users",
     icon: "group",
   },
+  {
+    title: "Seats",
+    url: "#seats",
+    hash: "#seats",
+    icon: "local_activity",
+  },
 ];
 
 export function AppSidebar({
