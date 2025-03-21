@@ -13,11 +13,19 @@ import {
   usePositions,
   useResults,
   useWS,
+  type Candidate,
 } from "./queries";
 import { Button } from "../ui/button";
 import { Logo } from "../ui/logo";
 import { Link } from "react-router";
 import { useTheme } from "../theme-provider";
+
+function randomize(array: Candidate[]) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
 
 const Vote = ({ logout }: { logout: () => void }) => {
   const { setTheme, theme } = useTheme();
@@ -33,6 +41,8 @@ const Vote = ({ logout }: { logout: () => void }) => {
   React.useEffect(() => {
     if (wsData?.status === "finished") refetchElected();
   }, [wsData?.status]);
+
+  randomize(candidates);
 
   return (
     <>
