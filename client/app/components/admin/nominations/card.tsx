@@ -34,7 +34,7 @@ const NominationCard = (props: NominationCardProps) => {
     <Card className="relative gap-4">
       <TooltipProvider>
         <div className="absolute top-3 right-3 flex gap-2">
-          {props.isMember && (
+          {!props.isMember && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="grid p-2 pr-0.5 rounded-full cursor-default size-10 text-destructive-foreground bg-destructive/10 place-items-center">
@@ -42,7 +42,7 @@ const NominationCard = (props: NominationCardProps) => {
                 </span>
               </TooltipTrigger>
               <TooltipContent>
-                Person is not a member to run for committee
+                Not currently a CFC member
               </TooltipContent>
             </Tooltip>
           )}
@@ -54,7 +54,7 @@ const NominationCard = (props: NominationCardProps) => {
                 </span>
               </TooltipTrigger>
               <TooltipContent>
-                Person is unable to attend the AGM
+                Unable to attend AGM
               </TooltipContent>
             </Tooltip>
           )}
