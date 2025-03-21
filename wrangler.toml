@@ -3,10 +3,6 @@ main = "src/index.ts"
 compatibility_date = "2025-03-17"
 compatibility_flags = ["nodejs_compat"]
 
-[[durable_objects.bindings]]
-name = "VOTING_OBJECT"
-class_name = "VotingObject"
-
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["VotingObject"]
@@ -19,11 +15,28 @@ type = "Text"
 globs = ["**/*.sql"]
 fallthrough = true
 
+# These are repeated due to defaults
+# being unable to flow to different
+# environments currently in wrangler
 [vars]
 ENVIRONMENT = "dev"
 CLERK_SECRET_KEY = ""
 AUTH_SECRET_KEY = ""
 INIT_SEAT = ""
+
+[[durable_objects.bindings]]
+name = "VOTING_OBJECT"
+class_name = "VotingObject"
+
+[env.dev.vars]
+ENVIRONMENT = "dev"
+CLERK_SECRET_KEY = ""
+AUTH_SECRET_KEY = ""
+INIT_SEAT = ""
+
+[[env.dev.durable_objects.bindings]]
+name = "VOTING_OBJECT"
+class_name = "VotingObject"
 
 [env.prod.vars]
 ENVIRONMENT = "prod"

@@ -14,6 +14,8 @@ jobs:
       run:
         working-directory: ./client
     runs-on: ubuntu-latest
+    env:
+      DEPLOYMENT_ENV: ${{ inputs.environment == 'Production' && 'prod' || 'dev'}}
     name: Deploy
     steps:
       - uses: actions/checkout@v4
@@ -30,3 +32,4 @@ jobs:
           workingDirectory: './client'
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          environment: ${{ DEPLOYMENT_ENV }}
