@@ -46,7 +46,7 @@ const NominationCard = (props: NominationCardProps) => {
               </TooltipContent>
             </Tooltip>
           )}
-          {props.attend && (
+          {!props.attend && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="grid p-2 rounded-full cursor-default size-10 text-muted-foreground bg-muted/50 place-items-center">

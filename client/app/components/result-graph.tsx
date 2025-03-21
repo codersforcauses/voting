@@ -9,29 +9,9 @@ import {
 import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
 
 import { Line, LineChart, XAxis, ReferenceLine } from "recharts";
-import { BASE_URL } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { useToken } from "@/lib/user";
+import type { Position } from "@/lib/types";
 
-interface BaseCandidate {
-  id: number;
-  name: string;
-  position_id: number;
-  attend: boolean;
-  club_benefit: string;
-  initiative: string;
-  join_reason: string;
-  other_clubs: string;
-  past_clubs: string;
-  say_something: string;
-  student_num: string | number;
-}
-
-interface Candidate extends BaseCandidate {
-  positions: number[];
-}
-
-type Race = {
+export type Race = {
   current: boolean;
   id: number;
   position_id: number;
@@ -50,16 +30,10 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const ResultGraph = () => {
-  // const positions = usePositions();
-  const race = useRace() as Race[];
-  // console.log("Race", race?.at(0));
-  let tally;  
+const ResultGraph = ({ race }: { race: Race }) => {  
+  const tally = JSON.parse(race?.tally ?? "[]");
+  console.log("Successful parse", tally);
   
-  tally = JSON.parse(race?.at(0)?.tally ?? "[]");
-  // console.log("Successful parse", tally);
-  
-  // console.log("Tally", tally);
   const candidates = tally.at(0) ?? {};
   const lines: any[] = [];
   let key = 0;
@@ -84,8 +58,7 @@ const ResultGraph = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>President Race</CardTitle>
-        <CardDescription>6 Candidates: 1 Position</CardDescription>
+        <CardTitle>Result Data</CardTitle>
       </CardHeader>
       <ChartContainer config={chartConfig}>
         <LineChart
@@ -107,46 +80,8 @@ const ResultGraph = () => {
           {lines.length > 0 && <ReferenceLine y={30} stroke="red" strokeDasharray="5 5" label="Quota" />}
         </LineChart>
       </ChartContainer>
-      {
-      // <CardFooter className="flex-col items-start gap-2 text-sm">
-      //   <div className="flex gap-2 font-medium leading-none">
-      //     Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-      //   </div>
-      //   <div className="leading-none text-muted-foreground">
-      //     Showing total visitors for the last 6 months
-      //   </div>
-      // </CardFooter>
-    }
     </Card>
   );
-};
-
-export const useRace = () => {
-  const token = useToken();
-
-  // get all candidates
-  const { data: results } = useQuery<Race[]>({
-    queryKey: ["results", "all"],
-    queryFn: async () => {
-      const response = await fetch(`${BASE_URL}/race/1`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      // console.log(await response.json());
-      return response.json();
-      
-      // return {
-      //   current: false,
-      //   id: 1,
-      //   position_id: 1,
-      //   status: "finished",
-      //   tally: "[{\"A\":50,\"E\":0,\"L\":0,\"F\":20,\"B\":10,\"H\":10,\"I\":0,\"J\":0,\"K\":0,\"C\":20,\"D\":0,\"G\":0},{\"E\":2,\"F\":22,\"B\":12,\"H\":10,\"C\":20,\"D\":4},{\"F\":22,\"B\":12,\"H\":10,\"C\":20,\"D\":4},{\"F\":22,\"B\":14,\"H\":12,\"C\":20},{\"F\":22,\"B\":24,\"C\":20},{\"F\":22,\"B\":44}]"
-      // };
-    },
-  });
-  return results;
 };
 
 export default ResultGraph;

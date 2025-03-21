@@ -1,11 +1,13 @@
 import { factory } from "@/app";
+import { requireAdmin } from "@/middleware/auth";
 import { zValidator } from "@hono/zod-validator";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
 const app = factory.createApp();
 
-app.post("/recalc/race/:id", 
+app.post("/recalc/race/:id",
+  requireAdmin,
   zValidator(
     "param",
     z.object({

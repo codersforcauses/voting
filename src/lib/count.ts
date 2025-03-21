@@ -10,7 +10,5 @@ export function autocount<C extends Candidate>(
   const candidates = race.count().map((i) => i.candidate as C);
   const tally = race.countback;
 
-  console.log(tally);
-
   return {candidates, tally};
 }

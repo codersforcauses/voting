@@ -39,7 +39,8 @@ export async function updateRace(
     .update(racesTable)
     .set({
       current: true,
-      status: data.status
+      status: data.status,
+      tally: data.tally
     })
     .where(eq(racesTable.id, id)).returning().get();
 
@@ -79,7 +80,9 @@ export function saveElectedForRace(
   }, {})
 
   const res = autocount(formattedData, position.openings)
-  this.updateRace(id, {tally: JSON.stringify(res.tally)});
+
+  const tally_shallow = [...res.tally.entries()].map(([key, map]) => [key, [...map]])
+  this.updateRace(id, {tally: JSON.stringify(tally_shallow)});
   
   return this.insertElected(res.candidates.map(candidate => ({
     candidate_id: candidate,
