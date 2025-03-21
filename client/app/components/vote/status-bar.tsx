@@ -86,7 +86,7 @@ const StatusBar = ({
     }
   }, [id, race_id, data, drawerIsOpen]);
 
-  const voteMutation = useMutation({
+  const { mutateAsync, isPending } = useMutation({
     mutationKey: ["vote", position],
     mutationFn: async (order: any) => {
       const res = await fetch(`${BASE_URL}/vote/${race_id}`, {
@@ -103,7 +103,7 @@ const StatusBar = ({
 
   const onSubmit = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
-    voteMutation.mutateAsync(order);
+    mutateAsync(order);
     setDrawerIsOpen(false);
   };
 
@@ -136,7 +136,18 @@ const StatusBar = ({
             ))}
           </Reorder.Group>
           <DrawerFooter>
-            <Button onClick={onSubmit}>Done</Button>
+            <Button
+              disabled={isPending}
+              className="w-full relative"
+              onClick={onSubmit}
+            >
+              Submit preferences
+              {isPending && (
+                <span className=" right-4 material-symbols-sharp !text-base">
+                  progress_activity
+                </span>
+              )}
+            </Button>
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
