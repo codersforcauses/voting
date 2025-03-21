@@ -8,7 +8,6 @@ const app = factory.createApp();
 
 app.get(
   "/count/:id",
-  requireAdmin,
   zValidator(
     "param",
     z.object({
