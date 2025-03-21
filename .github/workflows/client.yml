@@ -7,6 +7,11 @@ on:
     paths:
       - 'client/**'
       - '.github/workflows/client.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: Choose an environment to deploy to
 
 jobs:
   deploy:
