@@ -20,7 +20,8 @@ jobs:
         working-directory: ./client
     runs-on: ubuntu-latest
     env:
-      DEPLOYMENT_ENV: ${{ inputs.environment == 'Production' && 'prod' || 'dev'}}
+      DEPLOYMENT_ENV: ${{ inputs.environment == 'Production' && 'prod' || 'dev' }}
+    environment: ${{ inputs.environment == 'Production' && 'Production' || 'Dev' }}
     name: Deploy
     steps:
       - uses: actions/checkout@v4
