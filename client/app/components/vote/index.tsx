@@ -93,13 +93,15 @@ const Vote = ({ logout }: { logout: () => void }) => {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="gap-4 flex flex-col">
-                <div className="flex gap-2 text-xs">
-                  {nominations?.map(({ positions }) => (
-                    <div className="bg-accent text-accent-foreground py-1 px-2">
-                      {positions?.title}
-                    </div>
-                  ))}
-                </div>
+                {nominations?.length > 0 && (
+                  <div className="flex gap-2 text-xs">
+                    {nominations?.map(({ positions }) => (
+                      <div className="bg-accent text-accent-foreground py-1 px-2">
+                        {positions?.title}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {Object.entries(data)
                   .filter(
                     ([key, value]) =>
