@@ -5,3 +5,12 @@ compatibility_date = "2025-01-04"
 directory = "build/client"
 not_found_handling = "single-page-application"
 html_handling = "drop-trailing-slash"
+
+[vars]
+ENVIRONMENT = "dev"
+
+[env.dev.vars]
+ENVIRONMENT = "dev"
+
+[env.prod.vars]
+ENVIRONMENT = "prod"

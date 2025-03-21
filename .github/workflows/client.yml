@@ -7,6 +7,11 @@ on:
     paths:
       - 'client/**'
       - '.github/workflows/client.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: Choose an environment to deploy to
 
 jobs:
   deploy:
@@ -14,6 +19,8 @@ jobs:
       run:
         working-directory: ./client
     runs-on: ubuntu-latest
+    env:
+      DEPLOYMENT_ENV: ${{ inputs.environment == 'Production' && 'prod' || 'dev'}}
     name: Deploy
     steps:
       - uses: actions/checkout@v4
@@ -23,10 +30,11 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          VITE_API_URL: https://openvote-api-prod.drub.workers.dev
+          VITE_API_URL: https://openvote-api-${{ env.DEPLOYMENT_ENV }}.drub.workers.dev
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
           workingDirectory: './client'
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          environment: ${{ env.DEPLOYMENT_ENV }}

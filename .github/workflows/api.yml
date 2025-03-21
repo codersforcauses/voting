@@ -7,10 +7,17 @@ on:
     paths-ignore:
       - 'client/**'
       - '.github/workflows/client.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: environment
+        description: Choose an environment to deploy to
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      DEPLOYMENT_ENV: ${{ inputs.environment == 'Production' && 'prod' || 'dev'}}
     name: Deploy
     steps:
       - uses: actions/checkout@v4
@@ -23,5 +30,5 @@ jobs:
         with:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: deploy --minify --env prod --var CLERK_SECRET_KEY:${{ secrets.CLERK_SECRET_KEY }} AUTH_SECRET_KEY:${{ secrets.AUTH_SECRET_KEY }} INIT_SEAT:${{ secrets.INIT_SEAT }}
-          environment: prod
+          command: deploy --minify --env ${{ env.DEPLOYMENT_ENV }} --var CLERK_SECRET_KEY:${{ secrets.CLERK_SECRET_KEY }} AUTH_SECRET_KEY:${{ secrets.AUTH_SECRET_KEY }} INIT_SEAT:${{ secrets.INIT_SEAT }}
+          environment: ${{ env.DEPLOYMENT_ENV }}

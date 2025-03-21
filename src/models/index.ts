@@ -2,65 +2,14 @@ import { DurableObject } from "cloudflare:workers";
 import { drizzle, DrizzleSqliteDODatabase } from "drizzle-orm/durable-sqlite";
 import { migrate } from "drizzle-orm/durable-sqlite/migrator";
 import migrations from "../../drizzle/migrations";
-import {
-  getAllPositions,
-  insertPosition,
-  updatePosition,
-  getPosition,
-  deletePosition,
-} from "./db/position";
-import {
-  getAllCandidates,
-  getAllCandidatesByPosition,
-  insertCandidate,
-  updateCandidate,
-  getCandidate,
-  deleteCandidate,
-} from "./db/candidate";
-import {
-  getAllNominations,
-  getNominationsForPosition,
-  getNominationsForCandidate,
-  insertNomination,
-  deleteNomination,
-} from "./db/nomination";
-import {
-  getRace,
-  getAllRaces,
-  insertRace,
-  updateRace,
-  deleteRace,
-  getCurrentRace,
-  saveElectedForRace,
-} from "./db/race";
+import { getAllPositions, insertPosition, updatePosition, getPosition, deletePosition } from "./db/position";
+import { getAllCandidates, getAllCandidatesByPosition, insertCandidate, updateCandidate, getCandidate, deleteCandidate } from "./db/candidate";
+import { getAllNominations, getNominationsForPosition, getNominationsForCandidate, insertNomination, deleteNomination } from "./db/nomination";
+import { getRace, getAllRaces, insertRace, updateRace, deleteRace, getCurrentRace, saveElectedForRace } from "./db/race";
 import { getSeat, insertSeat, deleteSeat, getSeatByCode } from "./db/seat";
-import {
-  countUsers,
-  getAllUsers,
-  insertUser,
-  updateUser,
-  getUser,
-  getUserByEmail,
-  deleteUser,
-} from "./db/user";
-import {
-  getAllVotePreferences,
-  insertVotePreference,
-  updateVotePreference,
-  getVotePreference,
-  deleteVotePreference,
-  getVotePreferencesForVote,
-} from "./db/vote-preference";
-import {
-  countVotesForRace,
-  getAllVotesForRace,
-  insertVote,
-  updateVote,
-  getAllVotesByUser,
-  getVoteByUserAndRace,
-  deleteVote,
-  getVoteAggregateForRace,
-} from "./db/vote";
+import { countUsers, getAllUsers, insertUser, updateUser, getUser, getUserByEmail, deleteUser } from "./db/user";
+import { getAllVotePreferences, insertVotePreference, updateVotePreference, getVotePreference, deleteVotePreference, getVotePreferencesForVote } from "./db/vote-preference";
+import { countVotesForRace, getAllVotesForRace, insertVote, updateVote, getAllVotesByUser, getVoteByUserAndRace, deleteVote, getVoteAggregateForRace } from "./db/vote";
 import { seedMasterSeat, devSeeds, seedPositions, seedRaces } from "./seed";
 import * as schema from "./schema";
 import { eq } from "drizzle-orm";
@@ -107,7 +56,7 @@ export class VotingObject extends DurableObject {
         await seedRaces(this.db, positionIds);
       }
 
-      if (env.ENVIRONMENT === "dev") {
+      if (env.ENVIRONMENT !== "prod") {
         devSeeds(this.db);
       }
     });
