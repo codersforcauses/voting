@@ -94,9 +94,9 @@ const Vote = ({ logout }: { logout: () => void }) => {
               </AccordionTrigger>
               <AccordionContent className="gap-4 flex flex-col">
                 <div className="flex gap-2 text-xs">
-                  {nominations.map(({ positions }) => (
+                  {nominations?.map(({ positions }) => (
                     <div className="bg-accent text-accent-foreground py-1 px-2">
-                      {positions.title}
+                      {positions?.title}
                     </div>
                   ))}
                 </div>
