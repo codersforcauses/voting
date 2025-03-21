@@ -51,6 +51,9 @@ export default function Results() {
 
   return (
     <main className="flex flex-col gap-3 justify-center items-center h-screen">
+      {!currentRace && (
+        <img src="/qr-code.png" alt="Voting website QR code"></img>
+      )}
       {currentRace?.race.status === "closed" && (
         <>
           <div className="text-2xl">Nominees</div>

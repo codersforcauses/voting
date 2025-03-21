@@ -63,17 +63,10 @@ export function AppSidebar({
         title: "Results",
         icon: "how_to_reg",
         items:
-          [
-            {
-              title: "Overview",
-              url: "#result=all",
-            },
-          ].concat(
-            positions.map(({ title, id }) => ({
-              title,
-              url: `#result=${id}?title=${encodeURI(title)}`,
-            }))
-          ) ?? [],
+          positions.map(({ title, id }) => ({
+            title,
+            url: `#result=${id}?title=${encodeURI(title)}`,
+          }))
       },
     ],
   };

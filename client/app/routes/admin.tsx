@@ -103,14 +103,21 @@ export default function Admin() {
     currentPage = "Seats";
     CurrentView = Seats;
   } else {
-    const title = decodeURI(hash.split("?")[1].split("=")[1]);
-
-    if (hash.includes("nomination")) {
-      currentPage = `Nomination - ${title}`;
-      CurrentView = Nominations;
-    } else if (hash.includes("result")) {
-      currentPage = `Result - ${title}`;
-      CurrentView = Results;
+    const param = hash.split("?")[1]
+    if (param) {
+      const title = decodeURI(param.split("=")[1]);
+      if (hash.includes("nomination")) {
+        currentPage = `Nomination - ${title}`;
+        CurrentView = Nominations;
+      } else if (hash.includes("result")) {
+        currentPage = `Result - ${title}`;
+        CurrentView = Results;
+      }
+    } else {
+      if (hash.includes("result")) {
+        currentPage = 'All Results'
+        CurrentView = Results;
+      }
     }
   }
 
