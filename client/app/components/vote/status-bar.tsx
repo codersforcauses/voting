@@ -99,12 +99,14 @@ const StatusBar = ({
       });
       return res;
     },
+    onSuccess: () => {
+      setDrawerIsOpen(false);
+    },
   });
 
   const onSubmit = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
     mutateAsync(order);
-    setDrawerIsOpen(false);
   };
 
   if (status === "open") {

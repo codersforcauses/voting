@@ -19,7 +19,7 @@ export const links: Route.LinksFunction = () => [];
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 10,
+      staleTime: 1000 * 5,
     },
   },
 });

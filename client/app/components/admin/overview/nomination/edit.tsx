@@ -36,11 +36,13 @@ const NominationEdit = ({ id, close }: EditForm) => {
         method: "PATCH",
         body: JSON.stringify(data),
       });
-      const val = await response.json();
-      return val;
+      return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["nominees", "all"] });
+      queryClient.invalidateQueries({
+        queryKey: ["nominees", "all"],
+        exact: true,
+      });
       close();
     },
   });

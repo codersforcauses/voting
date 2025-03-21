@@ -142,7 +142,10 @@ const CandidateTable = ({
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["nominees", "all"] });
+      queryClient.invalidateQueries({
+        queryKey: ["nominees", "all"],
+        exact: true,
+      });
     },
   });
 
@@ -274,11 +277,7 @@ const CandidateTable = ({
         </div>
       </div>
       <Dialog open={editCandidateID !== -1} onOpenChange={closeEditDialog}>
-        <NominationEdit
-          key={editCandidateID}
-          id={editCandidateID}
-          close={closeEditDialog}
-        />
+        <NominationEdit id={editCandidateID} close={closeEditDialog} />
       </Dialog>
     </div>
   );

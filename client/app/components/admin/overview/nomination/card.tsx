@@ -13,7 +13,7 @@ import { useToken } from "@/lib/user";
 
 const NominationCard = () => {
   const token = useToken();
-  const { data, refetch, isRefetching } = useQuery({
+  const { data, refetch, isRefetching, isPending } = useQuery({
     queryKey: ["nominees", "all"],
     queryFn: async () => {
       const response = await fetch(`${BASE_URL}/candidate`, {
@@ -24,6 +24,7 @@ const NominationCard = () => {
       });
       return response.json();
     },
+    refetchInterval: 3000,
   });
 
   const refetchCandidates = () => {
@@ -37,7 +38,7 @@ const NominationCard = () => {
         <CardDescription></CardDescription>
       </CardHeader>
       <CardContent>
-        {data && (
+        {!isPending && (
           <CandidateTable
             candidates={data}
             refetch={refetchCandidates}
