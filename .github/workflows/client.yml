@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'client/**'
+      - '.github/workflows/client.yml'
 
 jobs:
   deploy:
@@ -21,9 +22,11 @@ jobs:
         run: pnpm install
       - name: Build
         run: pnpm build
+        env:
+          VITE_API_URL: https://openvote-api-prod.drub.workers.dev
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
+          workingDirectory: './client'
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-# Need to add API endpoint
