@@ -49,6 +49,21 @@ app.get(
   }
 );
 
+app.get("/:race_id", 
+  zValidator(
+    "param",
+    z.object({
+      race_id: z.number({ coerce: true }),
+    })
+  ),
+  requireAdmin,
+  async (c) => {
+    const { race_id } = c.req.valid("param");
+    const votes = await c.var.STUB.getVoteCollatedForRace(race_id)
+    return c.json(votes)
+  }
+)
+
 app.post(
   "/:race_id",
   zValidator(

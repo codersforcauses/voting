@@ -9,7 +9,7 @@ import { getRace, getAllRaces, insertRace, updateRace, deleteRace, getCurrentRac
 import { getSeat, insertSeat, deleteSeat, getSeatByCode } from "./db/seat";
 import { countUsers, getAllUsers, insertUser, updateUser, getUser, getUserByEmail, deleteUser } from "./db/user";
 import { getAllVotePreferences, insertVotePreference, updateVotePreference, getVotePreference, deleteVotePreference, getVotePreferencesForVote, getVotePreferenceForCandidate } from "./db/vote-preference";
-import { countVotesForRace, getAllVotesForRace, insertVote, updateVote, getAllVotesByUser, getVoteByUserAndRace, deleteVote, getVoteAggregateForRace } from "./db/vote";
+import { countVotesForRace, getAllVotesForRace, insertVote, updateVote, getAllVotesByUser, getVoteByUserAndRace, deleteVote, getVoteAggregateForRace, getVoteCollatedForRace } from "./db/vote";
 import { seedMasterSeat, devSeeds, seedPositions, seedRaces } from "./seed";
 import * as schema from "./schema";
 import { eq } from "drizzle-orm";
@@ -322,6 +322,10 @@ export class VotingObject extends DurableObject {
 
   getVoteAggregateForRace(...args: Parameters<typeof getVoteAggregateForRace>) {
     return getVoteAggregateForRace.call(this, ...args);
+  }
+
+  getVoteCollatedForRace(...args: Parameters<typeof getVoteCollatedForRace>) {
+    return getVoteCollatedForRace.call(this, ...args);
   }
 
   // Elected

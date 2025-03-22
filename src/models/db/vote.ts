@@ -69,6 +69,16 @@ export function getVoteAggregateForRace(this: VotingObject, id: number) {
   return votesWithPreferences.reduce(reduceFunction, {});
 }
 
+export function getVoteCollatedForRace(this: VotingObject, id: number) {
+  const votesCollated = this.db.query.votesTable.findMany({
+    with: {
+      votePreferences: true
+    }
+  })
+
+  return votesCollated
+}
+
 export function deleteVote(this: VotingObject, id: number) {
   return this.db.delete(votesTable).where(eq(votesTable.id, id)).returning();
 }
