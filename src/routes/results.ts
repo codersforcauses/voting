@@ -41,10 +41,15 @@ async (c) => {
   if (role === "admin") {
     return c.json(previouslyElected);
   } else {
-    const data = previouslyElected.map((elected) => ({
-      id: elected.candidates?.id,
-      name: elected.candidates?.name
-    }));
+    const data = previouslyElected.map((result) =>{
+      return {
+        elected: result.elected,
+        candidates: {
+          id: result.candidates?.id,
+          name: result.candidates?.name
+        }
+      }
+    });
     return c.json(data);
   }
 });
