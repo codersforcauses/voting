@@ -23,13 +23,34 @@ export default class PreferentialBlock extends Race {
   }
 
   /**
+   * 
    */
   count() {
+    while (this.candidates.size > this.openings) {
+      // todo : work out how to count the votes properly for this method.
+      // inheriting from the race class was maybe the wrong abstraction.
+      
+      let count = this.countVotes()
+      this.transferEliminatedVotes(count)
+    }
+    
+    let elected = []
+    
+    for (let [c, votes] of this.candidates) {
+      elected.push({
+        candidate: c,
+        count: votes.length,
+        tv: -1,
+        votes: votes,
+      })
+    }
+    
+    return elected
   }
   
   /**
-   * Sets the vote to the next preference that has not been eliminated or 
-   * elected in the current race. If no preference is available, the vote is 
+   * Sets the vote to the next preference that has not been eliminated
+   * in the current race. If no preference is available, the vote is 
    * discarded.
    */
   private nextValidPreference(v: Vote): void {
@@ -40,49 +61,10 @@ export default class PreferentialBlock extends Race {
         let tmp = this.candidates.get(next) ?? [];
         tmp.push(v);
         this.candidates.set(next, tmp);
-
         return;
       }
     } while (next); // If next is undefined it means there's no more candidates
     return; // Vote is discarded
-  }
-
-  /**
-   * Checks whether any candidate's vote count exceeds the quota. If so, deletes 
-   * the candidate from this.candidates (the candidate map).
-   */
-  private findElectedCandidates(count: Count[], quota: number): TransferValue[] {
-    let elected: TransferValue[] = [];
-
-    for (const c of count) {
-      if (c.count >= quota) {
-        elected.push({
-          candidate: c.candidate,
-          tv: -1,
-          votes: this.candidates.get(c.candidate)!,
-          count: c.count,
-        });
-        this.candidates.delete(c.candidate);
-      } else if (c.count < quota && c.count > quota - 0.1) {
-        console.warn("WARNING POSSIBLE FLOAT ARTEFACT: ", c);
-      }
-    }
-    return elected;
-  }
-
-  /** 
-   * Moves all the votes of an elected candidate to the next preference.
-   */
-  private transferElectedVotes(buffer: TransferValue[]) {
-    // A candidate was elected so transfer their votes to the next candidate
-    for (let c of buffer) {
-      if (c.tv > 0) {
-        for (let v of c.votes) {
-          v.value *= c.tv;
-          this.nextValidPreference(v);
-        }
-      }
-    }
   }
 
   /**
