@@ -4,7 +4,8 @@
     "db:generate": "drizzle-kit generate",
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify --env prod --keep-vars",
-    "deploy:secrets": "wrangler secret bulk .dev.vars.prod --env prod"
+    "deploy:secrets": "wrangler secret bulk .dev.vars.prod --env prod",
+    "test": "playwright test"
   },
   "dependencies": {
     "@clerk/backend": "1.25.3",
