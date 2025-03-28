@@ -1,6 +1,7 @@
 import HareClark from "./hare-clark";
 import Race from "./race";
 import { Candidate, Seat } from "./types";
+import PreferentialBlock from "./preferential-block";
 import Vote from "./vote";
 
 export function autocount<C extends Candidate>(
@@ -17,4 +18,4 @@ export function autocount<C extends Candidate>(
 }
 
 
-export { Vote, Race, HareClark, Seat, Candidate };
+export { Vote, Race, HareClark, Seat, Candidate, PreferentialBlock };
