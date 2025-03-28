@@ -1,7 +1,7 @@
 import { eq, ne } from "drizzle-orm";
 import { VotingObject } from "..";
 import { positionsTable, racesTable } from "../schema";
-import { autocount } from "@/lib/count";
+import { autocount } from "@/lib/election-system";
 
 export function getRace(this: VotingObject, id: number) {
   return this.db.select().from(racesTable).where(eq(racesTable.id, id));

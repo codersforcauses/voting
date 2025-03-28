@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { autocount } from "../../src/lib/count";
+import { autocount } from "@/lib/election-system";
 import { data } from "./count.data";
 
 test.describe("Count Votes", () => {
