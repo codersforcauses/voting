@@ -1,0 +1,31 @@
+# Bun configuration file
+# https://bun.sh/docs/runtime/bunfig
+
+[install]
+# Use exact versions for better reproducibility
+exact = true
+
+# Auto-install peer dependencies
+auto = true
+
+# Use the official npm registry
+registry = "https://registry.npmjs.org"
+
+# Install production dependencies only in production
+production = false
+
+[install.cache]
+# Cache downloaded packages
+disable = false
+
+[test]
+# Test configuration
+preload = []
+coverage = false
+
+[run]
+# Hot reload for development
+hot = true
+
+# Shell to use for running scripts
+shell = "/bin/sh"

@@ -9,14 +9,19 @@
     "lib": ["ESNext"],
     "types": ["bun-types"],
     "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true
+    "noEmit": true,
+    "composite": true,
+
+    /* Path Aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": [],
-  "references": [
-    { "path": "./api" },
-    { "path": "./client" }
-  ]
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

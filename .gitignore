@@ -1,10 +1,18 @@
-# prod
+# Build outputs
 dist/
-drizzle
+build/
+out/
+*.tsbuildinfo
+drizzle/
 
-# dev
+# Dependencies
+node_modules/
 .yarn/
 !.yarn/releases
+.pnp
+.pnp.js
+
+# IDEs
 .vscode/*
 !.vscode/launch.json
 !.vscode/*.code-snippets
@@ -12,18 +20,25 @@ drizzle
 .idea/usage.statistics.xml
 .idea/shelf
 .nova/
+*.swp
+*.swo
+*~
 
-# deps
-node_modules/
-.wrangler
-
-# env
+# Environment variables
 .env
+.env.local
+.env.*.local
 .env.production
 .dev.vars
 .dev.vars.prod
 
-# logs
+# Database
+*.db
+*.db-shm
+*.db-wal
+voting.db
+
+# Logs
 logs/
 *.log
 npm-debug.log*
@@ -32,11 +47,24 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# misc
+# OS
 .DS_Store
+Thumbs.db
 
-# Playwright
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
+# Bun
+.bun/
+
+# Cloudflare (legacy)
+.wrangler/
+wrangler.toml
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Compiled binary
+openvote
