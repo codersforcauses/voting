@@ -1,4 +1,4 @@
-import { UserData } from "@/types"
+import { UserData } from "@/shared/types"
 import { APIRequestContext, Page } from "@playwright/test"
 
 export const getAccessToken = async (role: 'user' | 'admin', request: APIRequestContext, page: Page) => {

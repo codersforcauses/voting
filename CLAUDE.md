@@ -4,40 +4,59 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-OpenVote is a full-stack election management system for the CFC AGM, built on Cloudflare's serverless infrastructure. It implements preferential voting systems (Hare-Clark/instant runoff) for conducting elections.
+OpenVote is a full-stack election management system for the CFC AGM. The backend is a standalone API server running on Bun, platform-agnostic and deployable to any hosting provider.
 
 **Stack:**
-- **Backend:** Cloudflare Workers + Durable Objects with Hono for routing
-- **Database:** SQLite via Drizzle ORM (running in Durable Objects)
-- **Frontend:** React Router v7 with React Query and Shadcn UI
-- **Authentication:** JWT-based auth with Clerk integration
-- **Testing:** Playwright for UI and API tests
-- **Package Manager:** pnpm (v9.15.2)
+- **Backend**: Hono.js (routing/middleware), Drizzle ORM (PostgreSQL), Zod (validation)
+- **Frontend**: React Router 7, TanStack Query, Shadcn UI components, Tailwind CSS
+- **Database**: PostgreSQL
+- **Runtime**: Bun (platform-agnostic)
+- **Testing**: Playwright
 
 ## Development Commands
 
-### Backend (API)
+### Monorepo Structure
+The project uses a workspace-based monorepo with `api/` and `client/` subdirectories.
+
+### API (Backend)
 ```bash
-# Install dependencies
-pnpm install
+# Development server with hot reload
+bun --filter api dev
+# or from root
+bun dev
 
-# Generate Drizzle migrations
-npx drizzle-kit generate
+# Build
+bun --filter api build
 
-# Run local development server (with hot reload)
-pnpm run dev
+# Tests (Playwright)
+bun --filter api test
+# or from root
+bun test
+
+# Type checking
+bun --filter api typecheck
+
+# Database operations
+bun db:generate    # Generate migrations from schema
+bun db:migrate     # Run migrations
+bun db:studio      # Open Drizzle Studio
 ```
 
-### Frontend
+### Client (Frontend)
 ```bash
-cd client
-pnpm install
+# Development server
+bun --filter client dev
+# or from root
+bun dev:client
 
-# Type check
-pnpm typecheck
+# Build
+bun --filter client build
 
-# Run development server
-pnpm run dev
+# Type checking
+bun --filter client typecheck
+
+# Run both API and client concurrently
+bun dev:all
 ```
 
 ### Testing
@@ -46,126 +65,222 @@ pnpm run dev
 pnpm exec playwright install
 
 # Run all tests
-pnpm test
+bun test
 ```
 
-### Deployment
-```bash
-# Deploy API to Cloudflare Workers (production)
-pnpm run deploy
+## Code Architecture
 
-# Deploy secrets (requires .dev.vars.prod file)
-pnpm run deploy:secrets
+### Backend Module Structure (Rewrite Branch)
+
+The codebase is currently being refactored from a centralized structure to a **module-based architecture**. Each domain is organized into self-contained modules:
+
+```
+api/src/
+├── {module}/           # e.g., race, vote, user, position, candidate, etc.
+│   ├── schema.ts       # Drizzle table definitions, relations, and DB queries
+│   ├── handlers.ts     # Handler functions using factory.createHandlers()
+│   └── routes.ts       # Hono route definitions using factory.createApp()
+├── shared/
+│   ├── app.ts          # Factory setup (createFactory from hono/factory)
+│   ├── lib/
+│   │   └── election-system/   # Vote counting algorithms
+│   │       ├── hare-clark.ts  # Hare-Clark STV implementation
+│   │       ├── preferential-block.ts  # Block voting method
+│   │       ├── race.ts        # Base race logic
+│   │       ├── vote.ts        # Vote representation
+│   │       └── index.ts       # Exports autocount() function
+│   ├── middleware/
+│   │   └── auth.ts      # authenticate, requireUser, requireAdmin middleware
+│   └── types.ts         # Shared TypeScript types
+├── db.ts               # Drizzle database instance
+└── index.ts            # App entry point, middleware setup, route mounting
 ```
 
-## Architecture
+**Important Notes:**
+- **Schema files** (`schema.ts`) contain both Drizzle schema definitions AND database query functions
+- **Factory pattern**: All modules import `factory` from `@/shared/app` for consistent middleware/handler creation
+- **Drizzle config**: Uses glob pattern `./src/**/schema.ts` to find all schema files across modules
 
-### Durable Objects Pattern
+### Module Pattern
 
-The application uses a **single Durable Object instance** (`VotingObject`) per environment that acts as both the database and state manager. This is initialized using `VOTING_OBJECT.idFromName(ENVIRONMENT)` in `src/middleware/db.ts:7`, ensuring all requests hit the same instance.
+Each module follows this pattern:
 
-**Key implications:**
-- Database operations are synchronous within the Durable Object
-- All API routes access the DB through the `STUB` variable (set by `addStub` middleware)
-- The Durable Object provides both database methods and WebSocket broadcast functionality
-- Migrations run automatically on Durable Object initialization via `blockConcurrencyWhile` in `src/models/index.ts:41-62`
+1. **schema.ts**: Defines database table, relations, and CRUD operations
+   - Example: `getRace()`, `getAllRaces()`, `insertRace()`, `updateRace()`, `deleteRace()`
+   - May include complex business logic (e.g., `saveElectedForRace()` in race/schema.ts)
 
-### Database Layer
+2. **handlers.ts**: Uses `factory.createHandlers()` to group validation with handler logic
+   - Import `factory` from `@/shared/app`
+   - Validation middleware (e.g., `zValidator`) is passed to `factory.createHandlers()`
+   - Handler function receives properly typed context with validation results
+   - Export handler arrays with descriptive names (e.g., `getAllRacesHandlers`)
+   - Example:
+     ```typescript
+     import { factory } from "@/shared/app";
+     import { zValidator } from "@hono/zod-validator";
+     import { z } from "zod";
 
-**Location:** `src/models/`
+     const raceIdSchema = z.object({
+       id: z.number({ coerce: true }),
+     });
 
-The database is structured around elections:
-- **Users:** Voters with roles (user/admin) linked to seats via one-to-one relationship
-- **Seats:** Access codes for joining elections
-- **Positions:** Elected roles (e.g., President, Treasurer) with priority and openings count
-- **Candidates:** Applicants with detailed nomination information
-- **Nominations:** Many-to-many relationship between candidates and positions
-- **Races:** Specific election instances for a position (status: closed/open/finished)
-- **Votes:** User votes for races with timestamp tracking
-- **Vote Preferences:** Ranked preferences for candidates within a vote
-- **Elected:** Winners of completed races
+     export const getRaceHandlers = factory.createHandlers(
+       zValidator("param", raceIdSchema),
+       async (c) => {
+         const { id } = c.req.valid("param"); // Properly typed from validation
+         const race = await c.var.STUB.getRace(id);
+         return c.json(race);
+       }
+     );
+     ```
 
-All database operations are exposed as methods on the `VotingObject` class (e.g., `getAllUsers()`, `insertVote()`, etc.). These delegate to functions in `src/models/db/` subdirectories.
+3. **routes.ts**: Defines route paths and spreads handler arrays
+   - Uses `factory.createApp()` to create Hono app instance
+   - Authorization middleware (`authenticate`, `requireAdmin`, `requireUser`) applied in routes
+   - Spreads handler arrays using spread operator (`...`)
+   - Example:
+     ```typescript
+     import { factory } from "@/shared/app";
+     import { requireAdmin } from "@/shared/middleware/auth";
+     import { getRaceHandlers, updateRaceHandlers } from "@/race/handlers";
 
-### Election System
+     const app = factory.createApp();
 
-**Location:** `src/lib/election-system/`
+     app.get("/:id", ...getRaceHandlers);
+     app.patch("/:id", requireAdmin, ...updateRaceHandlers);
 
-Implements preferential voting algorithms:
-- **Hare-Clark:** Multi-candidate proportional representation (used when openings > 1)
-- **Instant Runoff:** Single-winner preferential voting (Hare-Clark with 1 opening)
-- **Preferential Block:** Alternative voting system (work in progress per recent commits)
+     export default app;
+     ```
 
-The `autocount()` function in `src/lib/election-system/index.ts` is the main entry point, accepting vote data keyed by seat and returning elected candidates with tally history.
+**Key Principles:**
+- **Separation of concerns**: Authorization middleware stays in routes.ts (runs first), validation/business logic in handlers.ts
+- **Type safety**: `factory.createHandlers()` provides proper TypeScript inference from middleware context
+- **Co-location**: Validation schemas and handlers are grouped together for better maintainability
 
-### API Routes
+### Authentication & Authorization
 
-**Location:** `src/routes/`
+- **JWT-based auth** using `hono/jwt`
+- **Middleware chain**:
+  - `authenticate`: Parses JWT from `Authorization: Bearer <token>`, sets `ID` and `ROLE` in context
+  - `requireUser`: Ensures user is authenticated
+  - `requireAdmin`: Ensures user has admin role
+- Token validated against `AUTH_SECRET_KEY` environment variable
 
-Routes follow RESTful patterns:
-- `auth.ts` - Login/signup with Clerk or seat codes, returns JWT
-- `user.ts` - User CRUD (admin only)
-- `position.ts` - Position management
-- `candidate.ts` - Candidate applications and management
-- `nomination.ts` - Link candidates to positions
-- `race.ts` - Race lifecycle (start/stop voting, view current race)
-- `vote.ts` - Submit and view votes
-- `results.ts` - Tally results and elect winners
-- `seat.ts` - Generate access codes
+### Election Counting System
 
-All routes use the `STUB` context variable to call Durable Object methods.
+Located in `api/src/shared/lib/election-system/`:
 
-### Middleware
+- **autocount()**: Main entry point, automatically selects appropriate counting method
+- **HareClark**: Hare-Clark STV (Single Transferable Vote) - used for multi-seat races
+  - Acts as instant-runoff when `openings = 1`
+  - Returns `{candidates, tally}` with elected candidates and count data
+- **PreferentialBlock**: Preferential block voting method (in development)
+- Vote data format: `Record<Seat, Candidate[]>` where each seat maps to ranked candidate IDs
 
-**Location:** `src/middleware/`
+### Database Schema Pattern
 
-- `db.ts` - Injects `STUB` (Durable Object instance) into context
-- `auth.ts` - JWT verification, `requireUser` and `requireAdmin` guards
-
-Middleware chain in `src/index.ts:21-25`: secure headers → CORS → add stub → logger → authenticate
+- Tables use `drizzle-orm/pg-core` (PostgreSQL)
+- Relations defined with `drizzle-orm` relations API
+- Schema files export table definitions AND query functions
+- Example from race/schema.ts:
+  ```typescript
+  export const racesTable = pgTable("race", {...})
+  export const racesRelations = relations(racesTable, {...})
+  export function getRace(id: number) {...}
+  ```
 
 ### Frontend Structure
 
-**Location:** `client/app/`
+- **React Router 7** file-based routing in `client/app/routes/`
+- **TanStack Query** for data fetching (see `client/app/components/vote/queries.ts`)
+- **Shadcn UI** components in `client/app/components/ui/`
+- Admin components organized in `client/app/components/admin/`
 
-- React Router v7 with file-based routing (`client/app/routes/`)
-- Shadcn UI components in `client/app/components/`
-- React Query for API state management
-- Path aliases configured (`@/` → `client/app/`)
+## Common Development Workflows
 
-### WebSocket Support
+### Adding a New API Module
 
-The application supports WebSockets for real-time updates (e.g., broadcasting race status changes). WebSocket connections are:
-- Established via `/ws` endpoint (bypasses secure headers middleware)
-- Managed by the Durable Object's `connections` Map
-- Broadcast with the `broadcast(message)` method
+1. Create module directory: `api/src/{module}/`
+2. Create `schema.ts` with Drizzle table definition and query functions
+3. Create `handlers.ts` with route handler logic
+4. Create `routes.ts` using `factory.createApp()` pattern
+5. Import and mount in `api/src/index.ts`: `app.route("/{module}", moduleRoutes)`
+6. Run `bun db:generate` to create migration
+7. Run `bun db:migrate` to apply migration
 
-## Development Patterns
+### Running a Single Test
 
-### Adding a New Database Table
+```bash
+# Run specific test file
+bun test api/tests/counting/count.spec.ts
 
-1. Define schema in `src/models/schema.ts` with relations
-2. Create CRUD operations in `src/models/db/[table-name].ts`
-3. Expose methods on `VotingObject` class in `src/models/index.ts`
-4. Generate migration: `npx drizzle-kit generate`
-5. Restart dev server to apply migration
+# Run tests matching a pattern
+bun test --grep "Block Voting"
+```
 
-### Path Aliases
+### Debugging Database Issues
 
-Backend uses `@/*` → `./src/*` (configured in `tsconfig.json:18`)
+```bash
+# Open Drizzle Studio to inspect database
+bun db:studio
 
-### Environment Variables
+# Check current schema
+cat api/drizzle/schema.sql
 
-Required secrets (set in Cloudflare dashboard or `.dev.vars` locally):
-- `CLERK_SECRET_KEY` - Clerk authentication secret
-- `AUTH_SECRET_KEY` - JWT signing key (generate with `openssl rand -base64 32`)
-- `INIT_SEAT` - Master seat code for initial access
-- `ENVIRONMENT` - "dev" or "prod"
+# Regenerate migrations if schema changed
+bun db:generate
+```
 
-## Voting System Implementation
+### Database Setup (PostgreSQL)
 
-When implementing or debugging voting logic:
-- Votes are stored as `vote_preferences` with a `preference` field (1 = first choice, 2 = second, etc.)
-- The `autocount()` function expects data as `Record<Seat, Candidate[]>` where arrays are ordered by preference
-- Tally history is returned as `Map<PropertyKey, number>[]` for each round of counting
-- Recent work (per git log) focuses on "preferential block voting" as an alternative to Hare-Clark
+The API uses PostgreSQL. **The database must be provisioned separately** before running migrations.
+
+```bash
+# 1. Ensure PostgreSQL is running and create the database
+createdb openvote
+
+# 2. Set DATABASE_URL in api/.env
+DATABASE_URL=postgresql://user:password@localhost:5432/openvote
+
+# 3. Generate and run migrations
+bun db:generate
+bun db:migrate
+
+# Optional: Open Drizzle Studio to verify
+bun db:studio
+```
+
+**Note**: Drizzle creates tables/schema but does NOT create the database itself. You must have a running PostgreSQL instance and database created before running migrations.
+
+## Deployment
+
+### Backend (Standalone API)
+
+**Required Environment Variables** (see `api/.env.example`):
+- `DATABASE_URL`: PostgreSQL connection string (e.g., `postgresql://user:password@host:5432/openvote`)
+- `AUTH_SECRET_KEY`: JWT signing key (generate with `openssl rand -base64 32`)
+- `INIT_SEAT`: Initial seat code for first-time setup
+- `CLERK_SECRET_KEY`: Clerk authentication secret (optional, for OAuth)
+- `PORT`: Server port (default: 3000)
+- `HOST`: Server host (default: 0.0.0.0)
+- `CORS_ORIGINS`: Allowed CORS origins (comma-separated)
+- `ENVIRONMENT`: Environment name (e.g., `dev`, `production`)
+
+**Deployment Steps**:
+1. Provision PostgreSQL database
+2. Set environment variables
+3. Run migrations: `bun db:migrate`
+4. Build: `bun --filter api build`
+5. Start: `bun --filter api start` (or deploy to your hosting provider)
+
+### Frontend
+Deploy the React application to your preferred static hosting provider (Vercel, Netlify, Cloudflare Pages, etc.).
+
+## Known Issues / TODO
+
+- **PreferentialBlock counting**: Block voting method is under development, test data needs to be created
+
+# Documentation
+
+Look in the .llms folder for full documentation on drizzle and hono.js
+If you're looking for specific documentation automatically use context7

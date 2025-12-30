@@ -1,3 +1,0 @@
-CLERK_SECRET_KEY="clerk_key"
-AUTH_SECRET_KEY="auth_key"
-INIT_SEAT="000000"

@@ -8,7 +8,7 @@
     "client"
   ],
   "scripts": {
-    "dev": "bun --filter api dev",
+    "dev": "bun --elide-lines=0 --filter api dev",
     "dev:client": "bun --filter client dev",
     "dev:all": "bun run --parallel dev dev:client",
     "build": "bun run build:api && bun run build:client",
@@ -24,5 +24,8 @@
   "devDependencies": {
     "@types/bun": "latest",
     "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "postgres": "^3.4.7"
   }
 }

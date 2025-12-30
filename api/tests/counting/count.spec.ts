@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { autocount } from "@/lib/election-system";
-import { PreferentialBlock } from "@/lib/election-system";
+import { autocount } from "@/shared/lib/election-system";
+import { PreferentialBlock } from "@/shared/lib/election-system";
 import { data } from "./count.data";
 // 
 // test.describe("Count Votes", () => {

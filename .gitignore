@@ -68,3 +68,7 @@ playwright/.cache/
 
 # Compiled binary
 openvote
+
+# LLMs
+.claude
+.llms
