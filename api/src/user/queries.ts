@@ -15,7 +15,7 @@ export function getAllUsers() {
     .leftJoin(seatsTable, eq(usersTable.seat_id, seatsTable.id));
 }
 
-export function getUser(id: string) {
+export function getUser(id: number) {
   return db.select().from(usersTable).where(eq(usersTable.id, id));
 }
 
@@ -30,7 +30,7 @@ export function insertUser(
 }
 
 export function updateUser(
-  id: string,
+  id: number,
   data: Partial<typeof usersTable.$inferInsert>
 ) {
   return db
@@ -40,6 +40,6 @@ export function updateUser(
     .returning();
 }
 
-export function deleteUser(id: string) {
+export function deleteUser(id: number) {
   return db.delete(usersTable).where(eq(usersTable.id, id)).returning();
 }

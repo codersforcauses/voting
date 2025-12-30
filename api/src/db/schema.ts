@@ -23,12 +23,12 @@ export const seatsTable = pgTable("seats", {
 
 export const usersTable = pgTable("users",
   {
-    id: varchar({ length: 255 }).primaryKey(),
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
     email: varchar({ length: 255 }).notNull().unique(),
-    preferred_name: varchar({ length: 255 }).notNull(),
-    name: varchar({ length: 255 }).notNull(),
+    preferred_name: varchar({ length: 255 }),
+    name: varchar({ length: 255 }),
     student_num: varchar({ length: 255 }).unique(),
-    role: varchar({ length: 50, enum: ["user", "admin"] }).default("user"),
+    role: varchar({ length: 50, enum: ["user", "admin"] }).default("user").notNull(),
     seat_id: integer()
   },
   (usersTable) => [index("seat_idx").on(usersTable.seat_id)]
