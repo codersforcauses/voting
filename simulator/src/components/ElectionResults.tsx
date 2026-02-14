@@ -1,16 +1,84 @@
+import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { StackedBarChart } from '@/components/visualizations/StackedBarChart'
 import { LineChart } from '@/components/visualizations/LineChart'
 import { SankeyDiagram } from '@/components/visualizations/SankeyDiagram'
 import { WaterfallChart } from '@/components/visualizations/WaterfallChart'
-import { RawView, type ElectionResultsProps } from './visualizations/RawView'
+import { RawView } from './visualizations/RawView'
+import { useElection } from '@/components/ElectionContext'
+import { autocount } from '@/lib/election-system'
 
-export function ElectionResults({ results, votes }: ElectionResultsProps) {
+export function ElectionResults() {
+  const { voters, candidates, votes } = useElection()
+  const [openings, setOpenings] = useState(2)
+
+  const results = useMemo(() => {
+    const voteData: Record<string, string[]> = {}
+    Object.entries(votes).forEach(([voter, preferences]) => {
+      if (preferences.length > 0) {
+        voteData[voter] = preferences
+      }
+    })
+
+    if (Object.keys(voteData).length === 0) return null
+
+    try {
+      const { candidates: winners, tally } = autocount(voteData, openings)
+      const totalVotes = Object.keys(voteData).length
+      const quota = Math.floor(totalVotes / (openings + 1)) + 1
+      return { winners, tally, quota }
+    } catch (error) {
+      console.error('Error counting votes:', error)
+      return null
+    }
+  }, [votes, openings])
+
+  const votesCast = Object.keys(votes).filter(v => votes[v].length > 0).length
+
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Election Configuration</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="openings">Number of Positions (Openings)</Label>
+            <Input
+              id="openings"
+              type="number"
+              min="1"
+              max={candidates.length}
+              value={openings}
+              onChange={(e) => setOpenings(parseInt(e.target.value) || 1)}
+            />
+            <p className="text-xs text-muted-foreground">
+              {openings === 1 ? 'Single winner (Instant Runoff)' : `${openings} winners (Hare-Clark STV)`}
+            </p>
+          </div>
+          <Separator />
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Total Voters:</span>
+              <span className="font-semibold">{voters.length}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Votes Cast:</span>
+              <span className="font-semibold">{votesCast}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Total Candidates:</span>
+              <span className="font-semibold">{candidates.length}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Election Results</CardTitle>

@@ -1,26 +1,68 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { useElection } from '@/components/ElectionContext'
+import { RefreshCw, SquareCheck, Square } from 'lucide-react'
 
-interface VotingTableProps {
-  voters: string[]
-  candidates: string[]
-  votes: Record<string, string[]>
-  onCellClick: (voterId: string, candidateId: string) => void
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
 }
 
-export function VotingTable({ voters, candidates, votes, onCellClick }: VotingTableProps) {
+export function VotingTable() {
+  const { voters, candidates, votes, toggleVote, setVoterPreferences, updateVotes } = useElection()
+
   const getPreferenceNumber = (voterId: string, candidateId: string): number | null => {
     const voterPreferences = votes[voterId] || []
     const index = voterPreferences.indexOf(candidateId)
     return index === -1 ? null : index + 1
   }
 
+  const handleCandidateClick = (candidateId: string) => {
+    const allHave = voters.every(v => (votes[v] || []).includes(candidateId))
+    if (allHave) {
+      updateVotes(prev => {
+        const next: Record<string, string[]> = {}
+        for (const [voter, prefs] of Object.entries(prev)) {
+          next[voter] = prefs.filter(c => c !== candidateId)
+        }
+        return next
+      })
+    } else {
+      updateVotes(prev => {
+        const next = { ...prev }
+        for (const voter of voters) {
+          const prefs = next[voter] || []
+          if (!prefs.includes(candidateId)) {
+            next[voter] = [...prefs, candidateId]
+          }
+        }
+        return next
+      })
+    }
+  }
+
+  const handleVoterClick = (voterId: string) => {
+    const prefs = votes[voterId] || []
+    const unselected = candidates.filter(c => !prefs.includes(c))
+    if (unselected.length > 0) {
+      setVoterPreferences(voterId, [...prefs, ...shuffle(unselected)])
+    } else {
+      setVoterPreferences(voterId, shuffle(prefs))
+    }
+  }
+
+  const handleTableHeaderClick = () => {
+    voters.forEach(voterId => handleVoterClick(voterId))
+  }
+
   const getPreferenceGradient = (preference: number): string => {
-    // Calculate opacity: preference 1 = 100%, then gradually decrease
-    // Using a scale where preference 1 is darkest (100%) and it gets lighter
     const maxPreferences = candidates.length
-    const opacity = 1 - ((preference - 1) / maxPreferences) * 0.8 // Range from 100% to 30%
+    const opacity = 1 - ((preference - 1) / maxPreferences) * 0.8
     return `rgba(150, 200, 250, ${opacity})`
   }
 
@@ -31,15 +73,27 @@ export function VotingTable({ voters, candidates, votes, onCellClick }: VotingTa
         <p className="text-sm text-muted-foreground">Click cells to set voter preferences (click again to remove)</p>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="w-full h-[600px]">
+        <ScrollArea className="w-full h-full">
           <div className="min-w-[600px]">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="sticky left-0 z-10 bg-muted">Voter</TableHead>
+                  <TableHead className="h-24 flex flex-col justify-center align-center bg-muted group cursor-pointer" onClick={() => handleTableHeaderClick()}>
+                    <span className="text-center text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity">Randomise All</span>
+                  </TableHead>
                   {candidates.map((candidate) => (
-                    <TableHead key={candidate} className="text-center min-w-[100px]">
-                      {candidate}
+                    <TableHead
+                      key={candidate}
+                      className="text-center min-w-[100px] cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleCandidateClick(candidate)}
+                    >
+                      <div className="flex flex-col items-center justify-center group">
+                        {candidate}
+                        {voters.every(v => (votes[v] || []).includes(candidate))
+                          ? <Square className="size-3 text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          : <SquareCheck className="size-3 text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        }
+                      </div>
                     </TableHead>
                   ))}
                 </TableRow>
@@ -47,19 +101,25 @@ export function VotingTable({ voters, candidates, votes, onCellClick }: VotingTa
               <TableBody>
                 {voters.map((voter) => (
                   <TableRow key={voter}>
-                    <TableCell className="font-medium sticky left-0 z-10 bg-background">
-                      {voter}
+                    <TableCell
+                      className="h-24 font-medium sticky left-0 z-10 bg-background cursor-pointer hover:bg-muted group"
+                      onClick={() => handleVoterClick(voter)}
+                    >
+                      <div className="flex flex-col items-center justify-between">
+                        <span>{voter}</span>
+                        <RefreshCw className="size-3 text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
                     </TableCell>
                     {candidates.map((candidate) => {
                       const preference = getPreferenceNumber(voter, candidate)
                       const isSelected = preference !== null
 
                       return (
-                        <TableCell key={`${voter}-${candidate}`} className="p-0">
+                        <TableCell key={`${voter}-${candidate}`} className="p-0 relative">
                           <button
-                            onClick={() => onCellClick(voter, candidate)}
+                            onClick={() => toggleVote(voter, candidate)}
                             className={`
-                              w-full h-16 transition-all duration-150 font-semibold text-lg
+                              absolute inset-0 transition-all duration-150 font-semibold text-lg
                               ${isSelected
                                 ? 'text-white'
                                 : 'bg-background hover:bg-muted text-muted-foreground'

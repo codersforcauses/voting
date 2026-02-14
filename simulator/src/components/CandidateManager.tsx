@@ -4,19 +4,15 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { X } from 'lucide-react'
+import { useElection } from '@/components/ElectionContext'
 
-interface CandidateManagerProps {
-  candidates: string[]
-  onAddCandidate: (name: string) => void
-  onRemoveCandidate: (name: string) => void
-}
-
-export function CandidateManager({ candidates, onAddCandidate, onRemoveCandidate }: CandidateManagerProps) {
+export function CandidateManager() {
+  const { candidates, addCandidate, removeCandidate } = useElection()
   const [newCandidateName, setNewCandidateName] = useState('')
 
   const handleAdd = () => {
     if (newCandidateName.trim()) {
-      onAddCandidate(newCandidateName.trim())
+      addCandidate(newCandidateName.trim())
       setNewCandidateName('')
     }
   }
@@ -45,7 +41,7 @@ export function CandidateManager({ candidates, onAddCandidate, onRemoveCandidate
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onRemoveCandidate(candidate)}
+                onClick={() => removeCandidate(candidate)}
                 className="h-4 w-4 p-0 hover:bg-transparent"
               >
                 <X className="h-3 w-3" />
