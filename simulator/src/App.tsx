@@ -10,14 +10,14 @@ import { ElectionResults } from '@/components/ElectionResults'
 
 function App() {
   // Dynamic lists of voters and candidates
-  const [voters, setVoters] = useState<string[]>(['Alice', 'Bob', 'Carol', 'David', 'Eve', 'Frank'])
-  const [candidates, setCandidates] = useState<string[]>(['Candidate A', 'Candidate B', 'Candidate C', 'Candidate D', 'Candidate E'])
+  const [voters, setVoters] = useState<string[]>(['vA', 'vB', 'vC', 'vD', 'vE', 'vF', 'vG', 'vH', 'vI', 'vJ'])
+  const [candidates, setCandidates] = useState<string[]>(['c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'])
 
   // State: Record<voterId, candidateId[]> - stores preference order for each voter
   const [votes, setVotes] = useState<Record<string, string[]>>({})
 
   // Number of positions to fill (openings)
-  const [openings, setOpenings] = useState(1)
+  const [openings, setOpenings] = useState(2)
 
   // Calculate election results
   const results = useMemo(() => {
@@ -103,9 +103,9 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen p-8 bg-background">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">Election Simulator</h1>
+        <h1 className="text-3xl text-primary font-bold mb-2">Election Simulator</h1>
         <p className="text-muted-foreground mb-6">Interactive voting system with Hare-Clark STV counting</p>
 
         <Tabs defaultValue="setup" className="w-full">

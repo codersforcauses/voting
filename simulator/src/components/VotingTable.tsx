@@ -20,8 +20,8 @@ export function VotingTable({ voters, candidates, votes, onCellClick }: VotingTa
     // Calculate opacity: preference 1 = 100%, then gradually decrease
     // Using a scale where preference 1 is darkest (100%) and it gets lighter
     const maxPreferences = candidates.length
-    const opacity = 1 - ((preference - 1) / maxPreferences) * 0.7 // Range from 100% to 30%
-    return `rgba(0, 0, 0, ${opacity})`
+    const opacity = 1 - ((preference - 1) / maxPreferences) * 0.8 // Range from 100% to 30%
+    return `rgba(150, 200, 250, ${opacity})`
   }
 
   return (
