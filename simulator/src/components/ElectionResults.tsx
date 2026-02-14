@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { StackedBarChart } from '@/components/visualizations/StackedBarChart'
 import { LineChart } from '@/components/visualizations/LineChart'
 import { SankeyDiagram } from '@/components/visualizations/SankeyDiagram'
@@ -28,10 +29,10 @@ export function ElectionResults() {
     if (Object.keys(voteData).length === 0) return null
 
     try {
-      const { candidates: winners, tally } = autocount(voteData, openings)
+      const { candidates: winners, tally, transferValues } = autocount(voteData, openings)
       const totalVotes = Object.keys(voteData).length
       const quota = Math.floor(totalVotes / (openings + 1)) + 1
-      return { winners, tally, quota }
+      return { winners, tally, quota, transferValues }
     } catch (error) {
       console.error('Error counting votes:', error)
       return null
@@ -112,6 +113,24 @@ export function ElectionResults() {
                   <span className="font-medium">Quota to be elected:</span>
                   <Badge variant="default">{results.quota} votes</Badge>
                 </div>
+                <Accordion type="single" collapsible className="mt-1">
+                  <AccordionItem value="formula" className="border-none">
+                    <AccordionTrigger className="py-1 text-xs text-muted-foreground hover:no-underline">
+                      Droop Quota Formula
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p className="font-mono">floor(total votes / (openings + 1)) + 1</p>
+                        <p className="font-mono">floor(<span className="text-foreground font-semibold">{votesCast}</span> / (<span className="text-foreground font-semibold">{openings}</span> + 1)) + 1 = <span className="text-foreground font-semibold">{results.quota}</span></p>
+                        <div className="mt-2 space-y-0.5">
+                          <p><span className="font-semibold text-foreground">{votesCast}</span> — total valid votes cast</p>
+                          <p><span className="font-semibold text-foreground">{openings}</span> — positions to fill</p>
+                          <p><span className="font-semibold text-foreground">{results.quota}</span> — votes needed to be elected</p>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
 
               {/* Visualizations */}
