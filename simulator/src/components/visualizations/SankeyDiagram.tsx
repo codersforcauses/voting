@@ -46,7 +46,7 @@ function buildSankeyData(
 
       let status: 'elected' | 'eliminated' | 'active' = 'active'
       if (isElected) status = 'elected'
-      if (isEliminated) status = 'eliminated'
+      else if (isEliminated) status = 'eliminated'
       if (isFinalRound && winnerSet.has(String(candidate))) status = 'elected'
 
       nodeIndex.set(key, nodes.length)
@@ -97,7 +97,7 @@ const STATUS_COLORS = {
 }
 
 const MARGIN = { top: 24, right: 120, bottom: 24, left: 120 }
-const WIDTH = 900
+const WIDTH = 1400
 
 export function SankeyDiagram({ tally, quota, winners }: SankeyDiagramProps) {
   const svgRef = useRef<SVGSVGElement>(null)
@@ -112,7 +112,7 @@ export function SankeyDiagram({ tally, quota, winners }: SankeyDiagramProps) {
     return Math.max(...counts.values(), 1)
   }, [data])
 
-  const height = Math.max(300, maxCandidatesInRound * 50 + MARGIN.top + MARGIN.bottom)
+  const height = Math.max(400, maxCandidatesInRound * 60 + MARGIN.top + MARGIN.bottom)
 
   useEffect(() => {
     if (!svgRef.current || data.nodes.length === 0) return
@@ -120,11 +120,26 @@ export function SankeyDiagram({ tally, quota, winners }: SankeyDiagramProps) {
     const svg = d3.select(svgRef.current)
     svg.selectAll('*').remove()
 
+    // Build a stable candidate rank from round 0 so ordering is consistent across rounds.
+    const round0Rank = new Map<string, number>()
+    data.nodes
+      .filter((n) => n.round === 0)
+      .sort((a, b) => b.votes - a.votes)
+      .forEach((n, i) => round0Rank.set(n.candidate, i))
+
     const sankeyGenerator = sankey<NodeExtra, LinkExtra>()
       .nodeId((((_d: SNode, i: number) => i) as unknown as (node: SNode) => string | number))
       .nodeWidth(16)
-      .nodePadding(12)
-      .nodeSort((a, b) => (b as SNode & NodeExtra).votes - (a as SNode & NodeExtra).votes)
+      .nodePadding(16)
+      .nodeSort((a, b) => {
+        const ra = round0Rank.get((a as SNode & NodeExtra).candidate) ?? 999
+        const rb = round0Rank.get((b as SNode & NodeExtra).candidate) ?? 999
+        return ra - rb
+      })
+      // Force each node into its correct round column regardless of graph topology.
+      // Without this, isolated nodes (elected with no surplus, or 0-vote candidates)
+      // are treated as sinks and placed in the last column by d3-sankey.
+      .nodeAlign((node, n) => Math.min((node as SNode & NodeExtra).round, n - 1))
       .extent([
         [MARGIN.left, MARGIN.top],
         [WIDTH - MARGIN.right, height - MARGIN.bottom],
@@ -134,6 +149,54 @@ export function SankeyDiagram({ tally, quota, winners }: SankeyDiagramProps) {
       nodes: data.nodes.map((d) => ({ ...d })),
       links: data.links.map((d) => ({ ...d })),
     })
+
+    // Post-process orphan nodes (no links → value=0 → zero height in d3-sankey).
+    // Compute the pixel-per-vote scale from any connected node, then manually
+    // size and stack the orphans at the bottom of their column.
+    let votesScale = 0
+    for (const node of nodes) {
+      if ((node.value ?? 0) > 0 && (node.y1 ?? 0) > (node.y0 ?? 0)) {
+        votesScale = ((node.y1 ?? 0) - (node.y0 ?? 0)) / (node.value ?? 1)
+        break
+      }
+    }
+
+    const orphans = nodes.filter(
+      (n) => (n.sourceLinks?.length ?? 0) === 0 && (n.targetLinks?.length ?? 0) === 0,
+    )
+    if (orphans.length > 0) {
+      // Group orphans by round
+      const byRound = new Map<number, typeof nodes>()
+      for (const o of orphans) {
+        const r = (o as SNode & NodeExtra).round
+        byRound.set(r, [...(byRound.get(r) ?? []), o])
+      }
+      for (const [round, roundOrphans] of byRound.entries()) {
+        // Find the lowest y1 among connected nodes in the same column
+        const connected = nodes.filter(
+          (n) =>
+            (n as SNode & NodeExtra).round === round &&
+            ((n.sourceLinks?.length ?? 0) > 0 || (n.targetLinks?.length ?? 0) > 0),
+        )
+        const startY =
+          connected.length > 0
+            ? Math.max(...connected.map((n) => n.y1 ?? MARGIN.top)) + 12
+            : MARGIN.top
+
+        let y = startY
+        const sorted = [...roundOrphans].sort((a, b) => {
+          const ra = round0Rank.get((a as SNode & NodeExtra).candidate) ?? 999
+          const rb = round0Rank.get((b as SNode & NodeExtra).candidate) ?? 999
+          return ra - rb
+        })
+        for (const orphan of sorted) {
+          const h = votesScale > 0 ? Math.max(4, (orphan as SNode & NodeExtra).votes * votesScale) : 4
+          orphan.y0 = y
+          orphan.y1 = y + h
+          y += h + 12
+        }
+      }
+    }
 
     // Draw links
     svg
@@ -184,6 +247,18 @@ export function SankeyDiagram({ tally, quota, winners }: SankeyDiagramProps) {
       .attr('stroke-width', 1)
       .attr('rx', 2)
 
+    // Build vote-based rank per round to detect order changes.
+    const lastRound = data.nodes.reduce((max, n) => Math.max(max, n.round), 0)
+    const voteRankByRound = new Map<number, Map<string, number>>()
+    for (let r = 0; r <= lastRound; r++) {
+      const m = new Map<string, number>()
+      data.nodes
+        .filter((n) => n.round === r)
+        .sort((a, b) => b.votes - a.votes)
+        .forEach((n, i) => m.set(n.candidate, i))
+      voteRankByRound.set(r, m)
+    }
+    
     // Labels
     nodeGroup
       .append('text')
