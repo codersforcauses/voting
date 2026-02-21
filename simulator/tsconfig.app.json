@@ -27,8 +27,11 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@lib/*": [
+        "../lib/*"
       ]
     }
   },
-  "include": ["src"]
+  "include": ["src", "../lib"]
 }

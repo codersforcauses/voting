@@ -247,7 +247,7 @@ export default class HareClark extends Race {
    * discarded. Saves votes to the new candidate's parcel so transfer value
    * can be calculated later.
    */
-  private nextValidPreference(v: Vote): void {
+  private nextValidPreference(v: Vote, fromCandidate: Candidate): void {
     let next;
     do {
       next = v.next();
@@ -259,6 +259,8 @@ export default class HareClark extends Race {
         // Update the latest parcel
         const p = this.parcels.get(next) ?? 0;
         this.parcels.set(next, p + v.value);
+
+        this.recordTransfer(next, fromCandidate, 1, v.value);
         return;
       }
     } while (next); // If next is undefined it means there's no more candidates
@@ -302,7 +304,7 @@ export default class HareClark extends Race {
       if (c.tv > 0) {
         for (const v of c.votes) {
           v.value *= c.tv;
-          this.nextValidPreference(v);
+          this.nextValidPreference(v, c.candidate);
         }
       }
     }
@@ -321,7 +323,7 @@ export default class HareClark extends Race {
     this.candidates.delete(minCandidate.candidate);
 
     for (const v of candidateVotes) {
-      this.nextValidPreference(v);
+      this.nextValidPreference(v, minCandidate.candidate);
     }
   }
 }

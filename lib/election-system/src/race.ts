@@ -1,4 +1,4 @@
-import type { Candidate, Count, Seat, Sortable } from "./types";
+import type { Candidate, Count, Seat, Sortable, TallyEntry, Transfer } from "./types";
 import Vote from "./vote";
 
 /**
@@ -85,7 +85,8 @@ import Vote from "./vote";
 export default class Race {
   candidates: Map<Candidate, Vote[]> = new Map();
   votes: Map<Seat, Vote> = new Map();
-  countback: Map<Candidate, number>[] = [];
+  countback: Map<Candidate, TallyEntry>[] = [];
+  protected pendingTransfers: Map<Candidate, Transfer[]> = new Map();
 
   protected constructor(votes: Record<Seat, Candidate[]>) {
     // Convert the type if we get a record instead of a map
@@ -107,13 +108,19 @@ export default class Race {
     }
   }
 
+  protected recordTransfer(to: Candidate, from: Candidate, votes: number, weight: number) {
+    const transfers = this.pendingTransfers.get(to) ?? [];
+    transfers.push({ from, votes, weight });
+    this.pendingTransfers.set(to, transfers);
+  }
+
   /**
    * Counts the total votes held by each candidate currently. Votes with a
    * reduced transfer value are summed at their present value.
    */
   protected countVotes() {
     const result: Count[] = [];
-    const cb = new Map<Candidate, number>();
+    const cb = new Map<Candidate, TallyEntry>();
     for (const [c, votes] of this.candidates) {
       let count = 0;
 
@@ -124,10 +131,30 @@ export default class Race {
         candidate: c,
         count: count,
       });
-      cb.set(c, count);
+
+      // Aggregate pending transfers by source candidate
+      const rawTransfers = this.pendingTransfers.get(c) ?? [];
+      const aggregated = new Map<Candidate, { votes: number; totalValue: number }>();
+      for (const t of rawTransfers) {
+        const existing = aggregated.get(t.from);
+        if (existing) {
+          existing.votes += t.votes;
+          existing.totalValue += t.votes * t.weight;
+        } else {
+          aggregated.set(t.from, { votes: t.votes, totalValue: t.votes * t.weight });
+        }
+      }
+      const transfers: Transfer[] = Array.from(aggregated.entries()).map(([from, agg]) => ({
+        from,
+        votes: agg.votes,
+        weight: agg.votes > 0 ? agg.totalValue / agg.votes : 0,
+      }));
+
+      cb.set(c, { count, transfers });
     }
 
     this.countback.push(cb);
+    this.pendingTransfers = new Map();
     return result;
   }
 
@@ -155,8 +182,8 @@ export default class Race {
    */
   protected tieBreaker(i: Sortable, k: Sortable) {
     for (const previous of this.countback.toReversed()) {
-      const a = previous.get(i.candidate)!;
-      const b = previous.get(k.candidate)!;
+      const a = previous.get(i.candidate)!.count;
+      const b = previous.get(k.candidate)!.count;
       if (a < b) return 0;
       if (b < a) return 1;
     }

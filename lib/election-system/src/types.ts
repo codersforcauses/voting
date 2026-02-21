@@ -15,9 +15,20 @@ type TransferValue = {
   count: number;
 };
 
+type Transfer = {
+  from: Candidate;
+  votes: number;
+  weight: number;
+};
+
+type TallyEntry = {
+  count: number;
+  transfers: Transfer[];
+};
+
 interface Sortable {
   count: number;
   candidate: Candidate;
 }
 
-export type { Candidate, Seat, Count, Sortable, TransferValue };
+export type { Candidate, Seat, Count, Sortable, TransferValue, Transfer, TallyEntry };

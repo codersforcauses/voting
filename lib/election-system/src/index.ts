@@ -1,12 +1,17 @@
 import HareClark from "./hare-clark";
 import Race from "./race";
-import type { Candidate, Seat } from "./types";
+import type { Candidate, Seat, TallyEntry } from "./types";
 import PreferentialBlock from "./preferential-block";
 import Vote from "./vote";
 
 export function autocount<C extends Candidate>(
   data: Record<Seat, C[]>,
-  openings: number = 1): {candidates: C[], tally: Map<PropertyKey, number>[], transferValues: Map<string, number>} {
+  openings: number = 1
+): {
+  candidates: C[],
+  tally: Map<PropertyKey, TallyEntry>[],
+  transferValues: Map<string, number>
+} {
   // Multi-candidate race - use hare-clark
   // Hare-clark is a super-set of instant-run-off, so if used with only 1 opening
   // it just acts like instant run off anyway.

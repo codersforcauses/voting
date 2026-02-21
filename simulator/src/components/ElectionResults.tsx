@@ -6,13 +6,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { StackedBarChart } from '@/components/visualizations/StackedBarChart'
-import { LineChart } from '@/components/visualizations/LineChart'
 import { SankeyDiagram } from '@/components/visualizations/SankeyDiagram'
-import { WaterfallChart } from '@/components/visualizations/WaterfallChart'
 import { RawView } from './visualizations/RawView'
 import { useElection } from '@/components/ElectionContext'
-import { autocount } from '@/lib/election-system'
+import { autocount } from '@lib/election-system/src'
 
 export function ElectionResults() {
   const { voters, candidates, votes } = useElection()
@@ -135,11 +132,8 @@ export function ElectionResults() {
 
               {/* Visualizations */}
               <Tabs defaultValue="data" className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="data">Data</TabsTrigger>
-                  <TabsTrigger value="bar">Bar Chart</TabsTrigger>
-                  <TabsTrigger value="line">Line Chart</TabsTrigger>
-                  <TabsTrigger value="waterfall">Waterfall</TabsTrigger>
                   <TabsTrigger value="sankey">Sankey</TabsTrigger>
                 </TabsList>
 
@@ -147,34 +141,10 @@ export function ElectionResults() {
                   <RawView votes={votes} results={results}></RawView>
                 </TabsContent>
 
-                <TabsContent value="bar" className="mt-6">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <StackedBarChart tally={results.tally} quota={results.quota} />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="line" className="mt-6">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <LineChart tally={results.tally} quota={results.quota} />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="waterfall" className="mt-6">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <WaterfallChart tally={results.tally} quota={results.quota} />
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
                 <TabsContent value="sankey" className="mt-6">
                   <Card>
                     <CardContent className="pt-6">
-                      <SankeyDiagram votes={votes} tally={results.tally} />
+                      <SankeyDiagram tally={results.tally} quota={results.quota} winners={results.winners} />
                     </CardContent>
                   </Card>
                 </TabsContent>

@@ -53,7 +53,7 @@ export default class PreferentialBlock extends Race {
    * in the current race. If no preference is available, the vote is 
    * discarded.
    */
-  private nextValidPreference(v: Vote): void {
+  private nextValidPreference(v: Vote, fromCandidate: Candidate): void {
     let next;
     do {
       next = v.next();
@@ -61,6 +61,7 @@ export default class PreferentialBlock extends Race {
         const tmp = this.candidates.get(next) ?? [];
         tmp.push(v);
         this.candidates.set(next, tmp);
+        this.recordTransfer(next, fromCandidate, 1, v.value);
         return;
       }
     } while (next); // If next is undefined it means there's no more candidates
@@ -80,7 +81,7 @@ export default class PreferentialBlock extends Race {
     this.candidates.delete(minCandidate.candidate);
 
     for (const v of candidateVotes) {
-      this.nextValidPreference(v);
+      this.nextValidPreference(v, minCandidate.candidate);
     }
   }
 }

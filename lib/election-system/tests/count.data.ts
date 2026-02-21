@@ -6,7 +6,7 @@ export const data: {
   positions?: number;
 }[] = [
 	{
-        name: "Broken",
+        name: "Tiebreak test - Candidate 1 vs 12",
 		positions: 6,
         data: {
             "user_2dOx4f": [ 3, 6, 12, 15, 1, 2, 5, 7, 9, 13, 17, 18 ],

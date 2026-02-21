@@ -4,10 +4,12 @@ import { CheckCircle, XCircle } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
+import type { TallyEntry } from '@lib/election-system/src/types'
+
 export interface ElectionResultsProps {
   results: {
     winners: unknown[]
-    tally: Map<unknown, number>[]
+    tally: Map<unknown, TallyEntry>[]
     quota: number
     transferValues: Map<string, number>
   }
@@ -39,11 +41,12 @@ export function RawView({ results, votes }: ElectionResultsProps) {
               <AccordionContent>
                 <div className="space-y-2 pt-2">
                   {Array.from(round.entries())
-                    .sort(([, a], [, b]) => b - a)
-                    .map(([candidate, count]) => {
+                    .sort(([, a], [, b]) => b.count - a.count)
+                    .map(([candidate, entry]) => {
+                      const count = entry.count
                       const meetsQuota = count >= results.quota
                       const candidateKey = String(candidate)
-                      const prevCount = prevRound?.get(candidate) ?? null
+                      const prevCount = prevRound?.get(candidate)?.count ?? null
                       const pointChange = prevCount !== null ? count - prevCount : null
                       const removedNextRound = nextRoundKeys !== null && !nextRoundKeys.has(candidateKey)
                       const isElected = meetsQuota
@@ -119,7 +122,9 @@ export function RawView({ results, votes }: ElectionResultsProps) {
               <pre className="bg-muted p-4 rounded text-sm">
                 {JSON.stringify(
                   results.tally.map(round =>
-                    Object.fromEntries(round.entries())
+                    Object.fromEntries(
+                      Array.from(round.entries()).map(([k, v]) => [String(k), v])
+                    )
                   ),
                   null,
                   2

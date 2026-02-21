@@ -1,216 +1,247 @@
-import { useEffect, useRef } from 'react'
+import { useRef, useEffect, useMemo } from 'react'
 import * as d3 from 'd3'
-import { sankey, sankeyLinkHorizontal } from 'd3-sankey'
-import type { SankeyNode } from 'd3-sankey'
+import { sankey, sankeyLinkHorizontal, type SankeyNode, type SankeyLink } from 'd3-sankey'
+import type { TallyEntry } from '@lib/election-system/src/types'
 
 interface SankeyDiagramProps {
-  votes: Record<string, string[]>
-  tally: Map<unknown, number>[]
+  tally: Map<PropertyKey, TallyEntry>[]
+  quota: number
+  winners: unknown[]
 }
 
-interface NodeData {
-  name: string
+interface NodeExtra {
+  candidate: string
+  round: number
+  votes: number
+  status: 'elected' | 'eliminated' | 'active'
 }
 
-interface LinkData {
-  source: number
-  target: number
-  value: number
+interface LinkExtra {
+  type: 'retained' | 'transfer'
 }
 
-export function SankeyDiagram({ votes, tally }: SankeyDiagramProps) {
-  const svgRef = useRef<SVGSVGElement>(null)
+type SNode = SankeyNode<NodeExtra, LinkExtra>
+type SLink = SankeyLink<NodeExtra, LinkExtra>
 
-  useEffect(() => {
-    if (!svgRef.current || !tally.length || Object.keys(votes).length === 0) return
+function buildSankeyData(
+  tally: Map<PropertyKey, TallyEntry>[],
+  quota: number,
+  winners: unknown[]
+): { nodes: NodeExtra[]; links: (LinkExtra & { source: number; target: number; value: number })[] } {
+  const winnerSet = new Set(winners.map(String))
+  const nodes: NodeExtra[] = []
+  const links: (LinkExtra & { source: number; target: number; value: number })[] = []
+  const nodeIndex = new Map<string, number>()
 
-    // Clear previous chart
-    d3.select(svgRef.current).selectAll('*').remove()
+  // Create nodes for each candidate in each round
+  for (let r = 0; r < tally.length; r++) {
+    const round = tally[r]
+    const nextRound = r < tally.length - 1 ? tally[r + 1] : null
 
-    const margin = { top: 20, right: 200, bottom: 20, left: 20 }
-    const width = 1000 - margin.left - margin.right
-    const height = 600 - margin.top - margin.bottom
+    for (const [candidate, entry] of round.entries()) {
+      const key = `${String(candidate)}-r${r}`
+      const isElected = entry.count >= quota
+      const isEliminated = nextRound !== null && !nextRound.has(candidate)
+      const isFinalRound = r === tally.length - 1
 
-    const svg = d3.select(svgRef.current)
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`)
+      let status: 'elected' | 'eliminated' | 'active' = 'active'
+      if (isElected) status = 'elected'
+      if (isEliminated) status = 'eliminated'
+      if (isFinalRound && winnerSet.has(String(candidate))) status = 'elected'
 
-    // Build Sankey data from vote preferences
-    const nodes: NodeData[] = []
-    const links: LinkData[] = []
-    const nodeMap = new Map<string, number>()
-
-    // Get all unique candidates
-    const allCandidates = new Set<string>()
-    Object.values(votes).forEach(prefs => {
-      prefs.forEach(candidate => allCandidates.add(candidate))
-    })
-
-    const candidates = Array.from(allCandidates)
-
-    // Create nodes for each preference position
-    const maxPrefs = Math.max(...Object.values(votes).map(v => v.length))
-
-    for (let pref = 0; pref < maxPrefs; pref++) {
-      candidates.forEach(candidate => {
-        const nodeName = `${candidate} (Pref ${pref + 1})`
-        nodeMap.set(nodeName, nodes.length)
-        nodes.push({ name: nodeName })
-      })
+      nodeIndex.set(key, nodes.length)
+      nodes.push({ candidate: String(candidate), round: r, votes: entry.count, status })
     }
+  }
 
-    // Create links based on vote flows
-    Object.values(votes).forEach(preferences => {
-      for (let i = 0; i < preferences.length - 1; i++) {
-        const sourceNode = `${preferences[i]} (Pref ${i + 1})`
-        const targetNode = `${preferences[i + 1]} (Pref ${i + 2})`
+  // Create links between rounds using exact transfer data
+  for (let r = 0; r < tally.length - 1; r++) {
+    const currentRound = tally[r]
+    const nextRound = tally[r + 1]
 
-        const sourceIndex = nodeMap.get(sourceNode)
-        const targetIndex = nodeMap.get(targetNode)
+    for (const [candidate, entry] of nextRound.entries()) {
+      const targetKey = `${String(candidate)}-r${r + 1}`
+      const targetIdx = nodeIndex.get(targetKey)!
 
-        if (sourceIndex !== undefined && targetIndex !== undefined) {
-          // Find existing link or create new one
-          const existingLink = links.find(
-            l => l.source === sourceIndex && l.target === targetIndex
-          )
-
-          if (existingLink) {
-            existingLink.value += 1
-          } else {
-            links.push({
-              source: sourceIndex,
-              target: targetIndex,
-              value: 1
-            })
-          }
+      // Exact transfer links from the tally's transfer data
+      let transferredIn = 0
+      for (const transfer of entry.transfers) {
+        const value = transfer.votes * transfer.weight
+        transferredIn += value
+        const sourceKey = `${String(transfer.from)}-r${r}`
+        const sourceIdx = nodeIndex.get(sourceKey)
+        if (sourceIdx !== undefined && value > 0.001) {
+          links.push({ source: sourceIdx, target: targetIdx, value, type: 'transfer' })
         }
       }
+
+      // Retained votes = votes carried over from the same candidate in the previous round
+      if (currentRound.has(candidate)) {
+        const retained = entry.count - transferredIn
+        if (retained > 0.001) {
+          const sourceKey = `${String(candidate)}-r${r}`
+          const sourceIdx = nodeIndex.get(sourceKey)!
+          links.push({ source: sourceIdx, target: targetIdx, value: retained, type: 'retained' })
+        }
+      }
+    }
+  }
+
+  return { nodes, links }
+}
+
+const STATUS_COLORS = {
+  elected: { fill: '#16a34a', stroke: '#15803d' },
+  eliminated: { fill: '#dc2626', stroke: '#b91c1c' },
+  active: { fill: '#a3a3a3', stroke: '#737373' },
+}
+
+const MARGIN = { top: 24, right: 120, bottom: 24, left: 120 }
+const WIDTH = 900
+
+export function SankeyDiagram({ tally, quota, winners }: SankeyDiagramProps) {
+  const svgRef = useRef<SVGSVGElement>(null)
+
+  const data = useMemo(() => buildSankeyData(tally, quota, winners), [tally, quota, winners])
+
+  const maxCandidatesInRound = useMemo(() => {
+    const counts = new Map<number, number>()
+    for (const n of data.nodes) {
+      counts.set(n.round, (counts.get(n.round) ?? 0) + 1)
+    }
+    return Math.max(...counts.values(), 1)
+  }, [data])
+
+  const height = Math.max(300, maxCandidatesInRound * 50 + MARGIN.top + MARGIN.bottom)
+
+  useEffect(() => {
+    if (!svgRef.current || data.nodes.length === 0) return
+
+    const svg = d3.select(svgRef.current)
+    svg.selectAll('*').remove()
+
+    const sankeyGenerator = sankey<NodeExtra, LinkExtra>()
+      .nodeId((((_d: SNode, i: number) => i) as unknown as (node: SNode) => string | number))
+      .nodeWidth(16)
+      .nodePadding(12)
+      .nodeSort((a, b) => (b as SNode & NodeExtra).votes - (a as SNode & NodeExtra).votes)
+      .extent([
+        [MARGIN.left, MARGIN.top],
+        [WIDTH - MARGIN.right, height - MARGIN.bottom],
+      ])
+
+    const { nodes, links } = sankeyGenerator({
+      nodes: data.nodes.map((d) => ({ ...d })),
+      links: data.links.map((d) => ({ ...d })),
     })
 
-    // Create the Sankey generator
-    const sankeyGenerator = sankey<NodeData, LinkData>()
-      .nodeWidth(15)
-      .nodePadding(10)
-      .extent([[0, 0], [width, height]])
+    // Draw links
+    svg
+      .append('g')
+      .attr('fill', 'none')
+      .selectAll('path')
+      .data(links)
+      .join('path')
+      .attr('d', sankeyLinkHorizontal())
+      .attr('stroke', (d) => {
+        const source = d.source as SNode & NodeExtra
+        const link = d as SLink & LinkExtra
+        if (link.type === 'transfer') {
+          return source.status === 'eliminated' ? '#ef444480' : '#22c55e60'
+        }
+        return '#ffffff18'
+      })
+      .attr('stroke-width', (d) => Math.max(1, d.width ?? 1))
+      .attr('opacity', 0.6)
+      .on('mouseover', function () {
+        d3.select(this).attr('opacity', 0.9)
+      })
+      .on('mouseout', function () {
+        d3.select(this).attr('opacity', 0.6)
+      })
 
-    // Generate the Sankey layout
-    const { nodes: sankeyNodes, links: sankeyLinks } = sankeyGenerator({
-      nodes: nodes.map(d => ({ ...d })),
-      links: links.map(d => ({ ...d }))
-    })
+    // Draw nodes
+    const nodeGroup = svg
+      .append('g')
+      .selectAll('g')
+      .data(nodes)
+      .join('g')
 
-    // Color scale based on candidate
-    const colorScale = d3.scaleOrdinal<string>()
-      .domain(candidates)
-      .range(d3.schemeTableau10)
+    nodeGroup
+      .append('rect')
+      .attr('x', (d) => d.x0 ?? 0)
+      .attr('y', (d) => d.y0 ?? 0)
+      .attr('height', (d) => Math.max(1, (d.y1 ?? 0) - (d.y0 ?? 0)))
+      .attr('width', (d) => (d.x1 ?? 0) - (d.x0 ?? 0))
+      .attr('fill', (d) => {
+        const node = d as SNode & NodeExtra
+        return STATUS_COLORS[node.status].fill
+      })
+      .attr('stroke', (d) => {
+        const node = d as SNode & NodeExtra
+        return STATUS_COLORS[node.status].stroke
+      })
+      .attr('stroke-width', 1)
+      .attr('rx', 2)
 
-    // Helper to get candidate name from node name
-    const getCandidateName = (nodeName: string) => {
-      return nodeName.split(' (Pref')[0]
+    // Labels
+    nodeGroup
+      .append('text')
+      .attr('x', (d) => ((d.x0 ?? 0) < WIDTH / 2 ? (d.x1 ?? 0) + 8 : (d.x0 ?? 0) - 8))
+      .attr('y', (d) => ((d.y1 ?? 0) + (d.y0 ?? 0)) / 2)
+      .attr('dy', '0.35em')
+      .attr('text-anchor', (d) => ((d.x0 ?? 0) < WIDTH / 2 ? 'start' : 'end'))
+      .attr('fill', '#e5e5e5')
+      .attr('font-size', '12px')
+      .attr('font-family', 'ui-monospace, monospace')
+      .text((d) => {
+        const node = d as SNode & NodeExtra
+        return `${node.candidate} (${node.votes.toFixed(1)})`
+      })
+
+    // Round labels
+    const roundXPositions = new Map<number, { x0: number; x1: number }>()
+    for (const node of nodes) {
+      const n = node as SNode & NodeExtra
+      if (!roundXPositions.has(n.round)) {
+        roundXPositions.set(n.round, { x0: node.x0 ?? 0, x1: node.x1 ?? 0 })
+      }
     }
 
-    // Add links
-    const link = svg.append('g')
-      .selectAll('.link')
-      .data(sankeyLinks)
-      .join('path')
-      .attr('class', 'link')
-      .attr('d', sankeyLinkHorizontal())
-      .attr('stroke', d => {
-        const candidateName = getCandidateName((d.source as SankeyNode<NodeData, LinkData>).name)
-        return colorScale(candidateName)
-      })
-      .attr('stroke-width', d => Math.max(1, d.width || 0))
-      .attr('fill', 'none')
-      .attr('opacity', 0.3)
-
-    // Add link hover effects
-    link
-      .on('mouseover', function(event, d) {
-        d3.select(this)
-          .attr('opacity', 0.7)
-          .attr('stroke-width', (d.width || 0) + 2)
-
-        // Show tooltip
-        svg.append('text')
-          .attr('class', 'tooltip')
-          .attr('x', ((d.source as SankeyNode<NodeData, LinkData>).x1 || 0 + (d.target as SankeyNode<NodeData, LinkData>).x0! || 0) / 2)
-          .attr('y', ((d.source as SankeyNode<NodeData, LinkData>).y1 || 0 + (d.target as SankeyNode<NodeData, LinkData>).y0! || 0) / 2)
-          .attr('text-anchor', 'middle')
-          .style('font-size', '12px')
-          .style('font-weight', 'bold')
-          .style('fill', '#000')
-          .text(`${d.value} vote${d.value > 1 ? 's' : ''}`)
-      })
-      .on('mouseout', function() {
-        d3.select(this)
-          .attr('opacity', 0.3)
-          .attr('stroke-width', (d) => Math.max(1, d.width || 0))
-
-        svg.selectAll('.tooltip').remove()
-      })
-
-    // Add nodes
-    const node = svg.append('g')
-      .selectAll('.node')
-      .data(sankeyNodes)
-      .join('g')
-      .attr('class', 'node')
-
-    node.append('rect')
-      .attr('x', d => d.x0 || 0)
-      .attr('y', d => d.y0 || 0)
-      .attr('height', d => (d.y1 || 0) - (d.y0 || 0))
-      .attr('width', d => (d.x1 || 0) - (d.x0 || 0))
-      .attr('fill', d => {
-        const candidateName = getCandidateName(d.name)
-        return colorScale(candidateName)
-      })
-      .attr('stroke', '#000')
-      .attr('stroke-width', 1)
-
-    // Add node labels
-    node.append('text')
-      .attr('x', d => (d.x0 || 0) < width / 2 ? (d.x1 || 0) + 6 : (d.x0 || 0) - 6)
-      .attr('y', d => ((d.y1 || 0) + (d.y0 || 0)) / 2)
-      .attr('dy', '0.35em')
-      .attr('text-anchor', d => (d.x0 || 0) < width / 2 ? 'start' : 'end')
-      .style('font-size', '11px')
-      .text(d => {
-        const votes = d.value || 0
-        return votes > 0 ? `${getCandidateName(d.name)} (${votes})` : ''
-      })
-      .filter(d => (d.y1 || 0) - (d.y0 || 0) > 15)
-
-    // Add title
-    svg.append('text')
-      .attr('x', width / 2)
-      .attr('y', -5)
-      .attr('text-anchor', 'middle')
-      .style('font-size', '16px')
-      .style('font-weight', 'bold')
-      .text('Preference Flow Diagram')
-
-    // Add preference labels
-    const prefLevels = Array.from(new Set(nodes.map(n => n.name.match(/Pref (\d+)/)?.[1]))).filter(Boolean)
-    prefLevels.forEach((pref, i) => {
-      svg.append('text')
-        .attr('x', (width / (prefLevels.length + 1)) * (i + 1))
-        .attr('y', height + 15)
+    for (const [round, pos] of roundXPositions.entries()) {
+      svg
+        .append('text')
+        .attr('x', (pos.x0 + pos.x1) / 2)
+        .attr('y', MARGIN.top - 8)
         .attr('text-anchor', 'middle')
-        .style('font-size', '12px')
-        .style('font-weight', 'bold')
-        .style('fill', '#666')
-        .text(`Preference ${pref}`)
-    })
+        .attr('fill', '#a3a3a3')
+        .attr('font-size', '11px')
+        .attr('font-weight', '600')
+        .text(`Round ${round + 1}`)
+    }
+  }, [data, height])
 
-  }, [votes, tally])
+  if (data.nodes.length === 0) {
+    return <p className="text-muted-foreground text-sm">Not enough data to visualize.</p>
+  }
 
   return (
-    <div className="w-full overflow-x-auto">
-      <svg ref={svgRef} className="mx-auto"></svg>
+    <div className="overflow-x-auto">
+      <div className="flex items-center gap-4 mb-4 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS.elected.fill }} />
+          Elected
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS.eliminated.fill }} />
+          Eliminated
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: STATUS_COLORS.active.fill }} />
+          Active
+        </span>
+      </div>
+      <svg ref={svgRef} width={WIDTH} height={height} className="w-full" viewBox={`0 0 ${WIDTH} ${height}`} />
     </div>
   )
 }
